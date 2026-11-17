@@ -11,19 +11,22 @@ const text = {
 type Detail = Record<string, any>;
 export default function SpareParts({companyId,products,warehouses,suppliers,role,lang,onSaved}:Props){
  const t=text[lang]; const canWrite=["owner","admin","manager","warehouse"].includes(role);
- const [details,setDetails]=useState<Detail[]>([]); const [reservations,setReservations]=useState<any[]>([]); const [balances,setBalances]=useState<any[]>([]);
+ const [details,setDetails]=useState<Detail[]>([]); const [reservations,setReservations]=useState<any[]>([]); const [balances,setBalances]=useState<any[]>([]); const [compat,setCompat]=useState<any[]>([]); const [quotes,setQuotes]=useState<any[]>([]); const [repairs,setRepairs]=useState<any[]>([]); const [compatForm,setCompatForm]=useState<Detail>({quantity_per_equipment:1}); const [quoteForm,setQuoteForm]=useState<Detail>({currency:"DZD",minimum_order_quantity:1}); const [repairForm,setRepairForm]=useState<Detail>({status:"sent",currency:"DZD"});
  const [loading,setLoading]=useState(true); const [saving,setSaving]=useState(false); const [search,setSearch]=useState(""); const [editing,setEditing]=useState<string|null>(null);
  const [form,setForm]=useState<Detail>({part_type:"consumable",criticality:"medium",safety_stock:"0",is_repairable:false});
  const [issue,setIssue]=useState<Detail>({}); const [reserve,setReserve]=useState<Detail>({});
  const load=useCallback(async()=>{
   setLoading(true);
-  const [d,r,b]=await Promise.all([
+  const [d,r,b,co,qu,re]=await Promise.all([
    supabase!.from("spare_part_details").select("*, products(id,sku,name,unit,min_stock,purchase_price), suppliers(name)").eq("company_id",companyId).order("created_at",{ascending:false}),
    supabase!.from("spare_part_reservations").select("*, products(name,sku), warehouses(name)").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100),
-   supabase!.from("stock_balances").select("product_id,warehouse_id,quantity_on_hand").eq("company_id",companyId)
+   supabase!.from("stock_balances").select("product_id,warehouse_id,quantity_on_hand").eq("company_id",companyId),
+   supabase!.from("spare_part_equipment_compatibility").select("*").eq("company_id",companyId).order("created_at",{ascending:false}),
+   supabase!.from("spare_part_supplier_quotes").select("*, suppliers(name), products(name,sku)").eq("company_id",companyId).order("last_quoted_at",{ascending:false}),
+   supabase!.from("spare_part_repair_cycles").select("*, products(name,sku)").eq("company_id",companyId).order("created_at",{ascending:false})
   ]);
-  const err=[d,r,b].find(x=>x.error); if(err) throw err.error;
-  setDetails(d.data||[]);setReservations(r.data||[]);setBalances(b.data||[]);setLoading(false);
+  const err=[d,r,b,co,qu,re].find(x=>x.error); if(err) throw err.error;
+  setDetails(d.data||[]);setReservations(r.data||[]);setBalances(b.data||[]);setCompat(co.data||[]);setQuotes(qu.data||[]);setRepairs(re.data||[]);setLoading(false);
  },[companyId]);
  useEffect(()=>{void load().catch(()=>setLoading(false));},[load]);
  const rows=useMemo(()=>details.filter(x=>[x.products?.sku,x.products?.name,x.part_number,x.manufacturer,x.equipment_tag,x.equipment_model].join(" ").toLowerCase().includes(search.toLowerCase())),[details,search]);
@@ -44,6 +47,11 @@ export default function SpareParts({companyId,products,warehouses,suppliers,role
   if(error)throw error;setReserve({});await load();
  }catch(e:any){alert(e.message);}finally{setSaving(false);}}
  async function changeReservation(id:string,status:"issued"|"cancelled"){const {error}=await supabase!.rpc("update_spare_part_reservation",{p_company_id:companyId,p_reservation_id:id,p_action:status==="issued"?"issue":"cancel"});if(error)alert(error.message);else{await load();await onSaved();}}
+
+ async function addCompatibility(e:React.FormEvent){e.preventDefault();if(!canWrite)return;setSaving(true);try{const {error}=await supabase!.from("spare_part_equipment_compatibility").insert({company_id:companyId,product_id:compatForm.product_id,equipment_tag:compatForm.equipment_tag||null,equipment_name:compatForm.equipment_name||null,equipment_family:compatForm.equipment_family||null,equipment_model:compatForm.equipment_model||null,manufacturer:compatForm.manufacturer||null,quantity_per_equipment:Number(compatForm.quantity_per_equipment||1),is_critical:!!compatForm.is_critical,notes:compatForm.notes||null});if(error)throw error;setCompatForm({quantity_per_equipment:1});await load();}catch(e:any){alert(e.message);}finally{setSaving(false);}}
+ async function addQuote(e:React.FormEvent){e.preventDefault();if(!canWrite)return;setSaving(true);try{const {error}=await supabase!.from("spare_part_supplier_quotes").insert({company_id:companyId,product_id:quoteForm.product_id,supplier_id:quoteForm.supplier_id,supplier_part_number:quoteForm.supplier_part_number||null,unit_price:Number(quoteForm.unit_price),currency:quoteForm.currency||"DZD",minimum_order_quantity:Number(quoteForm.minimum_order_quantity||1),lead_time_days:quoteForm.lead_time_days===""?null:Number(quoteForm.lead_time_days),last_quoted_at:quoteForm.last_quoted_at||new Date().toISOString().slice(0,10),is_preferred:!!quoteForm.is_preferred,warranty_months:quoteForm.warranty_months===""?null:Number(quoteForm.warranty_months),notes:quoteForm.notes||null});if(error)throw error;setQuoteForm({currency:"DZD",minimum_order_quantity:1});await load();}catch(e:any){alert(e.message);}finally{setSaving(false);}}
+ async function addRepair(e:React.FormEvent){e.preventDefault();if(!canWrite)return;setSaving(true);try{const {error}=await supabase!.from("spare_part_repair_cycles").insert({company_id:companyId,product_id:repairForm.product_id,serial_or_asset_number:repairForm.serial_or_asset_number||null,equipment_tag:repairForm.equipment_tag||null,sent_to_repair_at:repairForm.sent_to_repair_at||new Date().toISOString().slice(0,10),repair_vendor:repairForm.repair_vendor||null,fault_description:repairForm.fault_description||null,repair_cost:repairForm.repair_cost===""?null:Number(repairForm.repair_cost),currency:repairForm.currency||"DZD",expected_return_date:repairForm.expected_return_date||null,status:repairForm.status||"sent",notes:repairForm.notes||null});if(error)throw error;setRepairForm({status:"sent",currency:"DZD"});await load();}catch(e:any){alert(e.message);}finally{setSaving(false);}}
+ async function updateRepair(id:string,status:string){const {error}=await supabase!.from("spare_part_repair_cycles").update({status,...(status==="returned"?{returned_at:new Date().toISOString().slice(0,10)}:{})}).eq("id",id).eq("company_id",companyId);if(error)alert(error.message);else await load();}
  const criticalCount=details.filter(d=>d.criticality==="critical"||d.criticality==="high").length;
  const lowCount=details.filter(d=>stockFor(d.product_id)-reservedFor(d.product_id)<=Number(d.safety_stock||0)).length;
  const activeReservations=reservations.filter(r=>r.status==="reserved").length;
