@@ -3,18 +3,19 @@ import type { FormEvent } from "react";
 import {
   Activity, ArrowUpRight, Boxes, Building2, ChevronDown, CircleHelp,
   LayoutDashboard, LogOut, Package, Plus, Search, Settings,
-  ShoppingBag, ShoppingCart, Truck, Users, Warehouse, X, Languages, ShieldCheck, UserCog
+  ShoppingBag, ShoppingCart, Truck, Users, Warehouse, X, Languages, ShieldCheck, UserCog, Tags, ArrowLeftRight, ClipboardCheck, RotateCcw, Receipt, BarChart3
 } from "lucide-react";
+import StockOperations from "./StockOperations";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 import type { Company, Product } from "./lib/supabase";
 
-type Page = "dashboard" | "products" | "stock" | "warehouses" | "suppliers" | "customers" | "purchases" | "sales" | "users";
+type Page = "dashboard" | "products" | "categories" | "stock" | "warehouses" | "suppliers" | "customers" | "purchases" | "sales" | "transfers" | "inventory" | "returns" | "expenses" | "reports" | "users";
 type Lang = "fr" | "en" | "ar";
 type Notice = { type: "success" | "error"; text: string } | null;
 
 const copy = {
   fr: {
-    dashboard:"Tableau de bord", products:"Articles", stock:"Mouvements de stock", warehouses:"Entrepôts", users:"Utilisateurs",
+    dashboard:"Tableau de bord", products:"Articles", categories:"Catégories", stock:"Mouvements de stock", warehouses:"Entrepôts", transfers:"Transferts", inventory:"Inventaires", returns:"Retours", expenses:"Dépenses", reports:"Rapports", users:"Utilisateurs",
     suppliers:"Fournisseurs", customers:"Clients", purchases:"Achats", sales:"Ventes",
     search:"Rechercher un article, un code...", welcome:"Vue d'ensemble", subtitle:"Suivez votre activité et votre stock en temps réel.",
     items:"Articles actifs", suppliersCount:"Fournisseurs", warehousesCount:"Entrepôts", movements:"Mouvements",
@@ -38,7 +39,7 @@ const copy = {
     margin:"Marge théorique", purchaseOrders:"Commandes d'achat", invoices:"Factures de vente",
   },
   en: {
-    dashboard:"Dashboard", products:"Products", stock:"Stock movements", warehouses:"Warehouses", users:"Users", suppliers:"Suppliers",
+    dashboard:"Dashboard", products:"Products", categories:"Categories", stock:"Stock movements", warehouses:"Warehouses", transfers:"Transfers", inventory:"Stock counts", returns:"Returns", expenses:"Expenses", reports:"Reports", users:"Users", suppliers:"Suppliers",
     customers:"Customers", purchases:"Purchases", sales:"Sales", search:"Search products or SKU...", welcome:"Overview",
     subtitle:"Monitor your business and stock in real time.", items:"Active products", suppliersCount:"Suppliers",
     warehousesCount:"Warehouses", movements:"Movements", recent:"Recently added products", all:"View all",
@@ -59,7 +60,7 @@ const copy = {
     language:"Language", profile:"My workspace", margin:"Estimated margin", purchaseOrders:"Purchase orders", invoices:"Sales invoices",
   },
   ar: {
-    dashboard:"لوحة التحكم", products:"المنتجات", stock:"حركات المخزون", warehouses:"المخازن", users:"المستخدمون", suppliers:"الموردون",
+    dashboard:"لوحة التحكم", products:"المنتجات", categories:"الفئات", stock:"حركات المخزون", warehouses:"المخازن", transfers:"التحويلات", inventory:"الجرد", returns:"المرتجعات", expenses:"المصاريف", reports:"التقارير", users:"المستخدمون", suppliers:"الموردون",
     customers:"العملاء", purchases:"المشتريات", sales:"المبيعات", search:"ابحث عن منتج أو مرجع...",
     welcome:"نظرة عامة", subtitle:"تابع نشاطك ومخزونك في الوقت الفعلي.", items:"المنتجات النشطة",
     suppliersCount:"الموردون", warehousesCount:"المخازن", movements:"الحركات", recent:"آخر المنتجات المضافة",
@@ -92,7 +93,7 @@ const nav: { id: Page; icon: typeof LayoutDashboard; group: string }[] = [
   { id:"suppliers", icon:Truck, group:"partners" },
   { id:"customers", icon:Users, group:"partners" },
   { id:"purchases", icon:ShoppingCart, group:"operations" },
-  { id:"sales", icon:ShoppingBag, group:"operations" },
+  { id:"sales", icon:ShoppingBag, group:"operations" },\n  { id:"returns", icon:RotateCcw, group:"operations" },\n  { id:"expenses", icon:Receipt, group:"operations" },\n  { id:"reports", icon:BarChart3, group:"operations" },
   { id:"users", icon:UserCog, group:"admin" },
 ];
 
@@ -335,7 +336,7 @@ export default function App() {
         {page==="customers"&&<SimpleDirectory title={t.customers} rows={customers} icon="customer" empty={t.empty}/>}
         {page==="stock"&&<section className="panel"><div className="panel-head"><div><h3>{t.stock}</h3><p>{movements.length} {t.movements.toLowerCase()}</p></div></div>{movements.length?<div className="table-wrap"><table><thead><tr><th>{t.name}</th><th>{t.movementType}</th><th>{t.quantity}</th><th>{t.warehouse}</th><th>Date</th></tr></thead><tbody>{movements.map(m=><tr key={m.id}><td><b>{m.products?.name||"—"}</b><small className="cell-sub">{m.products?.sku}</small></td><td><span className="status-pill">{m.movement_type}</span></td><td>{m.quantity}</td><td>{m.warehouses?.name||"—"}</td><td>{new Date(m.occurred_at).toLocaleDateString()}</td></tr>)}</tbody></table></div>:<Empty t={t}/>}</section>}
         {page==="purchases"&&<section className="panel"><div className="panel-head"><div><h3>{t.purchases}</h3><p>{purchases.length} commande(s) · réception automatique en stock</p></div><button className="primary-btn" onClick={()=>{setForm({});setModal("purchase")}}><Plus size={16}/>Nouvel achat</button></div>{purchases.length?<div className="table-wrap"><table><thead><tr><th>N° commande</th><th>{t.suppliers}</th><th>Date</th><th>Statut</th><th>Total</th></tr></thead><tbody>{purchases.map(x=><tr key={x.id}><td><b>{x.order_number}</b></td><td>{x.suppliers?.name||"—"}</td><td>{new Date(x.order_date).toLocaleDateString()}</td><td><span className="status-pill positive">{x.status}</span></td><td>{money(Number(x.subtotal))}</td></tr>)}</tbody></table></div>:<Empty t={t}/>}</section>}
-        {page==="users"&&isAdmin&&<section className="panel"><div className="panel-head"><div><h3>Gestion des utilisateurs</h3><p>Invitez des collaborateurs et attribuez leurs rôles</p></div></div><form className="form-grid invite-form" onSubmit={createInvitation}><label className="span-2">Adresse e-mail<input type="email" value={inviteEmail} onChange={e=>setInviteEmail(e.target.value)} required placeholder="collaborateur@exemple.com"/></label><label>Rôle<select value={inviteRole} onChange={e=>setInviteRole(e.target.value)}><option value="manager">Manager</option><option value="warehouse">Magasinier</option><option value="sales">Ventes</option><option value="viewer">Consultation</option><option value="staff">Employé</option></select></label><div className="invite-submit"><button className="primary-btn" disabled={inviteBusy}>{inviteBusy?"En cours...":"Créer l’invitation"}</button></div></form><div className="invite-link"><b>Lien d’activation à transmettre</b><code>https://gestion-stock-pro-mu.vercel.app/?invite=1</code></div><div className="table-wrap"><table><thead><tr><th>Utilisateur</th><th>Rôle</th><th>Statut</th></tr></thead><tbody>{members.map(m=><tr key={m.user_id}><td>{m.email}</td><td><span className="status-pill">{m.role}</span></td><td><span className={"status-pill "+(m.is_active?"positive":"warning")}>{m.is_active?"Actif":"Désactivé"}</span></td></tr>)}</tbody></table></div></section>}
+        {page==="users"&&isAdmin&&<section className="panel"><div className="panel-head"><div><h3>Gestion des utilisateurs</h3><p>Invitez des collaborateurs et attribuez leurs rôles</p></div></div><form className="form-grid invite-form" onSubmit={createInvitation}><label className="span-2">Adresse e-mail<input type="email" value={inviteEmail} onChange={e=>setInviteEmail(e.target.value)} required placeholder="collaborateur@exemple.com"/></label><label>Rôle<select value={inviteRole} onChange={e=>setInviteRole(e.target.value)}><option value="manager">Manager</option><option value="warehouse">Magasinier</option><option value="sales">Ventes</option><option value="viewer">Consultation</option><option value="staff">Employé</option></select></label><div className="invite-submit"><button className="primary-btn" disabled={inviteBusy}>{inviteBusy?"En cours...":"Créer l’invitation"}</button></div></form><div className="invite-link"><b>Lien d’activation à transmettre</b><code>https://gestion-stock-pro-amine-gnn.vercel.app/?invite=1</code></div><div className="table-wrap"><table><thead><tr><th>Utilisateur</th><th>Rôle</th><th>Statut</th></tr></thead><tbody>{members.map(m=><tr key={m.user_id}><td>{m.email}</td><td><span className="status-pill">{m.role}</span></td><td><span className={"status-pill "+(m.is_active?"positive":"warning")}>{m.is_active?"Actif":"Désactivé"}</span></td></tr>)}</tbody></table></div></section>}
         {page==="users"&&!isAdmin&&<section className="panel"><div className="empty-state"><div className="empty-icon"><ShieldCheck size={24}/></div><b>Accès réservé à l’administrateur</b></div></section>}
         {page==="sales"&&<section className="panel"><div className="panel-head"><div><h3>{t.sales}</h3><p>{sales.length} facture(s) · sortie de stock automatique</p></div><button className="primary-btn" onClick={()=>{setForm({});setModal("sale")}}><Plus size={16}/>Nouvelle vente</button></div>{sales.length?<div className="table-wrap"><table><thead><tr><th>N° facture</th><th>{t.customers}</th><th>Date</th><th>Statut</th><th>Total</th></tr></thead><tbody>{sales.map(x=><tr key={x.id}><td><b>{x.invoice_number}</b></td><td>{x.customers?.name||"—"}</td><td>{new Date(x.sale_date).toLocaleDateString()}</td><td><span className="status-pill positive">{x.status}</span></td><td>{money(Number(x.total))}</td></tr>)}</tbody></table></div>:<Empty t={t}/>}</section>}
       </div>
@@ -369,4 +370,4 @@ function Empty({t}:{t:Labels}) { return <div className="empty-state"><div classN
 function SimpleDirectory({title,rows,icon,empty}:{title:string;rows:any[];icon:string;empty:string}) {
   const Icon=icon==="supplier"?Truck:Users;
   return <section className="panel"><div className="panel-head"><div><h3>{title}</h3><p>{rows.length} enregistrement(s)</p></div></div>{rows.length?<div className="simple-list">{rows.map(r=><div className="simple-row" key={r.id}><span className="list-icon"><Icon size={18}/></span><div><b>{r.name}</b><small>{r.phone||r.email||"—"}</small></div><span className="status-pill positive">Actif</span></div>)}</div>:<div className="empty-state"><div className="empty-icon"><Icon size={24}/></div><b>{empty}</b></div>}</section>;
-}
+        {(page==="categories"||page==="transfers"||page==="inventory"||page==="returns"||page==="expenses"||page==="reports")&&<StockOperations page={page} companyId={company.id} products={products} warehouses={warehouses} suppliers={suppliers} customers={customers} money={money} lang={lang} onSaved={()=>loadWorkspace(company.id)}/> }\n}
