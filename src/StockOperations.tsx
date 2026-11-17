@@ -91,7 +91,7 @@ export default function StockOperations({page,companyId,products,warehouses,supp
       } else if(page==="expenses"){
         const r=await supabase.from("expenses").insert({company_id:companyId,expense_number:form.number||"EXP-"+Date.now(),category:form.category,description:form.description,amount:Number(form.amount),expense_date:form.date||new Date().toISOString().slice(0,10),payment_method:form.method||null,notes:form.note||null});if(r.error)throw r.error;
       } else {
-        const clean=lines.filter(x=>x.product_id&&Number(x.quantity)>0);
+        const clean=lines.filter(x=>x.product_id&&(page==="inventory"?x.quantity!==""&&Number(x.quantity)>=0:Number(x.quantity)>0));
         if(!clean.length)throw new Error("Ajoutez au moins une ligne valide.");
         if(page==="transfers"){
           const r=await supabase.rpc("create_stock_transfer",{p_company_id:companyId,p_transfer_number:form.number||"TRF-"+Date.now(),p_source_warehouse_id:form.source,p_destination_warehouse_id:form.dest,p_lines:clean.map(x=>({product_id:x.product_id,quantity:Number(x.quantity),unit_cost:Number(x.unit_price||0)})),p_notes:form.note||null});if(r.error)throw r.error;
