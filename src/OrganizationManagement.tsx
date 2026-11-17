@@ -30,11 +30,12 @@ export default function OrganizationManagement({ companyId, members, currentUser
       supabase.from("org_services").select("*").eq("company_id",companyId).order("name"),
       supabase.from("org_departments").select("*").eq("company_id",companyId).order("name"),
       supabase.from("org_equipment").select("*").eq("company_id",companyId).order("name"),
-      supabase.from("user_scope_assignments").select("*").eq("company_id",companyId).order("created_at",{ascending:false})
+      supabase.from("user_scope_assignments").select("*").eq("company_id",companyId).order("created_at",{ascending:false}),
+      supabase.from("warehouses").select("id,code,name,is_active").eq("company_id",companyId).order("name")
     ]);
     const error=[a,b,c,d,e,f,g].find(x=>x.error)?.error;
     if(error) throw error;
-    setSites(a.data??[]);setUnits(b.data??[]);setServices(c.data??[]);setDepartments(d.data??[]);setEquipment(e.data??[]);setAssignments(f.data??[]);setWarehouses(g.data??[]);
+    setSites(a.data??[]);setUnits(b.data??[]);setServices(c.data??[]);setDepartments(d.data??[]);setEquipment(e.data??[]);setAssignments(f.data??[]);setWarehouses(g.data??[]);setWarehouses(g.data??[]);
   },[companyId]);
   useEffect(()=>{void refresh().catch(e=>onNotice("error",e.message));},[refresh]);
 
