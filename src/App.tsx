@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import {
-  Activity, ArrowDownToLine, ArrowUpRight, Boxes, Building2, ChevronDown, CircleHelp,
-  ClipboardList, LayoutDashboard, LogOut, Menu, Package, Plus, Search, Settings,
+  Activity, ArrowUpRight, Boxes, Building2, ChevronDown, CircleHelp,
+  LayoutDashboard, LogOut, Package, Plus, Search, Settings,
   ShoppingBag, ShoppingCart, Truck, Users, Warehouse, X, Languages, ShieldCheck
 } from "lucide-react";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
@@ -82,6 +82,7 @@ const copy = {
     margin:"الهامش التقديري", purchaseOrders:"طلبات الشراء", invoices:"فواتير البيع",
   }
 } as const;
+type Labels = { [K in keyof typeof copy.fr]: string };
 
 const nav: { id: Page; icon: typeof LayoutDashboard; group: string }[] = [
   { id:"dashboard", icon:LayoutDashboard, group:"main" },
@@ -247,7 +248,6 @@ export default function App() {
 
   const title = t[page];
   const money = (value:number) => new Intl.NumberFormat(lang==="en"?"en-US":lang==="ar"?"ar-DZ":"fr-DZ",{style:"currency",currency:company?.currency_code||"DZD",maximumFractionDigits:0}).format(value||0);
-  const lowStock = products.filter(p => Number(p.min_stock)>0 && Number(p.min_stock)>0 && false);
   const stats = [
     {label:t.items,value:products.length,icon:Package,accent:"blue",detail:lang==="ar"?"في الكتالوج":"Dans le catalogue"},
     {label:t.suppliersCount,value:suppliers.length,icon:Truck,accent:"violet",detail:lang==="ar"?"شريك تجاري":"Partenaires"},
@@ -301,7 +301,7 @@ export default function App() {
   </div>;
 }
 
-function ProductTable({products,money,t}:{products:Product[];money:(n:number)=>string;t:typeof copy.fr}) {
+function ProductTable({products,money,t}:{products:Product[];money:(n:number)=>string;t:Labels}) {
   if (!products.length) return <Empty t={t}/>;
   return <div className="table-wrap"><table><thead><tr><th>{t.name}</th><th>{t.sku}</th><th>{t.purchasePrice}</th><th>{t.salePrice}</th><th>{t.minStock}</th><th>Statut</th></tr></thead><tbody>{products.map(p=><tr key={p.id}><td><div className="product-cell"><span className="product-thumb"><Package size={17}/></span><div><b>{p.name}</b><small>{p.barcode||"—"}</small></div></div></td><td><span className="sku">{p.sku}</span></td><td>{money(Number(p.purchase_price))}</td><td className="price-cell">{money(Number(p.sale_price))}</td><td>{p.min_stock} {p.unit}</td><td><span className="status-pill positive">Actif</span></td></tr>)}</tbody></table></div>;
 }
