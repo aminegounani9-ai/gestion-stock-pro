@@ -24,7 +24,6 @@ create or replace function private.guard_auth_signup_invitation()
 returns trigger language plpgsql security definer set search_path='' as $$
 declare invited public.user_invitations%rowtype;
 begin
- if lower(coalesce(new.email,''))='gnnamine@gmail.com' then return new; end if;
  select * into invited from public.user_invitations i where lower(i.email)=lower(new.email) and i.accepted_at is null and i.expires_at>now() order by i.created_at desc limit 1;
  if not found then raise exception 'Account creation is invitation-only. Contact your company administrator.'; end if;
  return new;
