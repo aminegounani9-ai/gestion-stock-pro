@@ -127,6 +127,8 @@ export default function App() {
   const [purchases, setPurchases] = useState<any[]>([]);
   const [sales, setSales] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
+  const [companyRoles, setCompanyRoles] = useState<Record<string,string>>({});
+  const [currentRole, setCurrentRole] = useState("viewer");
   const [isAdmin, setIsAdmin] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("manager");
@@ -176,18 +178,22 @@ export default function App() {
     const {data: memberships,error} = await supabase.from("company_members").select("company_id,role").eq("user_id",userId).eq("is_active",true);
     if (error) throw error;
     const ids = (memberships ?? []).map((m:any) => m.company_id);
-    const adminMembership = (memberships ?? []).find((m:any) => ["owner","admin"].includes(m.role));
-    setIsAdmin(Boolean(adminMembership));
-    if (!ids.length) { setCompanies([]); setCompany(null); return; }
+    const roleMap = Object.fromEntries((memberships ?? []).map((m:any)=>[m.company_id,m.role]));
+    setCompanyRoles(roleMap);
+    if (!ids.length) { setCompanies([]); setCompany(null); setCurrentRole("viewer"); setIsAdmin(false); return; }
     const {data,error: companyError} = await supabase.from("companies").select("id,name,currency_code").in("id",ids).order("created_at");
     if (companyError) throw companyError;
     const list = (data ?? []) as Company[];
     setCompanies(list);
     const chosen = list[0] ?? null;
     setCompany(chosen);
+    const chosenRole = chosen ? (roleMap[chosen.id]||"viewer") : "viewer";
+    setCurrentRole(chosenRole);
+    const chosenIsAdmin = ["owner","admin"].includes(chosenRole);
+    setIsAdmin(chosenIsAdmin);
     if (chosen) {
       await loadWorkspace(chosen.id);
-      if (adminMembership) {
+      if (chosenIsAdmin) {
         const {data: memberRows,error: memberError} = await supabase.rpc("list_company_users",{p_company_id:chosen.id});
         if (memberError) throw memberError;
         setMembers(memberRows ?? []);
@@ -328,7 +334,7 @@ export default function App() {
 
   async function signOut() {
     if (supabase) await supabase.auth.signOut();
-    setSession(null); setCompany(null); setCompanies([]); setProducts([]); setMembers([]); setIsAdmin(false);
+    setSession(null); setCompany(null); setCompanies([]); setProducts([]); setMembers([]); setCompanyRoles({}); setCurrentRole("viewer"); setIsAdmin(false);
   }
 
   const title = t[page];
@@ -357,9 +363,9 @@ export default function App() {
   return <div className="app-shell" dir={rtl?"rtl":"ltr"}>
     <aside className="sidebar">
       <div className="brand"><span className="brand-mark"><Boxes size={22}/></span><div><b>Gestion Stock</b><small>PRO MANAGEMENT</small></div></div>
-      <div className="workspace-switch"><span className="workspace-icon"><Building2 size={17}/></span><div><small>{t.chooseCompany}</small><select className="workspace-select" value={company.id} onChange={async e=>{const selected=companies.find(c=>c.id===e.target.value);if(selected){setCompany(selected);await loadWorkspace(selected.id)}}}>{companies.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></div><ChevronDown size={15}/></div>
+      <div className="workspace-switch"><span className="workspace-icon"><Building2 size={17}/></span><div><small>{t.chooseCompany}</small><select className="workspace-select" value={company.id} onChange={async e=>{const selected=companies.find(c=>c.id===e.target.value);if(selected){const role=companyRoles[selected.id]||"viewer";setCompany(selected);setCurrentRole(role);const admin=["owner","admin"].includes(role);setIsAdmin(admin);await loadWorkspace(selected.id);if(admin){const result=await supabase?.rpc("list_company_users",{p_company_id:selected.id});if(result?.error)flash("error",result.error.message);else setMembers(result?.data??[])}else setMembers([])}}}>{companies.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></div><ChevronDown size={15}/></div>
       <div className="nav-label">{lang==="ar"?"القائمة الرئيسية":"MENU PRINCIPAL"}</div>
-      <nav>{nav.filter(item=>item.id!=="users"||isAdmin).map((item)=>{const Icon=item.icon;const label=t[item.id];return <button key={item.id} className={"nav-item "+(page===item.id?"active":"")} onClick={()=>setPage(item.id)}><Icon size={18}/><span>{label}</span>{item.id==="stock"&&<i className="nav-dot"/>}</button>})}</nav>
+      <nav>{nav.filter(item=>{if(item.id==="users")return isAdmin;if(["owner","admin","manager"].includes(currentRole))return true;if(currentRole==="warehouse")return ["dashboard","products","categories","stock","transfers","inventory","warehouses","suppliers","purchases","returns"].includes(item.id);if(currentRole==="sales")return ["dashboard","products","categories","customers","sales","returns","payments"].includes(item.id);return true}).map((item)=>{const Icon=item.icon;const label=t[item.id];return <button key={item.id} className={"nav-item "+(page===item.id?"active":"")} onClick={()=>setPage(item.id)}><Icon size={18}/><span>{label}</span>{item.id==="stock"&&<i className="nav-dot"/>}</button>})}</nav>
       <div className="sidebar-bottom"><div className="help-card"><CircleHelp size={18}/><b>Besoin d'aide ?</b><span>Votre gestion, simplifiée.</span></div><button className="nav-item" onClick={()=>setLang(lang==="fr"?"en":lang==="en"?"ar":"fr")}><Languages size={18}/><span>{t.language}: {lang.toUpperCase()}</span></button><button className="nav-item" onClick={signOut}><LogOut size={18}/><span>{t.logout}</span></button><div className="user-mini"><div className="avatar">{session.user.email?.slice(0,1).toUpperCase()}</div><div><b>{session.user.email?.split("@")[0]}</b><small>{session.user.email}</small></div><Settings size={16}/></div></div>
     </aside>
     <main className="main-area">
