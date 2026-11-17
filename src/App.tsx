@@ -132,7 +132,8 @@ export default function App() {
   const [orgUnits,setOrgUnits]=useState<any[]>([]);
   const [orgServices,setOrgServices]=useState<any[]>([]);
   const [orgDepartments,setOrgDepartments]=useState<any[]>([]);
-  const [orgEquipment,setOrgEquipment]=useState<any[]>([]);\n  const [scopePermissions,setScopePermissions]=useState({canCreate:false,canEdit:false,canDelete:false,canApprove:false,canIssue:false,canReceive:false,canTransfer:false,canInventory:false});
+  const [orgEquipment,setOrgEquipment]=useState<any[]>([]);
+  const [scopePermissions,setScopePermissions]=useState({canCreate:false,canEdit:false,canDelete:false,canApprove:false,canIssue:false,canReceive:false,canTransfer:false,canInventory:false});
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [movements, setMovements] = useState<any[]>([]);
@@ -188,7 +189,12 @@ export default function App() {
       supabase.from("org_equipment").select("id,equipment_tag,name,site_id,unit_id,service_id,department_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name")
     ]);
     const orgError=[os,ou,ov,od,oe].find(x=>x.error)?.error;if(orgError)throw orgError;
-    setOrgSites(os.data??[]);setOrgUnits(ou.data??[]);setOrgServices(ov.data??[]);setOrgDepartments(od.data??[]);setOrgEquipment(oe.data??[]);\n    const {data:{user:scopeUser}}=await supabase.auth.getUser();\n    const scopeResult=scopeUser?await supabase.from("user_scope_assignments").select("can_create,can_edit,can_delete,can_approve,can_issue,can_receive,can_transfer,can_inventory").eq("company_id",companyId).eq("user_id",scopeUser.id):{data:[],error:null};\n    if(scopeResult.error)throw scopeResult.error;\n    const userScopes=scopeResult.data??[];\n    setScopePermissions({canCreate:userScopes.some(x=>x.can_create),canEdit:userScopes.some(x=>x.can_edit),canDelete:userScopes.some(x=>x.can_delete),canApprove:userScopes.some(x=>x.can_approve),canIssue:userScopes.some(x=>x.can_issue),canReceive:userScopes.some(x=>x.can_receive),canTransfer:userScopes.some(x=>x.can_transfer),canInventory:userScopes.some(x=>x.can_inventory)});
+    setOrgSites(os.data??[]);setOrgUnits(ou.data??[]);setOrgServices(ov.data??[]);setOrgDepartments(od.data??[]);setOrgEquipment(oe.data??[]);
+    const {data:{user:scopeUser}}=await supabase.auth.getUser();
+    const scopeResult=scopeUser?await supabase.from("user_scope_assignments").select("can_create,can_edit,can_delete,can_approve,can_issue,can_receive,can_transfer,can_inventory").eq("company_id",companyId).eq("user_id",scopeUser.id):{data:[],error:null};
+    if(scopeResult.error)throw scopeResult.error;
+    const userScopes=scopeResult.data??[];
+    setScopePermissions({canCreate:userScopes.some(x=>x.can_create),canEdit:userScopes.some(x=>x.can_edit),canDelete:userScopes.some(x=>x.can_delete),canApprove:userScopes.some(x=>x.can_approve),canIssue:userScopes.some(x=>x.can_issue),canReceive:userScopes.some(x=>x.can_receive),canTransfer:userScopes.some(x=>x.can_transfer),canInventory:userScopes.some(x=>x.can_inventory)});
     setProducts((p.data ?? []) as Product[]);
     setWarehouses(w.data ?? []);
     setSuppliers(s.data ?? []);
