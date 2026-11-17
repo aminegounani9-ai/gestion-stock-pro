@@ -99,6 +99,7 @@ const nav: { id: Page; icon: typeof LayoutDashboard; group: string }[] = [
   { id:"sales", icon:ShoppingBag, group:"operations" },
   { id:"returns", icon:RotateCcw, group:"operations" },
   { id:"expenses", icon:Receipt, group:"operations" },
+  { id:"payments", icon:Wallet, group:"operations" },
   { id:"reports", icon:BarChart3, group:"operations" },
   { id:"users", icon:UserCog, group:"admin" },
 ];
