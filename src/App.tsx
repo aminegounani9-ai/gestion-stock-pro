@@ -127,7 +127,12 @@ export default function App() {
   const [settingsForm,setSettingsForm] = useState<Record<string,string>>({});
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
-  const [warehouses, setWarehouses] = useState<any[]>([]);\n  const [orgSites,setOrgSites]=useState<any[]>([]);\n  const [orgUnits,setOrgUnits]=useState<any[]>([]);\n  const [orgServices,setOrgServices]=useState<any[]>([]);\n  const [orgDepartments,setOrgDepartments]=useState<any[]>([]);\n  const [orgEquipment,setOrgEquipment]=useState<any[]>([]);
+  const [warehouses, setWarehouses] = useState<any[]>([]);
+  const [orgSites,setOrgSites]=useState<any[]>([]);
+  const [orgUnits,setOrgUnits]=useState<any[]>([]);
+  const [orgServices,setOrgServices]=useState<any[]>([]);
+  const [orgDepartments,setOrgDepartments]=useState<any[]>([]);
+  const [orgEquipment,setOrgEquipment]=useState<any[]>([]);
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [movements, setMovements] = useState<any[]>([]);
@@ -174,7 +179,16 @@ export default function App() {
     if (queryError?.error) throw queryError.error;
     const categoryResult = await supabase.from("product_categories").select("id,name").eq("company_id",companyId).order("name");
     if (categoryResult.error) throw categoryResult.error;
-    setCategories(categoryResult.data ?? []);\n    const [os,ou,ov,od,oe]=await Promise.all([\n      supabase.from("org_sites").select("id,code,name,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),\n      supabase.from("org_units").select("id,code,name,site_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),\n      supabase.from("org_services").select("id,code,name,site_id,unit_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),\n      supabase.from("org_departments").select("id,code,name,site_id,unit_id,service_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),\n      supabase.from("org_equipment").select("id,equipment_tag,name,site_id,unit_id,service_id,department_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name")\n    ]);\n    const orgError=[os,ou,ov,od,oe].find(x=>x.error)?.error;if(orgError)throw orgError;\n    setOrgSites(os.data??[]);setOrgUnits(ou.data??[]);setOrgServices(ov.data??[]);setOrgDepartments(od.data??[]);setOrgEquipment(oe.data??[]);
+    setCategories(categoryResult.data ?? []);
+    const [os,ou,ov,od,oe]=await Promise.all([
+      supabase.from("org_sites").select("id,code,name,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
+      supabase.from("org_units").select("id,code,name,site_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
+      supabase.from("org_services").select("id,code,name,site_id,unit_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
+      supabase.from("org_departments").select("id,code,name,site_id,unit_id,service_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
+      supabase.from("org_equipment").select("id,equipment_tag,name,site_id,unit_id,service_id,department_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name")
+    ]);
+    const orgError=[os,ou,ov,od,oe].find(x=>x.error)?.error;if(orgError)throw orgError;
+    setOrgSites(os.data??[]);setOrgUnits(ou.data??[]);setOrgServices(ov.data??[]);setOrgDepartments(od.data??[]);setOrgEquipment(oe.data??[]);
     setProducts((p.data ?? []) as Product[]);
     setWarehouses(w.data ?? []);
     setSuppliers(s.data ?? []);
