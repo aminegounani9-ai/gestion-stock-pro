@@ -113,6 +113,7 @@ export default function App() {
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [movements, setMovements] = useState<any[]>([]);
+  const [balances, setBalances] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [modal, setModal] = useState<"product"|"warehouse"|"supplier"|"customer"|"movement"|null>(null);
   const [form, setForm] = useState<Record<string,string>>({});
@@ -131,7 +132,8 @@ export default function App() {
       supabase.from("warehouses").select("*").eq("company_id",companyId).order("created_at"),
       supabase.from("suppliers").select("*").eq("company_id",companyId).order("name"),
       supabase.from("customers").select("*").eq("company_id",companyId).order("name"),
-      supabase.from("stock_movements").select("*, products(name,sku), warehouses(name)").eq("company_id",companyId).order("occurred_at",{ascending:false}).limit(30)
+      supabase.from("stock_movements").select("*, products(name,sku), warehouses(name)").eq("company_id",companyId).order("occurred_at",{ascending:false}).limit(30),
+      supabase.from("stock_balances").select("product_id,warehouse_id,quantity_on_hand").eq("company_id",companyId)
     ]);
     if (p.error) throw p.error;
     setProducts((p.data ?? []) as Product[]);
@@ -139,6 +141,7 @@ export default function App() {
     setSuppliers(s.data ?? []);
     setCustomers(c.data ?? []);
     setMovements(m.data ?? []);
+    if (!m.error) setBalances([]);
   }, []);
 
   const loadCompanies = useCallback(async (userId: string) => {
