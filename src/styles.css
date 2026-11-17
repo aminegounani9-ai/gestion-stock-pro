@@ -71,3 +71,15 @@
 .invite-pending{margin-top:26px;padding-top:20px;border-top:1px solid #edf0f5}.invite-pending .panel-head{margin-bottom:12px}.invite-pending .panel-head h3{font:700 14px Manrope,sans-serif;margin:0;color:#1e2b44}.invite-pending .panel-head p{font-size:10px;color:#9aa4b4;margin:5px 0 0}
 
 .ops-comparison{margin-top:24px;padding:18px;border:1px solid #edf0f5;border-radius:11px;background:#fcfcfe}.ops-comparison h4{margin:0 0 16px;font:700 12px Manrope,sans-serif;color:#34425b}.ops-comparison-row{display:grid;gap:7px;margin:13px 0}.ops-comparison-row>div:first-child{display:flex;justify-content:space-between;gap:10px;color:#77849a;font-size:10px}.ops-comparison-row b{color:#34425b}.ops-comparison-track{height:9px;border-radius:20px;background:#edf1f7;overflow:hidden}.ops-comparison-track i{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,#3157c8,#7b9be8);min-width:2px}
+
+
+/* Dynamic organization and access assignments */
+.org-tabs{display:flex;gap:7px;flex-wrap:wrap;margin:4px 0 20px;padding-bottom:12px;border-bottom:1px solid #edf0f5}
+.org-tabs button{border:1px solid #e6eaf1;background:#f8f9fc;color:#64718a;border-radius:8px;padding:9px 13px;font-size:10px;font-weight:700;display:flex;align-items:center;gap:8px}
+.org-tabs button.active{background:#eaf0ff;color:#3157c8;border-color:#cbd8ff}
+.org-tabs button span{background:#fff;border-radius:20px;padding:2px 6px;font-size:9px}
+.org-form{margin:12px 0 22px}
+.org-permissions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;padding:13px;border:1px solid #edf0f5;border-radius:10px;background:#fafbfe}
+.org-permissions label{display:flex;align-items:center;gap:7px;font-size:10px;color:#586780;font-weight:600}
+.org-permissions input{accent-color:#3157c8;width:15px;height:15px}
+@media(max-width:760px){.org-permissions{grid-template-columns:repeat(2,minmax(0,1fr))}.org-tabs{overflow-x:auto;flex-wrap:nowrap}.org-tabs button{white-space:nowrap}}
