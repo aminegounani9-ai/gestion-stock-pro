@@ -101,7 +101,8 @@ const nav: { id: Page; icon: typeof LayoutDashboard; group: string }[] = [
   { id:"expenses", icon:Receipt, group:"operations" },
   { id:"payments", icon:Wallet, group:"operations" },
   { id:"reports", icon:BarChart3, group:"operations" },
-  { id:"users", icon:UserCog, group:"admin" },\n  { id:"settings", icon:Settings, group:"admin" },
+  { id:"users", icon:UserCog, group:"admin" },
+  { id:"settings", icon:Settings, group:"admin" },
 ];
 
 export default function App() {
@@ -116,7 +117,8 @@ export default function App() {
   const [password, setPassword] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [companies, setCompanies] = useState<Company[]>([]);
-  const [company, setCompany] = useState<Company|null>(null);\n  const [settingsForm,setSettingsForm] = useState<Record<string,string>>({});
+  const [company, setCompany] = useState<Company|null>(null);
+  const [settingsForm,setSettingsForm] = useState<Record<string,string>>({});
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [warehouses, setWarehouses] = useState<any[]>([]);
@@ -134,8 +136,10 @@ export default function App() {
   const [inviteRole, setInviteRole] = useState("manager");
   const [inviteBusy, setInviteBusy] = useState(false);
   const [inviteFlow] = useState(() => new URLSearchParams(window.location.search).get("invite") === "1");
-  const [search, setSearch] = useState("");\n  const [scannerOpen,setScannerOpen]=useState(false);
-  const [modal, setModal] = useState<"product"|"warehouse"|"supplier"|"customer"|"movement"|"purchase"|"sale"|null>(null);\n  const [editingId,setEditingId]=useState<string|null>(null);
+  const [search, setSearch] = useState("");
+  const [scannerOpen,setScannerOpen]=useState(false);
+  const [modal, setModal] = useState<"product"|"warehouse"|"supplier"|"customer"|"movement"|"purchase"|"sale"|null>(null);
+  const [editingId,setEditingId]=useState<string|null>(null);
   const [form, setForm] = useState<Record<string,string>>({});
   const [documentLines,setDocumentLines] = useState<{product_id:string;quantity:string;unit_price:string;discount:string}[]>([{product_id:"",quantity:"",unit_price:"",discount:"0"}]);
   const t = copy[lang];
@@ -423,7 +427,8 @@ export default function App() {
       </div>
       <footer className="app-footer"><span>© {new Date().getFullYear()} Gestion Stock Pro</span><span><ShieldCheck size={14}/> Données protégées par RLS</span></footer>
     </main>
-    {scannerOpen&&<BarcodeScanner onDetected={code=>{setSearch(code);setPage("products");setScannerOpen(false)}} onClose={()=>setScannerOpen(false)}/> }\n    {modal&&<div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setModal(null)}}><form className="modal-card" onSubmit={saveRecord}><div className="modal-head"><div><span className="eyebrow">NOUVEL ENREGISTREMENT</span><h2>{modal==="product"?t.addProduct:modal==="warehouse"?t.addWarehouse:modal==="supplier"?t.addSupplier:modal==="customer"?t.addCustomer:modal==="purchase"?"Nouvel achat":modal==="sale"?"Nouvelle vente":t.addMovement}</h2></div><button type="button" className="icon-btn" onClick={()=>setModal(null)}><X size={19}/></button></div>
+    {scannerOpen&&<BarcodeScanner onDetected={code=>{setSearch(code);setPage("products");setScannerOpen(false)}} onClose={()=>setScannerOpen(false)}/> }
+    {modal&&<div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setModal(null)}}><form className="modal-card" onSubmit={saveRecord}><div className="modal-head"><div><span className="eyebrow">NOUVEL ENREGISTREMENT</span><h2>{modal==="product"?t.addProduct:modal==="warehouse"?t.addWarehouse:modal==="supplier"?t.addSupplier:modal==="customer"?t.addCustomer:modal==="purchase"?"Nouvel achat":modal==="sale"?"Nouvelle vente":t.addMovement}</h2></div><button type="button" className="icon-btn" onClick={()=>setModal(null)}><X size={19}/></button></div>
       {modal==="product"&&<div className="form-grid"><label>{t.sku}<input value={form.sku||""} onChange={e=>setForm({...form,sku:e.target.value})} required/></label><label>{t.name}<input value={form.name||""} onChange={e=>setForm({...form,name:e.target.value})} required/></label><label>{t.barcode}<input value={form.barcode||""} onChange={e=>setForm({...form,barcode:e.target.value})}/></label><label>{t.unit}<select value={form.unit||"piece"} onChange={e=>setForm({...form,unit:e.target.value})}><option value="piece">Pièce</option><option value="kg">Kg</option><option value="g">g</option><option value="l">Litre</option><option value="m">Mètre</option><option value="box">Carton</option></select></label><label>{t.category}<select value={form.category_id||""} onChange={e=>setForm({...form,category_id:e.target.value})}><option value="">—</option>{categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label><label>{t.purchasePrice}<input type="number" min="0" step="0.01" value={form.purchase_price||""} onChange={e=>setForm({...form,purchase_price:e.target.value})}/></label><label>{t.salePrice}<input type="number" min="0" step="0.01" value={form.sale_price||""} onChange={e=>setForm({...form,sale_price:e.target.value})}/></label><label>{t.minStock}<input type="number" min="0" step="0.001" value={form.min_stock||""} onChange={e=>setForm({...form,min_stock:e.target.value})}/></label></div>}
       {modal==="warehouse"&&<div className="form-grid"><label>{t.warehouseCode}<input value={form.code||""} onChange={e=>setForm({...form,code:e.target.value})} required/></label><label>{t.warehouseName}<input value={form.name||""} onChange={e=>setForm({...form,name:e.target.value})} required/></label></div>}
       {(modal==="supplier"||modal==="customer")&&<div className="form-grid"><label>{modal==="supplier"?t.supplierName:t.customerName}<input value={form.name||""} onChange={e=>setForm({...form,name:e.target.value})} required/></label><label>{t.phone}<input value={form.phone||""} onChange={e=>setForm({...form,phone:e.target.value})}/></label></div>}
