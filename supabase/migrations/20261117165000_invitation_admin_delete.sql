@@ -1,0 +1,2 @@
+drop policy if exists invitations_admin_delete on public.user_invitations;
+create policy invitations_admin_delete on public.user_invitations for delete to authenticated using(private.has_company_access(company_id,array['owner','admin']));
