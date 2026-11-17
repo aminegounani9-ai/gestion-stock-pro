@@ -160,7 +160,7 @@ export default function App() {
 
   const loadCompanies = useCallback(async (userId: string) => {
     if (!supabase) return;
-    const {data: memberships,error} = await supabase.from("company_members").select("company_id").eq("user_id",userId).eq("is_active",true);
+    const {data: memberships,error} = await supabase.from("company_members").select("company_id,role").eq("user_id",userId).eq("is_active",true);
     if (error) throw error;
     const ids = (memberships ?? []).map((m:any) => m.company_id);
     const adminMembership = (memberships ?? []).find((m:any) => ["owner","admin"].includes(m.role));
