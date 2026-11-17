@@ -114,8 +114,10 @@ export default function App() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [movements, setMovements] = useState<any[]>([]);
   const [balances, setBalances] = useState<any[]>([]);
+  const [purchases, setPurchases] = useState<any[]>([]);
+  const [sales, setSales] = useState<any[]>([]);
   const [search, setSearch] = useState("");
-  const [modal, setModal] = useState<"product"|"warehouse"|"supplier"|"customer"|"movement"|null>(null);
+  const [modal, setModal] = useState<"product"|"warehouse"|"supplier"|"customer"|"movement"|"purchase"|"sale"|null>(null);
   const [form, setForm] = useState<Record<string,string>>({});
   const t = copy[lang];
   const rtl = lang === "ar";
@@ -127,15 +129,17 @@ export default function App() {
 
   const loadWorkspace = useCallback(async (companyId: string) => {
     if (!supabase) return;
-    const [p,w,s,c,m,b] = await Promise.all([
+    const [p,w,s,c,m,b,po,sa] = await Promise.all([
       supabase.from("products").select("*").eq("company_id",companyId).order("created_at",{ascending:false}),
       supabase.from("warehouses").select("*").eq("company_id",companyId).order("created_at"),
       supabase.from("suppliers").select("*").eq("company_id",companyId).order("name"),
       supabase.from("customers").select("*").eq("company_id",companyId).order("name"),
       supabase.from("stock_movements").select("*, products(name,sku), warehouses(name)").eq("company_id",companyId).order("occurred_at",{ascending:false}).limit(30),
-      supabase.from("stock_balances").select("product_id,warehouse_id,quantity_on_hand").eq("company_id",companyId)
+      supabase.from("stock_balances").select("product_id,warehouse_id,quantity_on_hand").eq("company_id",companyId),
+      supabase.from("purchase_orders").select("*, suppliers(name)").eq("company_id",companyId).order("created_at",{ascending:false}).limit(50),
+      supabase.from("sales").select("*, customers(name)").eq("company_id",companyId).order("sale_date",{ascending:false}).limit(50)
     ]);
-    const queryError = [p,w,s,c,m,b].find(result => result.error);
+    const queryError = [p,w,s,c,m,b,po,sa].find(result => result.error);
     if (queryError?.error) throw queryError.error;
     setProducts((p.data ?? []) as Product[]);
     setWarehouses(w.data ?? []);
@@ -143,6 +147,8 @@ export default function App() {
     setCustomers(c.data ?? []);
     setMovements(m.data ?? []);
     setBalances(b.data ?? []);
+    setPurchases(po.data ?? []);
+    setSales(sa.data ?? []);
   }, []);
 
   const loadCompanies = useCallback(async (userId: string) => {
@@ -235,8 +241,14 @@ export default function App() {
         table = "customers"; payload = {...payload,name:form.name?.trim(),phone:form.phone?.trim()||null};
       } else if (modal === "movement") {
         table = "stock_movements"; payload = {...payload,product_id:form.product_id,warehouse_id:form.warehouse_id,movement_type:form.movement_type,quantity:Number(form.quantity),note:form.note||null,created_by:session?.user?.id};
+      } else if (modal === "purchase") {
+        const {error}=await supabase.rpc("receive_purchase_order",{p_company_id:company.id,p_supplier_id:form.supplier_id||null,p_warehouse_id:form.warehouse_id,p_order_number:form.order_number||`ACH-${Date.now()}`,p_lines:[{product_id:form.product_id,quantity:Number(form.quantity),unit_cost:Number(form.unit_price)}],p_notes:form.note||null});
+        if(error) throw error;
+      } else if (modal === "sale") {
+        const {error}=await supabase.rpc("create_stock_sale",{p_company_id:company.id,p_customer_id:form.customer_id||null,p_warehouse_id:form.warehouse_id,p_invoice_number:form.order_number||`VTE-${Date.now()}`,p_lines:[{product_id:form.product_id,quantity:Number(form.quantity),unit_price:Number(form.unit_price),discount:0}],p_discount:0,p_notes:form.note||null});
+        if(error) throw error;
       }
-      const {error} = await supabase.from(table).insert(payload);
+      if (table) { const {error} = await supabase.from(table).insert(payload); if (error) throw error; }
       if (error) throw error;
       await loadWorkspace(company.id);
       setModal(null); setForm({});
@@ -291,14 +303,24 @@ export default function App() {
         {page==="suppliers"&&<SimpleDirectory title={t.suppliers} rows={suppliers} icon="supplier" empty={t.empty}/>}
         {page==="customers"&&<SimpleDirectory title={t.customers} rows={customers} icon="customer" empty={t.empty}/>}
         {page==="stock"&&<section className="panel"><div className="panel-head"><div><h3>{t.stock}</h3><p>{movements.length} {t.movements.toLowerCase()}</p></div></div>{movements.length?<div className="table-wrap"><table><thead><tr><th>{t.name}</th><th>{t.movementType}</th><th>{t.quantity}</th><th>{t.warehouse}</th><th>Date</th></tr></thead><tbody>{movements.map(m=><tr key={m.id}><td><b>{m.products?.name||"—"}</b><small className="cell-sub">{m.products?.sku}</small></td><td><span className="status-pill">{m.movement_type}</span></td><td>{m.quantity}</td><td>{m.warehouses?.name||"—"}</td><td>{new Date(m.occurred_at).toLocaleDateString()}</td></tr>)}</tbody></table></div>:<Empty t={t}/>}</section>}
-        {(page==="purchases"||page==="sales")&&<section className="panel module-placeholder"><div className="placeholder-icon">{page==="purchases"?<ShoppingCart size={28}/>:<ShoppingBag size={28}/>}</div><h3>{title}</h3><p>{t.moduleSoon}</p><span className="status-pill">EN PRÉPARATION</span></section>}
+        {page==="purchases"&&<section className="panel"><div className="panel-head"><div><h3>{t.purchases}</h3><p>{purchases.length} commande(s) · réception automatique en stock</p></div><button className="primary-btn" onClick={()=>{setForm({});setModal("purchase")}}><Plus size={16}/>Nouvel achat</button></div>{purchases.length?<div className="table-wrap"><table><thead><tr><th>N° commande</th><th>{t.suppliers}</th><th>Date</th><th>Statut</th><th>Total</th></tr></thead><tbody>{purchases.map(x=><tr key={x.id}><td><b>{x.order_number}</b></td><td>{x.suppliers?.name||"—"}</td><td>{new Date(x.order_date).toLocaleDateString()}</td><td><span className="status-pill positive">{x.status}</span></td><td>{money(Number(x.subtotal))}</td></tr>)}</tbody></table></div>:<Empty t={t}/>}</section>}
+        {page==="sales"&&<section className="panel"><div className="panel-head"><div><h3>{t.sales}</h3><p>{sales.length} facture(s) · sortie de stock automatique</p></div><button className="primary-btn" onClick={()=>{setForm({});setModal("sale")}}><Plus size={16}/>Nouvelle vente</button></div>{sales.length?<div className="table-wrap"><table><thead><tr><th>N° facture</th><th>{t.customers}</th><th>Date</th><th>Statut</th><th>Total</th></tr></thead><tbody>{sales.map(x=><tr key={x.id}><td><b>{x.invoice_number}</b></td><td>{x.customers?.name||"—"}</td><td>{new Date(x.sale_date).toLocaleDateString()}</td><td><span className="status-pill positive">{x.status}</span></td><td>{money(Number(x.total))}</td></tr>)}</tbody></table></div>:<Empty t={t}/>}</section>}
       </div>
       <footer className="app-footer"><span>© {new Date().getFullYear()} Gestion Stock Pro</span><span><ShieldCheck size={14}/> Données protégées par RLS</span></footer>
     </main>
-    {modal&&<div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setModal(null)}}><form className="modal-card" onSubmit={saveRecord}><div className="modal-head"><div><span className="eyebrow">NOUVEL ENREGISTREMENT</span><h2>{modal==="product"?t.addProduct:modal==="warehouse"?t.addWarehouse:modal==="supplier"?t.addSupplier:modal==="customer"?t.addCustomer:t.addMovement}</h2></div><button type="button" className="icon-btn" onClick={()=>setModal(null)}><X size={19}/></button></div>
+    {modal&&<div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setModal(null)}}><form className="modal-card" onSubmit={saveRecord}><div className="modal-head"><div><span className="eyebrow">NOUVEL ENREGISTREMENT</span><h2>{modal==="product"?t.addProduct:modal==="warehouse"?t.addWarehouse:modal==="supplier"?t.addSupplier:modal==="customer"?t.addCustomer:modal==="purchase"?"Nouvel achat":modal==="sale"?"Nouvelle vente":t.addMovement}</h2></div><button type="button" className="icon-btn" onClick={()=>setModal(null)}><X size={19}/></button></div>
       {modal==="product"&&<div className="form-grid"><label>{t.sku}<input value={form.sku||""} onChange={e=>setForm({...form,sku:e.target.value})} required/></label><label>{t.name}<input value={form.name||""} onChange={e=>setForm({...form,name:e.target.value})} required/></label><label>{t.barcode}<input value={form.barcode||""} onChange={e=>setForm({...form,barcode:e.target.value})}/></label><label>{t.unit}<select value={form.unit||"piece"} onChange={e=>setForm({...form,unit:e.target.value})}><option value="piece">Pièce</option><option value="kg">Kg</option><option value="g">g</option><option value="l">Litre</option><option value="m">Mètre</option><option value="box">Carton</option></select></label><label>{t.purchasePrice}<input type="number" min="0" step="0.01" value={form.purchase_price||""} onChange={e=>setForm({...form,purchase_price:e.target.value})}/></label><label>{t.salePrice}<input type="number" min="0" step="0.01" value={form.sale_price||""} onChange={e=>setForm({...form,sale_price:e.target.value})}/></label><label>{t.minStock}<input type="number" min="0" step="0.001" value={form.min_stock||""} onChange={e=>setForm({...form,min_stock:e.target.value})}/></label></div>}
       {modal==="warehouse"&&<div className="form-grid"><label>{t.warehouseCode}<input value={form.code||""} onChange={e=>setForm({...form,code:e.target.value})} required/></label><label>{t.warehouseName}<input value={form.name||""} onChange={e=>setForm({...form,name:e.target.value})} required/></label></div>}
       {(modal==="supplier"||modal==="customer")&&<div className="form-grid"><label>{modal==="supplier"?t.supplierName:t.customerName}<input value={form.name||""} onChange={e=>setForm({...form,name:e.target.value})} required/></label><label>{t.phone}<input value={form.phone||""} onChange={e=>setForm({...form,phone:e.target.value})}/></label></div>}
+      {(modal==="purchase"||modal==="sale")&&<div className="form-grid">
+        <label>{modal==="purchase"?t.suppliers:t.customers}<select value={modal==="purchase"?(form.supplier_id||""):(form.customer_id||"")} onChange={e=>setForm({...form,[modal==="purchase"?"supplier_id":"customer_id"]:e.target.value})}><option value="">—</option>{(modal==="purchase"?suppliers:customers).map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
+        <label>{t.warehouse}<select value={form.warehouse_id||""} onChange={e=>setForm({...form,warehouse_id:e.target.value})} required><option value="">—</option>{warehouses.map(w=><option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
+        <label>{t.name}<select value={form.product_id||""} onChange={e=>setForm({...form,product_id:e.target.value})} required><option value="">—</option>{products.map(p=><option key={p.id} value={p.id}>{p.name} ({p.sku})</option>)}</select></label>
+        <label>{t.quantity}<input type="number" min="0.001" step="0.001" value={form.quantity||""} onChange={e=>setForm({...form,quantity:e.target.value})} required/></label>
+        <label>{modal==="purchase"?t.purchasePrice:t.salePrice}<input type="number" min="0" step="0.01" value={form.unit_price||""} onChange={e=>setForm({...form,unit_price:e.target.value})} required/></label>
+        <label>{modal==="purchase"?"N° commande":"N° facture"}<input value={form.order_number||""} onChange={e=>setForm({...form,order_number:e.target.value})} placeholder="Généré automatiquement si vide"/></label>
+        <label className="span-2">{t.note}<input value={form.note||""} onChange={e=>setForm({...form,note:e.target.value})}/></label>
+      </div>}
       {modal==="movement"&&<div className="form-grid"><label>{t.name}<select value={form.product_id||""} onChange={e=>setForm({...form,product_id:e.target.value})} required><option value="">—</option>{products.map(p=><option key={p.id} value={p.id}>{p.name} ({p.sku})</option>)}</select></label><label>{t.warehouse}<select value={form.warehouse_id||""} onChange={e=>setForm({...form,warehouse_id:e.target.value})} required><option value="">—</option>{warehouses.map(w=><option key={w.id} value={w.id}>{w.name}</option>)}</select></label><label>{t.movementType}<select value={form.movement_type||"opening"} onChange={e=>setForm({...form,movement_type:e.target.value})}><option value="opening">{t.opening}</option><option value="adjustment_in">{t.adjustmentIn}</option><option value="adjustment_out">{t.adjustmentOut}</option></select></label><label>{t.quantity}<input type="number" min="0.001" step="0.001" value={form.quantity||""} onChange={e=>setForm({...form,quantity:e.target.value})} required/></label><label className="span-2">{t.note}<input value={form.note||""} onChange={e=>setForm({...form,note:e.target.value})}/></label></div>}
       <div className="modal-actions"><button type="button" className="secondary-btn" onClick={()=>setModal(null)}>{t.cancel}</button><button className="primary-btn" disabled={busy}>{busy?t.loading:t.save}</button></div>
     </form></div>}
