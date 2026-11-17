@@ -14,7 +14,7 @@ type Props = {
   purchases: any[];
   sales: any[];
   role: string;
-  access?: {isAdmin:boolean;canCreate:boolean;canEdit:boolean;canDelete:boolean;canApprove:boolean;canIssue:boolean;canReceive:boolean;canTransfer:boolean;canInventory:boolean};
+  access?: {isAdmin:boolean;canView:boolean;canCreate:boolean;canEdit:boolean;canDelete:boolean;canApprove:boolean;canIssue:boolean;canReceive:boolean;canTransfer:boolean;canInventory:boolean};
   money: (value: number) => string;
   lang: "fr" | "en" | "ar";
   onSaved: () => Promise<void>;
