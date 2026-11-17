@@ -28,7 +28,7 @@ export default function StockOperations({page,companyId,products,warehouses,supp
   const [form,setForm]=useState<Record<string,string>>({}); const [lines,setLines]=useState<Line[]>([{product_id:"",quantity:"",unit_price:""}]);
   const [start,setStart]=useState(new Date(new Date().getFullYear(),new Date().getMonth(),1).toISOString().slice(0,10));
   const [end,setEnd]=useState(new Date().toISOString().slice(0,10));
-  const [report,setReport]=useState<any>({sales:[],purchases:[],expenses:[],balances:[]});
+  const [report,setReport]=useState<any>({sales:[],purchases:[],expenses:[],balances:[],customerBalance:0,supplierBalance:0});
   const label = page==="transfers"?t.transfer:page==="inventory"?t.inventory:page==="returns"?t.type:page==="expenses"?t.expense:page==="payments"?t.payments:page==="categories"?t.category:t.reports;
   const load=useCallback(async()=>{
     if(!supabase)return;setLoading(true);
@@ -46,12 +46,15 @@ export default function StockOperations({page,companyId,products,warehouses,supp
       } else if(page==="expenses"){
         const r=await supabase.from("expenses").select("*").eq("company_id",companyId).order("expense_date",{ascending:false}).limit(200);if(r.error)throw r.error;setRows(r.data??[]);
       } else {
-        const [s,p,e,b]=await Promise.all([
+        const [s,p,e,b,allSales,allPurchases,payments]=await Promise.all([
           supabase.from("sales").select("sale_date,total,sale_items(quantity,line_total,products(purchase_price))").eq("company_id",companyId).gte("sale_date",start+"T00:00:00").lte("sale_date",end+"T23:59:59"),
           supabase.from("purchase_orders").select("order_date,subtotal").eq("company_id",companyId).gte("order_date",start).lte("order_date",end),
           supabase.from("expenses").select("amount,expense_date").eq("company_id",companyId).gte("expense_date",start).lte("expense_date",end),
-          supabase.from("stock_balances").select("product_id,quantity_on_hand").eq("company_id",companyId)
-        ]);for(const x of [s,p,e,b])if(x.error)throw x.error;setReport({sales:s.data??[],purchases:p.data??[],expenses:e.data??[],balances:b.data??[]});
+          supabase.from("stock_balances").select("product_id,quantity_on_hand").eq("company_id",companyId),
+          supabase.from("sales").select("total").eq("company_id",companyId),
+          supabase.from("purchase_orders").select("subtotal").eq("company_id",companyId),
+          supabase.from("payment_transactions").select("transaction_type,amount").eq("company_id",companyId)
+        ]);for(const x of [s,p,e,b,allSales,allPurchases,payments])if(x.error)throw x.error;const customerBalance=(allSales.data??[]).reduce((n:number,x:any)=>n+Number(x.total||0),0)-(payments.data??[]).filter((x:any)=>x.transaction_type==="customer_receipt").reduce((n:number,x:any)=>n+Number(x.amount||0),0);const supplierBalance=(allPurchases.data??[]).reduce((n:number,x:any)=>n+Number(x.subtotal||0),0)-(payments.data??[]).filter((x:any)=>x.transaction_type==="supplier_payment").reduce((n:number,x:any)=>n+Number(x.amount||0),0);setReport({sales:s.data??[],purchases:p.data??[],expenses:e.data??[],balances:b.data??[],customerBalance,supplierBalance});
       }
     } catch(e:any){window.alert(e.message)} finally{setLoading(false)}
   },[page,companyId,start,end]);
@@ -91,7 +94,7 @@ export default function StockOperations({page,companyId,products,warehouses,supp
   const purchaseTotal=report.purchases.reduce((n:number,x:any)=>n+Number(x.subtotal||0),0);
   const expenseTotal=report.expenses.reduce((n:number,x:any)=>n+Number(x.amount||0),0);
   const grossMargin=report.sales.reduce((sum:number,sale:any)=>sum+(sale.sale_items||[]).reduce((lineSum:number,line:any)=>lineSum+Number(line.line_total||0)-Number(line.quantity||0)*Number(line.products?.purchase_price||0),0),0);
-  const reportCards=[{title:t.sales,value:money(salesTotal)},{title:t.purchases,value:money(purchaseTotal)},{title:t.expenses,value:money(expenseTotal)},{title:t.margin,value:money(grossMargin)},{title:t.stockValue,value:money(productCost)},{title:t.low,value:String(low)}];
+  const reportCards=[{title:t.sales,value:money(salesTotal)},{title:t.purchases,value:money(purchaseTotal)},{title:t.expenses,value:money(expenseTotal)},{title:t.margin,value:money(grossMargin)},{title:t.stockValue,value:money(productCost)},{title:t.low,value:String(low)},{title:t.customerReceipt,value:money(report.customerBalance)},{title:t.supplierPayment,value:money(report.supplierBalance)}];
   const lineEditor=<div className="ops-lines"><div className="ops-lines-head"><b>{t.product}</b><b>{t.qty}</b>{page!=="inventory"&&<b>{t.price}</b>}<span/></div>{lines.map((line,i)=><div className="ops-line" key={i}><select value={line.product_id} onChange={e=>updateLine(i,"product_id",e.target.value)} required><option value="">{t.choose} {t.product}</option>{products.map(p=><option key={p.id} value={p.id}>{p.name} · {p.sku}</option>)}</select><input type="number" min="0.001" step="0.001" placeholder={t.qty} value={line.quantity} onChange={e=>updateLine(i,"quantity",e.target.value)} required/>{page!=="inventory"&&<input type="number" min="0" step="0.01" placeholder={t.price} value={line.unit_price} onChange={e=>updateLine(i,"unit_price",e.target.value)}/>}<button type="button" className="ops-icon-btn" onClick={()=>removeLine(i)} disabled={lines.length===1}><Trash2 size={15}/></button></div>)}<button type="button" className="ops-add-line" onClick={addLine}><Plus size={14}/>{t.addLine}</button></div>;
   if(page==="reports")return <section className="ops-wrap" dir={rtl?"rtl":"ltr"}><div className="panel"><div className="panel-head"><div><h3>{label||"Rapports & analyses"}</h3><p>{t.reportHint}</p></div></div><div className="ops-period"><label>{t.from}<input type="date" value={start} onChange={e=>setStart(e.target.value)}/></label><label>{t.to}<input type="date" value={end} onChange={e=>setEnd(e.target.value)}/></label></div><div className="ops-kpis">{reportCards.map(x=><div className="ops-kpi" key={x.title}><span>{x.title}</span><b>{x.value}</b></div>)}</div><div className="ops-report-note"><BarChart3 size={18}/>{t.reportHint}</div></div></section>;
   return <section className="ops-wrap" dir={rtl?"rtl":"ltr"}>
