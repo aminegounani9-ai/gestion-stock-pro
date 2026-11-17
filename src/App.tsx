@@ -132,7 +132,7 @@ export default function App() {
   const [orgUnits,setOrgUnits]=useState<any[]>([]);
   const [orgServices,setOrgServices]=useState<any[]>([]);
   const [orgDepartments,setOrgDepartments]=useState<any[]>([]);
-  const [orgEquipment,setOrgEquipment]=useState<any[]>([]);
+  const [orgEquipment,setOrgEquipment]=useState<any[]>([]);\n  const [scopePermissions,setScopePermissions]=useState({canCreate:false,canEdit:false,canDelete:false,canApprove:false,canIssue:false,canReceive:false,canTransfer:false,canInventory:false});
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [movements, setMovements] = useState<any[]>([]);
@@ -188,7 +188,7 @@ export default function App() {
       supabase.from("org_equipment").select("id,equipment_tag,name,site_id,unit_id,service_id,department_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name")
     ]);
     const orgError=[os,ou,ov,od,oe].find(x=>x.error)?.error;if(orgError)throw orgError;
-    setOrgSites(os.data??[]);setOrgUnits(ou.data??[]);setOrgServices(ov.data??[]);setOrgDepartments(od.data??[]);setOrgEquipment(oe.data??[]);
+    setOrgSites(os.data??[]);setOrgUnits(ou.data??[]);setOrgServices(ov.data??[]);setOrgDepartments(od.data??[]);setOrgEquipment(oe.data??[]);\n    const {data:{user:scopeUser}}=await supabase.auth.getUser();\n    const scopeResult=scopeUser?await supabase.from("user_scope_assignments").select("can_create,can_edit,can_delete,can_approve,can_issue,can_receive,can_transfer,can_inventory").eq("company_id",companyId).eq("user_id",scopeUser.id):{data:[],error:null};\n    if(scopeResult.error)throw scopeResult.error;\n    const userScopes=scopeResult.data??[];\n    setScopePermissions({canCreate:userScopes.some(x=>x.can_create),canEdit:userScopes.some(x=>x.can_edit),canDelete:userScopes.some(x=>x.can_delete),canApprove:userScopes.some(x=>x.can_approve),canIssue:userScopes.some(x=>x.can_issue),canReceive:userScopes.some(x=>x.can_receive),canTransfer:userScopes.some(x=>x.can_transfer),canInventory:userScopes.some(x=>x.can_inventory)});
     setProducts((p.data ?? []) as Product[]);
     setWarehouses(w.data ?? []);
     setSuppliers(s.data ?? []);
@@ -477,8 +477,8 @@ export default function App() {
         {page==="organization"&&isAdmin&&<OrganizationManagement companyId={company.id} members={members} currentUserId={session.user.id} onNotice={flash}/>}
         {page==="users"&&!isAdmin&&<section className="panel"><div className="empty-state"><div className="empty-icon"><ShieldCheck size={24}/></div><b>Accès réservé à l’administrateur</b></div></section>}
         {page==="sales"&&<section className="panel"><div className="panel-head"><div><h3>{t.sales}</h3><p>{sales.length} facture(s) · sortie de stock automatique</p></div><button className="primary-btn" disabled={currentRole==="viewer"} onClick={()=>{setForm({});setDocumentLines([{product_id:"",quantity:"",unit_price:"",discount:"0"}]);setModal("sale")}}><Plus size={16}/>Nouvelle vente</button></div>{sales.length?<div className="table-wrap"><table><thead><tr><th>N° facture</th><th>{t.customers}</th><th>Date</th><th>Statut</th><th>Total</th><th>Document</th></tr></thead><tbody>{sales.map(x=><tr key={x.id}><td><b>{x.invoice_number}</b></td><td>{x.customers?.name||"—"}</td><td>{new Date(x.sale_date).toLocaleDateString()}</td><td><span className="status-pill positive">{x.status}</span></td><td>{money(Number(x.total))}</td><td><button className="ops-icon-btn" title="Imprimer la facture" onClick={()=>void printDocument("sale",x.id)}><Printer size={15}/></button></td></tr>)}</tbody></table></div>:<Empty t={t}/>}</section>}
-        {page==="spareParts"&&<SpareParts companyId={company.id} products={products} warehouses={warehouses} suppliers={suppliers} role={currentRole} lang={lang} onSaved={()=>loadWorkspace(company.id)}/>}
-        {(page==="categories"||page==="transfers"||page==="inventory"||page==="locations"||page==="lots"||page==="returns"||page==="expenses"||page==="payments"||page==="reports")&&<StockOperations page={page} companyId={company.id} products={products} warehouses={warehouses} suppliers={suppliers} customers={customers} purchases={purchases} sales={sales} role={currentRole} money={money} lang={lang} onSaved={()=>loadWorkspace(company.id)}/>}
+        {page==="spareParts"&&<SpareParts companyId={company.id} products={products} warehouses={warehouses} suppliers={suppliers} role={currentRole} access={{...scopePermissions,isAdmin}} lang={lang} onSaved={()=>loadWorkspace(company.id)}/>}
+        {(page==="categories"||page==="transfers"||page==="inventory"||page==="locations"||page==="lots"||page==="returns"||page==="expenses"||page==="payments"||page==="reports")&&<StockOperations page={page} companyId={company.id} products={products} warehouses={warehouses} suppliers={suppliers} customers={customers} purchases={purchases} sales={sales} role={currentRole} access={{...scopePermissions,isAdmin}} money={money} lang={lang} onSaved={()=>loadWorkspace(company.id)}/>}
       </div>
       <footer className="app-footer"><span>© {new Date().getFullYear()} Gestion Stock Pro</span><span><ShieldCheck size={14}/> Données protégées par RLS</span></footer>
     </main>
