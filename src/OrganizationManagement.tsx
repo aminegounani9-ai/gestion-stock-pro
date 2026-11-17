@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import { Plus, RefreshCw, ShieldCheck, Building2, Layers3, Wrench, Users, X, Check } from "lucide-react";
+import { Plus, RefreshCw, ShieldCheck, Building2, X, Check } from "lucide-react";
 import { supabase } from "./lib/supabase";
 
 type ScopeType = "site" | "unit" | "service" | "department" | "equipment" | "warehouse";
