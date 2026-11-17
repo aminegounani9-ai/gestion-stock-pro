@@ -128,7 +128,8 @@ export default function App() {
   const [balances, setBalances] = useState<any[]>([]);
   const [purchases, setPurchases] = useState<any[]>([]);
   const [sales, setSales] = useState<any[]>([]);
-  const [members, setMembers] = useState<any[]>([]);\n  const [invitations,setInvitations]=useState<any[]>([]);
+  const [members, setMembers] = useState<any[]>([]);
+  const [invitations,setInvitations]=useState<any[]>([]);
   const [companyRoles, setCompanyRoles] = useState<Record<string,string>>({});
   const [currentRole, setCurrentRole] = useState("viewer");
   const [isAdmin, setIsAdmin] = useState(false);
