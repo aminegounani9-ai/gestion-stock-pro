@@ -40,10 +40,10 @@ export default function SpareParts({companyId,products,warehouses,suppliers,role
   if(error)throw error;setIssue({});await load();await onSaved();alert("Sortie de stock enregistrée.");
  }catch(e:any){alert(e.message);}finally{setSaving(false);}}
  async function reservePart(e:React.FormEvent){e.preventDefault();if(!canWrite)return;setSaving(true);try{
-  const {error}=await supabase!.from("spare_part_reservations").insert({company_id:companyId,product_id:reserve.product_id,warehouse_id:reserve.warehouse_id,quantity:Number(reserve.quantity),reservation_number:reserve.reservation_number,requested_for:reserve.requested_for||null,work_order_reference:reserve.work_order_reference||null,required_date:reserve.required_date||null,notes:reserve.notes||null});
+  const {error}=await supabase!.rpc("reserve_spare_part",{p_company_id:companyId,p_product_id:reserve.product_id,p_warehouse_id:reserve.warehouse_id,p_quantity:Number(reserve.quantity),p_reservation_number:reserve.reservation_number,p_requested_for:reserve.requested_for||null,p_work_order_reference:reserve.work_order_reference||null,p_required_date:reserve.required_date||null,p_notes:reserve.notes||null});
   if(error)throw error;setReserve({});await load();
  }catch(e:any){alert(e.message);}finally{setSaving(false);}}
- async function changeReservation(id:string,status:"issued"|"cancelled"){const {error}=await supabase!.from("spare_part_reservations").update({status,updated_at:new Date().toISOString()}).eq("id",id).eq("company_id",companyId);if(error)alert(error.message);else await load();}
+ async function changeReservation(id:string,status:"issued"|"cancelled"){const {error}=await supabase!.rpc("update_spare_part_reservation",{p_company_id:companyId,p_reservation_id:id,p_action:status==="issued"?"issue":"cancel"});if(error)alert(error.message);else{await load();await onSaved();}}
  const criticalCount=details.filter(d=>d.criticality==="critical"||d.criticality==="high").length;
  const lowCount=details.filter(d=>stockFor(d.product_id)-reservedFor(d.product_id)<=Number(d.safety_stock||0)).length;
  const activeReservations=reservations.filter(r=>r.status==="reserved").length;
