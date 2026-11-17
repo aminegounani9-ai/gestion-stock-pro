@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import type { FormEvent } from "react";
 import { Plus, RefreshCw, ShieldCheck, Building2, Layers3, Wrench, Users, X, Check } from "lucide-react";
 import { supabase } from "./lib/supabase";
 
@@ -39,7 +40,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
   const scopeRows = useMemo(()=>({site:sites,unit:units,service:services,department:departments,equipment}),[sites,units,services,departments,equipment]);
   const availableScopes = scopeRows[assignment.scope_type] ?? [];
   function setField(key:string,value:string){setForm(old=>({...old,[key]:value}));}
-  async function createStructure(event:React.FormEvent){
+  async function createStructure(event:FormEvent){
     event.preventDefault();if(!supabase)return;
     const payload:any={company_id:companyId,code:form.code?.trim(),name:form.name?.trim()};
     if(kind==="unit"||kind==="service"||kind==="department"||kind==="equipment") payload.site_id=form.site_id;
