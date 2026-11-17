@@ -117,6 +117,7 @@ export default function App() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [company, setCompany] = useState<Company|null>(null);
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [warehouses, setWarehouses] = useState<any[]>([]);
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
@@ -156,6 +157,9 @@ export default function App() {
     ]);
     const queryError = [p,w,s,c,m,b,po,sa].find(result => result.error);
     if (queryError?.error) throw queryError.error;
+    const categoryResult = await supabase.from("product_categories").select("id,name").eq("company_id",companyId).order("name");
+    if (categoryResult.error) throw categoryResult.error;
+    setCategories(categoryResult.data ?? []);
     setProducts((p.data ?? []) as Product[]);
     setWarehouses(w.data ?? []);
     setSuppliers(s.data ?? []);
@@ -270,7 +274,7 @@ export default function App() {
       let payload: Record<string,any> = {company_id:company.id};
       if (modal === "product") {
         table = "products";
-        payload = {...payload,sku:form.sku?.trim(),name:form.name?.trim(),barcode:form.barcode?.trim()||null,unit:form.unit||"piece",purchase_price:Number(form.purchase_price||0),sale_price:Number(form.sale_price||0),min_stock:Number(form.min_stock||0)};
+        payload = {...payload,category_id:form.category_id||null,sku:form.sku?.trim(),name:form.name?.trim(),barcode:form.barcode?.trim()||null,unit:form.unit||"piece",purchase_price:Number(form.purchase_price||0),sale_price:Number(form.sale_price||0),min_stock:Number(form.min_stock||0)};
       } else if (modal === "warehouse") {
         table = "warehouses"; payload = {...payload,code:form.code?.trim().toUpperCase(),name:form.name?.trim()};
       } else if (modal === "supplier") {
@@ -351,7 +355,7 @@ export default function App() {
       <footer className="app-footer"><span>© {new Date().getFullYear()} Gestion Stock Pro</span><span><ShieldCheck size={14}/> Données protégées par RLS</span></footer>
     </main>
     {modal&&<div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setModal(null)}}><form className="modal-card" onSubmit={saveRecord}><div className="modal-head"><div><span className="eyebrow">NOUVEL ENREGISTREMENT</span><h2>{modal==="product"?t.addProduct:modal==="warehouse"?t.addWarehouse:modal==="supplier"?t.addSupplier:modal==="customer"?t.addCustomer:modal==="purchase"?"Nouvel achat":modal==="sale"?"Nouvelle vente":t.addMovement}</h2></div><button type="button" className="icon-btn" onClick={()=>setModal(null)}><X size={19}/></button></div>
-      {modal==="product"&&<div className="form-grid"><label>{t.sku}<input value={form.sku||""} onChange={e=>setForm({...form,sku:e.target.value})} required/></label><label>{t.name}<input value={form.name||""} onChange={e=>setForm({...form,name:e.target.value})} required/></label><label>{t.barcode}<input value={form.barcode||""} onChange={e=>setForm({...form,barcode:e.target.value})}/></label><label>{t.unit}<select value={form.unit||"piece"} onChange={e=>setForm({...form,unit:e.target.value})}><option value="piece">Pièce</option><option value="kg">Kg</option><option value="g">g</option><option value="l">Litre</option><option value="m">Mètre</option><option value="box">Carton</option></select></label><label>{t.purchasePrice}<input type="number" min="0" step="0.01" value={form.purchase_price||""} onChange={e=>setForm({...form,purchase_price:e.target.value})}/></label><label>{t.salePrice}<input type="number" min="0" step="0.01" value={form.sale_price||""} onChange={e=>setForm({...form,sale_price:e.target.value})}/></label><label>{t.minStock}<input type="number" min="0" step="0.001" value={form.min_stock||""} onChange={e=>setForm({...form,min_stock:e.target.value})}/></label></div>}
+      {modal==="product"&&<div className="form-grid"><label>{t.sku}<input value={form.sku||""} onChange={e=>setForm({...form,sku:e.target.value})} required/></label><label>{t.name}<input value={form.name||""} onChange={e=>setForm({...form,name:e.target.value})} required/></label><label>{t.barcode}<input value={form.barcode||""} onChange={e=>setForm({...form,barcode:e.target.value})}/></label><label>{t.unit}<select value={form.unit||"piece"} onChange={e=>setForm({...form,unit:e.target.value})}><option value="piece">Pièce</option><option value="kg">Kg</option><option value="g">g</option><option value="l">Litre</option><option value="m">Mètre</option><option value="box">Carton</option></select></label><label>{t.category}<select value={form.category_id||""} onChange={e=>setForm({...form,category_id:e.target.value})}><option value="">—</option>{categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label><label>{t.purchasePrice}<input type="number" min="0" step="0.01" value={form.purchase_price||""} onChange={e=>setForm({...form,purchase_price:e.target.value})}/></label><label>{t.salePrice}<input type="number" min="0" step="0.01" value={form.sale_price||""} onChange={e=>setForm({...form,sale_price:e.target.value})}/></label><label>{t.minStock}<input type="number" min="0" step="0.001" value={form.min_stock||""} onChange={e=>setForm({...form,min_stock:e.target.value})}/></label></div>}
       {modal==="warehouse"&&<div className="form-grid"><label>{t.warehouseCode}<input value={form.code||""} onChange={e=>setForm({...form,code:e.target.value})} required/></label><label>{t.warehouseName}<input value={form.name||""} onChange={e=>setForm({...form,name:e.target.value})} required/></label></div>}
       {(modal==="supplier"||modal==="customer")&&<div className="form-grid"><label>{modal==="supplier"?t.supplierName:t.customerName}<input value={form.name||""} onChange={e=>setForm({...form,name:e.target.value})} required/></label><label>{t.phone}<input value={form.phone||""} onChange={e=>setForm({...form,phone:e.target.value})}/></label></div>}
       {(modal==="purchase"||modal==="sale")&&<div className="form-grid">
