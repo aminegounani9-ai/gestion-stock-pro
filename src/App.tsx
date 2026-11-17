@@ -280,6 +280,7 @@ export default function App() {
       await supabase.from("warehouses").insert({company_id:data.id,code:"MAIN",name:lang==="ar"?"المخزن الرئيسي":"Entrepôt principal",is_default:true});
       setCompany(data as Company);
       setCompanies([data as Company]);
+      setCurrentRole("owner");setIsAdmin(true);setCompanyRoles({[data.id]:"owner"});setSettingsForm({name:data.name,legal_name:"",tax_number:"",phone:"",email:"",address:"",city:"",country:"Algeria",currency_code:data.currency_code||"DZD"});
       await loadWorkspace(data.id);
       flash("success",t.companyCreated);
     } catch (e:any) { flash("error",e.message); }
