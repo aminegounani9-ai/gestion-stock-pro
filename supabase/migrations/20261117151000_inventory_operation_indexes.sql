@@ -1,0 +1,25 @@
+-- Supporting indexes for the new inventory operation modules.
+create index if not exists stock_transfers_company_created_idx on public.stock_transfers(company_id,created_at desc);
+create index if not exists stock_transfers_source_idx on public.stock_transfers(source_warehouse_id);
+create index if not exists stock_transfers_destination_idx on public.stock_transfers(destination_warehouse_id);
+create index if not exists stock_transfers_created_by_idx on public.stock_transfers(created_by);
+create index if not exists stock_transfer_items_company_idx on public.stock_transfer_items(company_id);
+create index if not exists stock_transfer_items_transfer_idx on public.stock_transfer_items(transfer_id);
+create index if not exists stock_transfer_items_product_idx on public.stock_transfer_items(product_id);
+create index if not exists inventory_counts_company_date_idx on public.inventory_counts(company_id,count_date desc);
+create index if not exists inventory_counts_warehouse_idx on public.inventory_counts(warehouse_id);
+create index if not exists inventory_counts_created_by_idx on public.inventory_counts(created_by);
+create index if not exists inventory_count_items_company_idx on public.inventory_count_items(company_id);
+create index if not exists inventory_count_items_count_idx on public.inventory_count_items(count_id);
+create index if not exists inventory_count_items_product_idx on public.inventory_count_items(product_id);
+create index if not exists stock_returns_company_date_idx on public.stock_returns(company_id,return_date desc);
+create index if not exists stock_returns_warehouse_idx on public.stock_returns(warehouse_id);
+create index if not exists stock_returns_customer_idx on public.stock_returns(customer_id);
+create index if not exists stock_returns_supplier_idx on public.stock_returns(supplier_id);
+create index if not exists stock_returns_created_by_idx on public.stock_returns(created_by);
+create index if not exists stock_return_items_company_idx on public.stock_return_items(company_id);
+create index if not exists stock_return_items_return_idx on public.stock_return_items(return_id);
+create index if not exists stock_return_items_product_idx on public.stock_return_items(product_id);
+create index if not exists expenses_company_date_idx on public.expenses(company_id,expense_date desc);
+create index if not exists expenses_created_by_idx on public.expenses(created_by);
+create index if not exists user_invitations_invited_by_idx on public.user_invitations(invited_by);
