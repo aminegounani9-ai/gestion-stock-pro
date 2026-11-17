@@ -16,7 +16,8 @@ export default function OrganizationManagement({ companyId, members, currentUser
   const [units,setUnits] = useState<Row[]>([]);
   const [services,setServices] = useState<Row[]>([]);
   const [departments,setDepartments] = useState<Row[]>([]);
-  const [equipment,setEquipment] = useState<Row[]>([]);\n  const [warehouses,setWarehouses] = useState<Row[]>([]);
+  const [equipment,setEquipment] = useState<Row[]>([]);
+  const [warehouses,setWarehouses] = useState<Row[]>([]);
   const [assignments,setAssignments] = useState<any[]>([]);
   const [form,setForm] = useState<Record<string,string>>({});
   const [assignment,setAssignment] = useState({user_id:"",job_title:"",scope_type:"unit" as ScopeType,scope_id:"",can_view:true,can_create:false,can_edit:false,can_delete:false,can_approve:false,can_issue:false,can_receive:false,can_transfer:false,can_inventory:false});
