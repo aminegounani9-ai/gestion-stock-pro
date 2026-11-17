@@ -22,6 +22,13 @@ export interface Company {
   id: string;
   name: string;
   currency_code: string;
+  legal_name?: string | null;
+  tax_number?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  city?: string | null;
+  country?: string;
 }
 
 export interface Product {
