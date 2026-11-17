@@ -3,18 +3,18 @@ import type { FormEvent } from "react";
 import {
   Activity, ArrowUpRight, Boxes, Building2, ChevronDown, CircleHelp,
   LayoutDashboard, LogOut, Package, Plus, Search, Settings,
-  ShoppingBag, ShoppingCart, Truck, Users, Warehouse, X, Languages, ShieldCheck
+  ShoppingBag, ShoppingCart, Truck, Users, Warehouse, X, Languages, ShieldCheck, UserCog
 } from "lucide-react";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 import type { Company, Product } from "./lib/supabase";
 
-type Page = "dashboard" | "products" | "stock" | "warehouses" | "suppliers" | "customers" | "purchases" | "sales";
+type Page = "dashboard" | "products" | "stock" | "warehouses" | "suppliers" | "customers" | "purchases" | "sales" | "users";
 type Lang = "fr" | "en" | "ar";
 type Notice = { type: "success" | "error"; text: string } | null;
 
 const copy = {
   fr: {
-    dashboard:"Tableau de bord", products:"Articles", stock:"Mouvements de stock", warehouses:"Entrepôts",
+    dashboard:"Tableau de bord", products:"Articles", stock:"Mouvements de stock", warehouses:"Entrepôts", users:"Utilisateurs",
     suppliers:"Fournisseurs", customers:"Clients", purchases:"Achats", sales:"Ventes",
     search:"Rechercher un article, un code...", welcome:"Vue d'ensemble", subtitle:"Suivez votre activité et votre stock en temps réel.",
     items:"Articles actifs", suppliersCount:"Fournisseurs", warehousesCount:"Entrepôts", movements:"Mouvements",
@@ -38,7 +38,7 @@ const copy = {
     margin:"Marge théorique", purchaseOrders:"Commandes d'achat", invoices:"Factures de vente",
   },
   en: {
-    dashboard:"Dashboard", products:"Products", stock:"Stock movements", warehouses:"Warehouses", suppliers:"Suppliers",
+    dashboard:"Dashboard", products:"Products", stock:"Stock movements", warehouses:"Warehouses", users:"Users", suppliers:"Suppliers",
     customers:"Customers", purchases:"Purchases", sales:"Sales", search:"Search products or SKU...", welcome:"Overview",
     subtitle:"Monitor your business and stock in real time.", items:"Active products", suppliersCount:"Suppliers",
     warehousesCount:"Warehouses", movements:"Movements", recent:"Recently added products", all:"View all",
@@ -59,7 +59,7 @@ const copy = {
     language:"Language", profile:"My workspace", margin:"Estimated margin", purchaseOrders:"Purchase orders", invoices:"Sales invoices",
   },
   ar: {
-    dashboard:"لوحة التحكم", products:"المنتجات", stock:"حركات المخزون", warehouses:"المخازن", suppliers:"الموردون",
+    dashboard:"لوحة التحكم", products:"المنتجات", stock:"حركات المخزون", warehouses:"المخازن", users:"المستخدمون", suppliers:"الموردون",
     customers:"العملاء", purchases:"المشتريات", sales:"المبيعات", search:"ابحث عن منتج أو مرجع...",
     welcome:"نظرة عامة", subtitle:"تابع نشاطك ومخزونك في الوقت الفعلي.", items:"المنتجات النشطة",
     suppliersCount:"الموردون", warehousesCount:"المخازن", movements:"الحركات", recent:"آخر المنتجات المضافة",
@@ -93,6 +93,7 @@ const nav: { id: Page; icon: typeof LayoutDashboard; group: string }[] = [
   { id:"customers", icon:Users, group:"partners" },
   { id:"purchases", icon:ShoppingCart, group:"operations" },
   { id:"sales", icon:ShoppingBag, group:"operations" },
+  { id:"users", icon:UserCog, group:"admin" },
 ];
 
 export default function App() {
@@ -116,6 +117,12 @@ export default function App() {
   const [balances, setBalances] = useState<any[]>([]);
   const [purchases, setPurchases] = useState<any[]>([]);
   const [sales, setSales] = useState<any[]>([]);
+  const [members, setMembers] = useState<any[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState("manager");
+  const [inviteBusy, setInviteBusy] = useState(false);
+  const [inviteFlow] = useState(() => new URLSearchParams(window.location.search).get("invite") === "1");
   const [search, setSearch] = useState("");
   const [modal, setModal] = useState<"product"|"warehouse"|"supplier"|"customer"|"movement"|"purchase"|"sale"|null>(null);
   const [form, setForm] = useState<Record<string,string>>({});
@@ -156,6 +163,8 @@ export default function App() {
     const {data: memberships,error} = await supabase.from("company_members").select("company_id").eq("user_id",userId).eq("is_active",true);
     if (error) throw error;
     const ids = (memberships ?? []).map((m:any) => m.company_id);
+    const adminMembership = (memberships ?? []).find((m:any) => ["owner","admin"].includes(m.role));
+    setIsAdmin(Boolean(adminMembership));
     if (!ids.length) { setCompanies([]); setCompany(null); return; }
     const {data,error: companyError} = await supabase.from("companies").select("id,name,currency_code").in("id",ids).order("created_at");
     if (companyError) throw companyError;
@@ -163,7 +172,14 @@ export default function App() {
     setCompanies(list);
     const chosen = list[0] ?? null;
     setCompany(chosen);
-    if (chosen) await loadWorkspace(chosen.id);
+    if (chosen) {
+      await loadWorkspace(chosen.id);
+      if (adminMembership) {
+        const {data: memberRows,error: memberError} = await supabase.rpc("list_company_users",{p_company_id:chosen.id});
+        if (memberError) throw memberError;
+        setMembers(memberRows ?? []);
+      } else setMembers([]);
+    }
   }, [loadWorkspace]);
 
   useEffect(() => {
@@ -191,6 +207,7 @@ export default function App() {
     if (!supabase) return;
     setBusy(true);
     try {
+      if (authMode === "signup" && !inviteFlow) throw new Error("Les inscriptions sont sur invitation uniquement.");
       const result = authMode === "login"
         ? await supabase.auth.signInWithPassword({email,password})
         : await supabase.auth.signUp({email,password});
@@ -202,6 +219,19 @@ export default function App() {
       }
     } catch (e:any) { flash("error",e.message); }
     finally { setBusy(false); }
+  }
+
+  async function createInvitation(e: FormEvent) {
+    e.preventDefault();
+    if (!supabase || !company || !session?.user || !isAdmin || !inviteEmail.trim()) return;
+    setInviteBusy(true);
+    try {
+      const {error} = await supabase.from("user_invitations").upsert({company_id:company.id,email:inviteEmail.trim().toLowerCase(),role:inviteRole,invited_by:session.user.id,expires_at:new Date(Date.now()+7*86400000).toISOString(),accepted_at:null},{onConflict:"company_id,email"});
+      if (error) throw error;
+      setInviteEmail("");
+      flash("success","Invitation créée. Partagez le lien d’activation avec cet utilisateur.");
+    } catch(e:any) { flash("error",e.message); }
+    finally { setInviteBusy(false); }
   }
 
   async function createCompany(e: FormEvent) {
@@ -258,7 +288,7 @@ export default function App() {
 
   async function signOut() {
     if (supabase) await supabase.auth.signOut();
-    setSession(null); setCompany(null); setCompanies([]); setProducts([]);
+    setSession(null); setCompany(null); setCompanies([]); setProducts([]); setMembers([]); setIsAdmin(false);
   }
 
   const title = t[page];
@@ -277,7 +307,8 @@ export default function App() {
 
   if (!session) return <div className="auth-screen" dir={rtl?"rtl":"ltr"}>
     <div className="auth-visual"><div className="auth-brand"><span className="brand-mark"><Boxes size={24}/></span><b>Gestion Stock Pro</b></div><div className="visual-copy"><span className="eyebrow">INVENTORY · OPERATIONS · CONTROL</span><h1>{lang==="ar"?"تحكم أفضل في مخزونك.":"Votre stock, enfin sous contrôle."}</h1><p>{lang==="ar"?"منصة واحدة لإدارة المنتجات والمخازن والمشتريات والمبيعات.":"Une plateforme claire pour piloter vos articles, entrepôts, achats et ventes."}</p><div className="visual-stats"><div><b>01</b><span>Workspace</span></div><div><b>02</b><span>Inventory</span></div><div><b>03</b><span>Insights</span></div></div></div><div className="visual-footer">Gestion Stock Pro · {new Date().getFullYear()}</div></div>
-    <div className="auth-panel"><div className="lang-switch"><Languages size={16}/><select value={lang} onChange={e=>setLang(e.target.value as Lang)}><option value="fr">Français</option><option value="en">English</option><option value="ar">العربية</option></select></div><form className="auth-form" onSubmit={submitAuth}><span className="eyebrow">{authMode==="login"?"ESPACE SÉCURISÉ":"NOUVEAU COMPTE"}</span><h2>{authMode==="login"?t.login:t.signup}</h2><p>{t.authSubtitle}</p><label>{t.email}<input type="email" value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="email"/></label><label>{t.password}<input type="password" value={password} onChange={e=>setPassword(e.target.value)} required minLength={8} autoComplete={authMode==="login"?"current-password":"new-password"}/></label><button className="primary-btn full" disabled={busy}>{busy?t.loading:authMode==="login"?t.login:t.signup}</button><div className="auth-toggle">{authMode==="login"?t.noAccount:t.haveAccount} <button type="button" onClick={()=>setAuthMode(authMode==="login"?"signup":"login")}>{authMode==="login"?t.signup:t.login}</button></div><div className="secure-note"><ShieldCheck size={15}/> Connexion sécurisée · Supabase Auth</div></form></div>
+    <div className="auth-panel"><div className="lang-switch"><Languages size={16}/><select value={lang} onChange={e=>setLang(e.target.value as Lang)}><option value="fr">Français</option><option value="en">English</option><option value="ar">العربية</option></select></div><form className="auth-form" onSubmit={submitAuth}><span className="eyebrow">{authMode==="login"?"ESPACE SÉCURISÉ":"NOUVEAU COMPTE"}</span><h2>{authMode==="login"?t.login:t.signup}</h2><p>{t.authSubtitle}</p><label>{t.email}<input type="email" value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="email"/></label><label>{t.password}<input type="password" value={password} onChange={e=>setPassword(e.target.value)} required minLength={8} autoComplete={authMode==="login"?"current-password":"new-password"}/></label><button className="primary-btn full" disabled={busy}>{busy?t.loading:authMode==="login"?t.login:t.signup}</button>{inviteFlow&&<div className="auth-toggle">{authMode==="login"?t.haveAccount:t.login} <button type="button" onClick={()=>setAuthMode(authMode==="login"?"signup":"login")}>{authMode==="login"?t.signup:t.login}</button></div>}
+      {!inviteFlow&&<div className="auth-toggle">Accès réservé aux utilisateurs invités par l’administrateur.</div>}<div className="secure-note"><ShieldCheck size={15}/> Connexion sécurisée · Supabase Auth</div></form></div>
     {notice&&<div className={"toast "+notice.type}>{notice.text}</div>}
   </div>;
 
@@ -304,6 +335,8 @@ export default function App() {
         {page==="customers"&&<SimpleDirectory title={t.customers} rows={customers} icon="customer" empty={t.empty}/>}
         {page==="stock"&&<section className="panel"><div className="panel-head"><div><h3>{t.stock}</h3><p>{movements.length} {t.movements.toLowerCase()}</p></div></div>{movements.length?<div className="table-wrap"><table><thead><tr><th>{t.name}</th><th>{t.movementType}</th><th>{t.quantity}</th><th>{t.warehouse}</th><th>Date</th></tr></thead><tbody>{movements.map(m=><tr key={m.id}><td><b>{m.products?.name||"—"}</b><small className="cell-sub">{m.products?.sku}</small></td><td><span className="status-pill">{m.movement_type}</span></td><td>{m.quantity}</td><td>{m.warehouses?.name||"—"}</td><td>{new Date(m.occurred_at).toLocaleDateString()}</td></tr>)}</tbody></table></div>:<Empty t={t}/>}</section>}
         {page==="purchases"&&<section className="panel"><div className="panel-head"><div><h3>{t.purchases}</h3><p>{purchases.length} commande(s) · réception automatique en stock</p></div><button className="primary-btn" onClick={()=>{setForm({});setModal("purchase")}}><Plus size={16}/>Nouvel achat</button></div>{purchases.length?<div className="table-wrap"><table><thead><tr><th>N° commande</th><th>{t.suppliers}</th><th>Date</th><th>Statut</th><th>Total</th></tr></thead><tbody>{purchases.map(x=><tr key={x.id}><td><b>{x.order_number}</b></td><td>{x.suppliers?.name||"—"}</td><td>{new Date(x.order_date).toLocaleDateString()}</td><td><span className="status-pill positive">{x.status}</span></td><td>{money(Number(x.subtotal))}</td></tr>)}</tbody></table></div>:<Empty t={t}/>}</section>}
+        {page==="users"&&isAdmin&&<section className="panel"><div className="panel-head"><div><h3>Gestion des utilisateurs</h3><p>Invitez des collaborateurs et attribuez leurs rôles</p></div></div><form className="form-grid invite-form" onSubmit={createInvitation}><label className="span-2">Adresse e-mail<input type="email" value={inviteEmail} onChange={e=>setInviteEmail(e.target.value)} required placeholder="collaborateur@exemple.com"/></label><label>Rôle<select value={inviteRole} onChange={e=>setInviteRole(e.target.value)}><option value="manager">Manager</option><option value="warehouse">Magasinier</option><option value="sales">Ventes</option><option value="viewer">Consultation</option><option value="staff">Employé</option></select></label><div className="invite-submit"><button className="primary-btn" disabled={inviteBusy}>{inviteBusy?"En cours...":"Créer l’invitation"}</button></div></form><div className="invite-link"><b>Lien d’activation à transmettre</b><code>https://gestion-stock-pro-mu.vercel.app/?invite=1</code></div><div className="table-wrap"><table><thead><tr><th>Utilisateur</th><th>Rôle</th><th>Statut</th></tr></thead><tbody>{members.map(m=><tr key={m.user_id}><td>{m.email}</td><td><span className="status-pill">{m.role}</span></td><td><span className={"status-pill "+(m.is_active?"positive":"warning")}>{m.is_active?"Actif":"Désactivé"}</span></td></tr>)}</tbody></table></div></section>}
+        {page==="users"&&!isAdmin&&<section className="panel"><div className="empty-state"><div className="empty-icon"><ShieldCheck size={24}/></div><b>Accès réservé à l’administrateur</b></div></section>}
         {page==="sales"&&<section className="panel"><div className="panel-head"><div><h3>{t.sales}</h3><p>{sales.length} facture(s) · sortie de stock automatique</p></div><button className="primary-btn" onClick={()=>{setForm({});setModal("sale")}}><Plus size={16}/>Nouvelle vente</button></div>{sales.length?<div className="table-wrap"><table><thead><tr><th>N° facture</th><th>{t.customers}</th><th>Date</th><th>Statut</th><th>Total</th></tr></thead><tbody>{sales.map(x=><tr key={x.id}><td><b>{x.invoice_number}</b></td><td>{x.customers?.name||"—"}</td><td>{new Date(x.sale_date).toLocaleDateString()}</td><td><span className="status-pill positive">{x.status}</span></td><td>{money(Number(x.total))}</td></tr>)}</tbody></table></div>:<Empty t={t}/>}</section>}
       </div>
       <footer className="app-footer"><span>© {new Date().getFullYear()} Gestion Stock Pro</span><span><ShieldCheck size={14}/> Données protégées par RLS</span></footer>
