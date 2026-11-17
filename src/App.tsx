@@ -248,9 +248,11 @@ export default function App() {
   async function createInvitation(e: FormEvent) {
     e.preventDefault();
     if (!supabase || !company || !session?.user || !isAdmin || !inviteEmail.trim()) return;
+    const normalizedEmail=inviteEmail.trim().toLowerCase();
+    if(members.some(m=>String(m.email||"").toLowerCase()===normalizedEmail)){flash("error","Cet utilisateur est déjà membre de l'entreprise.");return;}
     setInviteBusy(true);
     try {
-      const {error} = await supabase.from("user_invitations").upsert({company_id:company.id,email:inviteEmail.trim().toLowerCase(),role:inviteRole,invited_by:session.user.id,expires_at:new Date(Date.now()+7*86400000).toISOString(),accepted_at:null},{onConflict:"company_id,email"});
+      const {error} = await supabase.from("user_invitations").upsert({company_id:company.id,email:normalizedEmail,role:inviteRole,invited_by:session.user.id,expires_at:new Date(Date.now()+7*86400000).toISOString(),accepted_at:null},{onConflict:"company_id,email"});
       if (error) throw error;
       setInviteEmail("");
       flash("success","Invitation créée. Partagez le lien d’activation avec cet utilisateur.");
