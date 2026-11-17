@@ -377,3 +377,4 @@ function Empty({t}:{t:Labels}) { return <div className="empty-state"><div classN
 function SimpleDirectory({title,rows,icon,empty}:{title:string;rows:any[];icon:string;empty:string}) {
   const Icon=icon==="supplier"?Truck:Users;
   return <section className="panel"><div className="panel-head"><div><h3>{title}</h3><p>{rows.length} enregistrement(s)</p></div></div>{rows.length?<div className="simple-list">{rows.map(r=><div className="simple-row" key={r.id}><span className="list-icon"><Icon size={18}/></span><div><b>{r.name}</b><small>{r.phone||r.email||"—"}</small></div><span className="status-pill positive">Actif</span></div>)}</div>:<div className="empty-state"><div className="empty-icon"><Icon size={24}/></div><b>{empty}</b></div>}</section>;
+}
