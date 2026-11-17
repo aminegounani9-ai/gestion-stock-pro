@@ -93,7 +93,10 @@ const nav: { id: Page; icon: typeof LayoutDashboard; group: string }[] = [
   { id:"suppliers", icon:Truck, group:"partners" },
   { id:"customers", icon:Users, group:"partners" },
   { id:"purchases", icon:ShoppingCart, group:"operations" },
-  { id:"sales", icon:ShoppingBag, group:"operations" },\n  { id:"returns", icon:RotateCcw, group:"operations" },\n  { id:"expenses", icon:Receipt, group:"operations" },\n  { id:"reports", icon:BarChart3, group:"operations" },
+  { id:"sales", icon:ShoppingBag, group:"operations" },
+  { id:"returns", icon:RotateCcw, group:"operations" },
+  { id:"expenses", icon:Receipt, group:"operations" },
+  { id:"reports", icon:BarChart3, group:"operations" },
   { id:"users", icon:UserCog, group:"admin" },
 ];
 
@@ -339,6 +342,7 @@ export default function App() {
         {page==="users"&&isAdmin&&<section className="panel"><div className="panel-head"><div><h3>Gestion des utilisateurs</h3><p>Invitez des collaborateurs et attribuez leurs rôles</p></div></div><form className="form-grid invite-form" onSubmit={createInvitation}><label className="span-2">Adresse e-mail<input type="email" value={inviteEmail} onChange={e=>setInviteEmail(e.target.value)} required placeholder="collaborateur@exemple.com"/></label><label>Rôle<select value={inviteRole} onChange={e=>setInviteRole(e.target.value)}><option value="manager">Manager</option><option value="warehouse">Magasinier</option><option value="sales">Ventes</option><option value="viewer">Consultation</option><option value="staff">Employé</option></select></label><div className="invite-submit"><button className="primary-btn" disabled={inviteBusy}>{inviteBusy?"En cours...":"Créer l’invitation"}</button></div></form><div className="invite-link"><b>Lien d’activation à transmettre</b><code>https://gestion-stock-pro-amine-gnn.vercel.app/?invite=1</code></div><div className="table-wrap"><table><thead><tr><th>Utilisateur</th><th>Rôle</th><th>Statut</th></tr></thead><tbody>{members.map(m=><tr key={m.user_id}><td>{m.email}</td><td><span className="status-pill">{m.role}</span></td><td><span className={"status-pill "+(m.is_active?"positive":"warning")}>{m.is_active?"Actif":"Désactivé"}</span></td></tr>)}</tbody></table></div></section>}
         {page==="users"&&!isAdmin&&<section className="panel"><div className="empty-state"><div className="empty-icon"><ShieldCheck size={24}/></div><b>Accès réservé à l’administrateur</b></div></section>}
         {page==="sales"&&<section className="panel"><div className="panel-head"><div><h3>{t.sales}</h3><p>{sales.length} facture(s) · sortie de stock automatique</p></div><button className="primary-btn" onClick={()=>{setForm({});setModal("sale")}}><Plus size={16}/>Nouvelle vente</button></div>{sales.length?<div className="table-wrap"><table><thead><tr><th>N° facture</th><th>{t.customers}</th><th>Date</th><th>Statut</th><th>Total</th></tr></thead><tbody>{sales.map(x=><tr key={x.id}><td><b>{x.invoice_number}</b></td><td>{x.customers?.name||"—"}</td><td>{new Date(x.sale_date).toLocaleDateString()}</td><td><span className="status-pill positive">{x.status}</span></td><td>{money(Number(x.total))}</td></tr>)}</tbody></table></div>:<Empty t={t}/>}</section>}
+        {(page==="categories"||page==="transfers"||page==="inventory"||page==="returns"||page==="expenses"||page==="reports")&&<StockOperations page={page} companyId={company.id} products={products} warehouses={warehouses} suppliers={suppliers} customers={customers} money={money} lang={lang} onSaved={()=>loadWorkspace(company.id)}/>}
       </div>
       <footer className="app-footer"><span>© {new Date().getFullYear()} Gestion Stock Pro</span><span><ShieldCheck size={14}/> Données protégées par RLS</span></footer>
     </main>
@@ -370,4 +374,3 @@ function Empty({t}:{t:Labels}) { return <div className="empty-state"><div classN
 function SimpleDirectory({title,rows,icon,empty}:{title:string;rows:any[];icon:string;empty:string}) {
   const Icon=icon==="supplier"?Truck:Users;
   return <section className="panel"><div className="panel-head"><div><h3>{title}</h3><p>{rows.length} enregistrement(s)</p></div></div>{rows.length?<div className="simple-list">{rows.map(r=><div className="simple-row" key={r.id}><span className="list-icon"><Icon size={18}/></span><div><b>{r.name}</b><small>{r.phone||r.email||"—"}</small></div><span className="status-pill positive">Actif</span></div>)}</div>:<div className="empty-state"><div className="empty-icon"><Icon size={24}/></div><b>{empty}</b></div>}</section>;
-        {(page==="categories"||page==="transfers"||page==="inventory"||page==="returns"||page==="expenses"||page==="reports")&&<StockOperations page={page} companyId={company.id} products={products} warehouses={warehouses} suppliers={suppliers} customers={customers} money={money} lang={lang} onSaved={()=>loadWorkspace(company.id)}/> }\n}
