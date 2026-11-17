@@ -9,13 +9,13 @@ import StockOperations from "./StockOperations";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 import type { Company, Product } from "./lib/supabase";
 
-type Page = "dashboard" | "products" | "categories" | "stock" | "warehouses" | "suppliers" | "customers" | "purchases" | "sales" | "transfers" | "inventory" | "returns" | "expenses" | "payments" | "reports" | "users";
+type Page = "dashboard" | "products" | "categories" | "stock" | "warehouses" | "suppliers" | "customers" | "purchases" | "sales" | "transfers" | "inventory" | "returns" | "expenses" | "payments" | "reports" | "users" | "settings";
 type Lang = "fr" | "en" | "ar";
 type Notice = { type: "success" | "error"; text: string } | null;
 
 const copy = {
   fr: {
-    dashboard:"Tableau de bord", products:"Articles", categories:"Catégories", stock:"Mouvements de stock", warehouses:"Entrepôts", transfers:"Transferts", inventory:"Inventaires", returns:"Retours", expenses:"Dépenses", payments:"Paiements", reports:"Rapports", users:"Utilisateurs",
+    dashboard:"Tableau de bord", products:"Articles", categories:"Catégories", stock:"Mouvements de stock", warehouses:"Entrepôts", transfers:"Transferts", inventory:"Inventaires", returns:"Retours", expenses:"Dépenses", payments:"Paiements", reports:"Rapports", users:"Utilisateurs", settings:"Paramètres",
     suppliers:"Fournisseurs", customers:"Clients", purchases:"Achats", sales:"Ventes",
     search:"Rechercher un article, un code...", welcome:"Vue d'ensemble", subtitle:"Suivez votre activité et votre stock en temps réel.",
     items:"Articles actifs", suppliersCount:"Fournisseurs", warehousesCount:"Entrepôts", movements:"Mouvements",
@@ -39,7 +39,7 @@ const copy = {
     margin:"Marge théorique", purchaseOrders:"Commandes d'achat", invoices:"Factures de vente",
   },
   en: {
-    dashboard:"Dashboard", products:"Products", categories:"Categories", stock:"Stock movements", warehouses:"Warehouses", transfers:"Transfers", inventory:"Stock counts", returns:"Returns", expenses:"Expenses", payments:"Payments", reports:"Reports", users:"Users", suppliers:"Suppliers",
+    dashboard:"Dashboard", products:"Products", categories:"Categories", stock:"Stock movements", warehouses:"Warehouses", transfers:"Transfers", inventory:"Stock counts", returns:"Returns", expenses:"Expenses", payments:"Payments", reports:"Reports", users:"Users", settings:"Settings", suppliers:"Suppliers",
     customers:"Customers", purchases:"Purchases", sales:"Sales", search:"Search products or SKU...", welcome:"Overview",
     subtitle:"Monitor your business and stock in real time.", items:"Active products", suppliersCount:"Suppliers",
     warehousesCount:"Warehouses", movements:"Movements", recent:"Recently added products", all:"View all",
@@ -60,7 +60,7 @@ const copy = {
     language:"Language", profile:"My workspace", margin:"Estimated margin", purchaseOrders:"Purchase orders", invoices:"Sales invoices",
   },
   ar: {
-    dashboard:"لوحة التحكم", products:"المنتجات", categories:"الفئات", stock:"حركات المخزون", warehouses:"المخازن", transfers:"التحويلات", inventory:"الجرد", returns:"المرتجعات", expenses:"المصاريف", payments:"المدفوعات", reports:"التقارير", users:"المستخدمون", suppliers:"الموردون",
+    dashboard:"لوحة التحكم", products:"المنتجات", categories:"الفئات", stock:"حركات المخزون", warehouses:"المخازن", transfers:"التحويلات", inventory:"الجرد", returns:"المرتجعات", expenses:"المصاريف", payments:"المدفوعات", reports:"التقارير", users:"المستخدمون", settings:"الإعدادات", suppliers:"الموردون",
     customers:"العملاء", purchases:"المشتريات", sales:"المبيعات", search:"ابحث عن منتج أو مرجع...",
     welcome:"نظرة عامة", subtitle:"تابع نشاطك ومخزونك في الوقت الفعلي.", items:"المنتجات النشطة",
     suppliersCount:"الموردون", warehousesCount:"المخازن", movements:"الحركات", recent:"آخر المنتجات المضافة",
@@ -101,7 +101,7 @@ const nav: { id: Page; icon: typeof LayoutDashboard; group: string }[] = [
   { id:"expenses", icon:Receipt, group:"operations" },
   { id:"payments", icon:Wallet, group:"operations" },
   { id:"reports", icon:BarChart3, group:"operations" },
-  { id:"users", icon:UserCog, group:"admin" },
+  { id:"users", icon:UserCog, group:"admin" },\n  { id:"settings", icon:Settings, group:"admin" },
 ];
 
 export default function App() {
@@ -116,7 +116,7 @@ export default function App() {
   const [password, setPassword] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [companies, setCompanies] = useState<Company[]>([]);
-  const [company, setCompany] = useState<Company|null>(null);
+  const [company, setCompany] = useState<Company|null>(null);\n  const [settingsForm,setSettingsForm] = useState<Record<string,string>>({});
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [warehouses, setWarehouses] = useState<any[]>([]);
@@ -181,7 +181,7 @@ export default function App() {
     const roleMap = Object.fromEntries((memberships ?? []).map((m:any)=>[m.company_id,m.role]));
     setCompanyRoles(roleMap);
     if (!ids.length) { setCompanies([]); setCompany(null); setCurrentRole("viewer"); setIsAdmin(false); return; }
-    const {data,error: companyError} = await supabase.from("companies").select("id,name,currency_code").in("id",ids).order("created_at");
+    const {data,error: companyError} = await supabase.from("companies").select("id,name,currency_code,legal_name,tax_number,phone,email,address,city,country").in("id",ids).order("created_at");
     if (companyError) throw companyError;
     const list = (data ?? []) as Company[];
     setCompanies(list);
@@ -332,6 +332,15 @@ export default function App() {
     }catch(e:any){printWindow.close();flash("error",e.message);}
   }
 
+  async function saveCompanySettings(e:FormEvent) {
+    e.preventDefault();if(!supabase||!company||!isAdmin)return;setBusy(true);
+    try{
+      const payload={name:settingsForm.name?.trim(),legal_name:settingsForm.legal_name?.trim()||null,tax_number:settingsForm.tax_number?.trim()||null,phone:settingsForm.phone?.trim()||null,email:settingsForm.email?.trim()||null,address:settingsForm.address?.trim()||null,city:settingsForm.city?.trim()||null,country:settingsForm.country?.trim()||"Algeria",currency_code:settingsForm.currency_code||"DZD"};
+      const {data,error}=await supabase.from("companies").update(payload).eq("id",company.id).select("id,name,currency_code,legal_name,tax_number,phone,email,address,city,country").single();
+      if(error)throw error;setCompany(data as Company);setCompanies(list=>list.map(x=>x.id===company.id?data as Company:x));flash("success","Paramètres de l'entreprise enregistrés.");
+    }catch(e:any){flash("error",e.message)}finally{setBusy(false)}
+  }
+
   async function signOut() {
     if (supabase) await supabase.auth.signOut();
     setSession(null); setCompany(null); setCompanies([]); setProducts([]); setMembers([]); setCompanyRoles({}); setCurrentRole("viewer"); setIsAdmin(false);
@@ -363,9 +372,9 @@ export default function App() {
   return <div className="app-shell" dir={rtl?"rtl":"ltr"}>
     <aside className="sidebar">
       <div className="brand"><span className="brand-mark"><Boxes size={22}/></span><div><b>Gestion Stock</b><small>PRO MANAGEMENT</small></div></div>
-      <div className="workspace-switch"><span className="workspace-icon"><Building2 size={17}/></span><div><small>{t.chooseCompany}</small><select className="workspace-select" value={company.id} onChange={async e=>{const selected=companies.find(c=>c.id===e.target.value);if(selected){const role=companyRoles[selected.id]||"viewer";setCompany(selected);setCurrentRole(role);const admin=["owner","admin"].includes(role);setIsAdmin(admin);await loadWorkspace(selected.id);if(admin){const result=await supabase?.rpc("list_company_users",{p_company_id:selected.id});if(result?.error)flash("error",result.error.message);else setMembers(result?.data??[])}else setMembers([])}}}>{companies.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></div><ChevronDown size={15}/></div>
+      <div className="workspace-switch"><span className="workspace-icon"><Building2 size={17}/></span><div><small>{t.chooseCompany}</small><select className="workspace-select" value={company.id} onChange={async e=>{const selected=companies.find(c=>c.id===e.target.value);if(selected){const role=companyRoles[selected.id]||"viewer";setCompany(selected);setSettingsForm({name:selected.name,legal_name:selected.legal_name||"",tax_number:selected.tax_number||"",phone:selected.phone||"",email:selected.email||"",address:selected.address||"",city:selected.city||"",country:selected.country||"Algeria",currency_code:selected.currency_code||"DZD"});setCurrentRole(role);const admin=["owner","admin"].includes(role);setIsAdmin(admin);await loadWorkspace(selected.id);if(admin){const result=await supabase?.rpc("list_company_users",{p_company_id:selected.id});if(result?.error)flash("error",result.error.message);else setMembers(result?.data??[])}else setMembers([])}}}>{companies.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></div><ChevronDown size={15}/></div>
       <div className="nav-label">{lang==="ar"?"القائمة الرئيسية":"MENU PRINCIPAL"}</div>
-      <nav>{nav.filter(item=>{if(item.id==="users")return isAdmin;if(["owner","admin","manager"].includes(currentRole))return true;if(currentRole==="warehouse")return ["dashboard","products","categories","stock","transfers","inventory","warehouses","suppliers","purchases","returns"].includes(item.id);if(currentRole==="sales")return ["dashboard","products","categories","customers","sales","returns","payments"].includes(item.id);return !["expenses","payments","reports"].includes(item.id)}).map((item)=>{const Icon=item.icon;const label=t[item.id];return <button key={item.id} className={"nav-item "+(page===item.id?"active":"")} onClick={()=>setPage(item.id)}><Icon size={18}/><span>{label}</span>{item.id==="stock"&&<i className="nav-dot"/>}</button>})}</nav>
+      <nav>{nav.filter(item=>{if(item.id==="users"||item.id==="settings")return isAdmin;if(["owner","admin","manager"].includes(currentRole))return true;if(currentRole==="warehouse")return ["dashboard","products","categories","stock","transfers","inventory","warehouses","suppliers","purchases","returns"].includes(item.id);if(currentRole==="sales")return ["dashboard","products","categories","customers","sales","returns","payments"].includes(item.id);return !["expenses","payments","reports"].includes(item.id)}).map((item)=>{const Icon=item.icon;const label=t[item.id];return <button key={item.id} className={"nav-item "+(page===item.id?"active":"")} onClick={()=>setPage(item.id)}><Icon size={18}/><span>{label}</span>{item.id==="stock"&&<i className="nav-dot"/>}</button>})}</nav>
       <div className="sidebar-bottom"><div className="help-card"><CircleHelp size={18}/><b>Besoin d'aide ?</b><span>Votre gestion, simplifiée.</span></div><button className="nav-item" onClick={()=>setLang(lang==="fr"?"en":lang==="en"?"ar":"fr")}><Languages size={18}/><span>{t.language}: {lang.toUpperCase()}</span></button><button className="nav-item" onClick={signOut}><LogOut size={18}/><span>{t.logout}</span></button><div className="user-mini"><div className="avatar">{session.user.email?.slice(0,1).toUpperCase()}</div><div><b>{session.user.email?.split("@")[0]}</b><small>{session.user.email}</small></div><Settings size={16}/></div></div>
     </aside>
     <main className="main-area">
@@ -381,6 +390,7 @@ export default function App() {
         {page==="customers"&&<SimpleDirectory title={t.customers} rows={customers} icon="customer" empty={t.empty}/>}
         {page==="stock"&&<section className="panel"><div className="panel-head"><div><h3>{t.stock}</h3><p>{movements.length} {t.movements.toLowerCase()}</p></div></div>{movements.length?<div className="table-wrap"><table><thead><tr><th>{t.name}</th><th>{t.movementType}</th><th>{t.quantity}</th><th>{t.warehouse}</th><th>Date</th></tr></thead><tbody>{movements.map(m=><tr key={m.id}><td><b>{m.products?.name||"—"}</b><small className="cell-sub">{m.products?.sku}</small></td><td><span className="status-pill">{m.movement_type}</span></td><td>{m.quantity}</td><td>{m.warehouses?.name||"—"}</td><td>{new Date(m.occurred_at).toLocaleDateString()}</td></tr>)}</tbody></table></div>:<Empty t={t}/>}</section>}
         {page==="purchases"&&<section className="panel"><div className="panel-head"><div><h3>{t.purchases}</h3><p>{purchases.length} commande(s) · réception automatique en stock</p></div><button className="primary-btn" onClick={()=>{setForm({});setDocumentLines([{product_id:"",quantity:"",unit_price:"",discount:"0"}]);setModal("purchase")}}><Plus size={16}/>Nouvel achat</button></div>{purchases.length?<div className="table-wrap"><table><thead><tr><th>N° commande</th><th>{t.suppliers}</th><th>Date</th><th>Statut</th><th>Total</th><th>Document</th></tr></thead><tbody>{purchases.map(x=><tr key={x.id}><td><b>{x.order_number}</b></td><td>{x.suppliers?.name||"—"}</td><td>{new Date(x.order_date).toLocaleDateString()}</td><td><span className="status-pill positive">{x.status}</span></td><td>{money(Number(x.subtotal))}</td><td><button className="ops-icon-btn" title="Imprimer le bon" onClick={()=>void printDocument("purchase",x.id)}><Printer size={15}/></button></td></tr>)}</tbody></table></div>:<Empty t={t}/>}</section>}
+        {page==="settings"&&isAdmin&&<section className="panel"><div className="panel-head"><div><h3>Paramètres de l'entreprise</h3><p>Informations légales et coordonnées utilisées sur les documents imprimés</p></div></div><form className="form-grid" onSubmit={saveCompanySettings}><label>Nom commercial<input value={settingsForm.name||""} onChange={e=>setSettingsForm({...settingsForm,name:e.target.value})} required/></label><label>Raison sociale<input value={settingsForm.legal_name||""} onChange={e=>setSettingsForm({...settingsForm,legal_name:e.target.value})}/></label><label>NIF / Identifiant fiscal<input value={settingsForm.tax_number||""} onChange={e=>setSettingsForm({...settingsForm,tax_number:e.target.value})}/></label><label>Téléphone<input value={settingsForm.phone||""} onChange={e=>setSettingsForm({...settingsForm,phone:e.target.value})}/></label><label>E-mail<input type="email" value={settingsForm.email||""} onChange={e=>setSettingsForm({...settingsForm,email:e.target.value})}/></label><label>Ville<input value={settingsForm.city||""} onChange={e=>setSettingsForm({...settingsForm,city:e.target.value})}/></label><label className="span-2">Adresse<input value={settingsForm.address||""} onChange={e=>setSettingsForm({...settingsForm,address:e.target.value})}/></label><label>Pays<input value={settingsForm.country||"Algeria"} onChange={e=>setSettingsForm({...settingsForm,country:e.target.value})}/></label><label>Devise<select value={settingsForm.currency_code||"DZD"} onChange={e=>setSettingsForm({...settingsForm,currency_code:e.target.value})}><option value="DZD">DZD · Dinar algérien</option><option value="EUR">EUR · Euro</option><option value="USD">USD · Dollar américain</option></select></label><div className="span-2 modal-actions"><button className="primary-btn" disabled={busy}>{busy?t.loading:t.save}</button></div></form></section>}
         {page==="users"&&isAdmin&&<section className="panel"><div className="panel-head"><div><h3>Gestion des utilisateurs</h3><p>Invitez des collaborateurs et attribuez leurs rôles</p></div></div><form className="form-grid invite-form" onSubmit={createInvitation}><label className="span-2">Adresse e-mail<input type="email" value={inviteEmail} onChange={e=>setInviteEmail(e.target.value)} required placeholder="collaborateur@exemple.com"/></label><label>Rôle<select value={inviteRole} onChange={e=>setInviteRole(e.target.value)}><option value="manager">Manager</option><option value="warehouse">Magasinier</option><option value="sales">Ventes</option><option value="viewer">Consultation</option><option value="staff">Employé</option></select></label><div className="invite-submit"><button className="primary-btn" disabled={inviteBusy}>{inviteBusy?"En cours...":"Créer l’invitation"}</button></div></form><div className="invite-link"><b>Lien d’activation à transmettre</b><code>https://gestion-stock-pro-amine-gnn.vercel.app/?invite=1</code></div><div className="table-wrap"><table><thead><tr><th>Utilisateur</th><th>Rôle</th><th>Statut</th></tr></thead><tbody>{members.map(m=><tr key={m.user_id}><td>{m.email}</td><td><span className="status-pill">{m.role}</span></td><td><span className={"status-pill "+(m.is_active?"positive":"warning")}>{m.is_active?"Actif":"Désactivé"}</span></td></tr>)}</tbody></table></div></section>}
         {page==="users"&&!isAdmin&&<section className="panel"><div className="empty-state"><div className="empty-icon"><ShieldCheck size={24}/></div><b>Accès réservé à l’administrateur</b></div></section>}
         {page==="sales"&&<section className="panel"><div className="panel-head"><div><h3>{t.sales}</h3><p>{sales.length} facture(s) · sortie de stock automatique</p></div><button className="primary-btn" onClick={()=>{setForm({});setDocumentLines([{product_id:"",quantity:"",unit_price:"",discount:"0"}]);setModal("sale")}}><Plus size={16}/>Nouvelle vente</button></div>{sales.length?<div className="table-wrap"><table><thead><tr><th>N° facture</th><th>{t.customers}</th><th>Date</th><th>Statut</th><th>Total</th><th>Document</th></tr></thead><tbody>{sales.map(x=><tr key={x.id}><td><b>{x.invoice_number}</b></td><td>{x.customers?.name||"—"}</td><td>{new Date(x.sale_date).toLocaleDateString()}</td><td><span className="status-pill positive">{x.status}</span></td><td>{money(Number(x.total))}</td><td><button className="ops-icon-btn" title="Imprimer la facture" onClick={()=>void printDocument("sale",x.id)}><Printer size={15}/></button></td></tr>)}</tbody></table></div>:<Empty t={t}/>}</section>}
