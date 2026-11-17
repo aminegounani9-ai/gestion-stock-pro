@@ -35,7 +35,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
     ]);
     const error=[a,b,c,d,e,f,g].find(x=>x.error)?.error;
     if(error) throw error;
-    setSites(a.data??[]);setUnits(b.data??[]);setServices(c.data??[]);setDepartments(d.data??[]);setEquipment(e.data??[]);setAssignments(f.data??[]);setWarehouses(g.data??[]);
+    setSites(a.data??[]);setUnits(b.data??[]);setServices(c.data??[]);setDepartments(d.data??[]);setEquipment((e.data??[]).map(x=>({...x,is_active:x.status==="active"})));setAssignments(f.data??[]);setWarehouses(g.data??[]);
   },[companyId]);
   useEffect(()=>{void refresh().catch(e=>onNotice("error",e.message));},[refresh]);
 
@@ -58,7 +58,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
   }
   async function toggleActive(type:ScopeType,row:Row){
     if(!supabase)return;
-    const {error}=await supabase.from(tables[type]).update({is_active:!row.is_active}).eq("id",row.id).eq("company_id",companyId);
+    const {error}=await supabase.from(tables[type]).update(type==="equipment"?{status:row.is_active?"inactive":"active"}:{is_active:!row.is_active}).eq("id",row.id).eq("company_id",companyId);
     if(error){onNotice("error",error.message);return;}await refresh();onNotice("success",row.is_active?"Élément désactivé.":"Élément réactivé.");
   }
   async function saveAssignment(event:FormEvent){
