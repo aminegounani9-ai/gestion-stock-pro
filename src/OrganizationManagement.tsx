@@ -3,11 +3,11 @@ import type { FormEvent } from "react";
 import { Plus, RefreshCw, ShieldCheck, Building2, Layers3, Wrench, Users, X, Check } from "lucide-react";
 import { supabase } from "./lib/supabase";
 
-type ScopeType = "site" | "unit" | "service" | "department" | "equipment";
+type ScopeType = "site" | "unit" | "service" | "department" | "equipment" | "warehouse";
 type Row = { id: string; code?: string; name?: string; site_id?: string; unit_id?: string | null; service_id?: string | null; equipment_tag?: string; is_active?: boolean; [key: string]: any };
 type Member = { user_id: string; email?: string; role?: string; is_active?: boolean };
-const tables: Record<ScopeType,string> = { site:"org_sites", unit:"org_units", service:"org_services", department:"org_departments", equipment:"org_equipment" };
-const labels: Record<ScopeType,string> = { site:"Site", unit:"Unité", service:"Service", department:"Département", equipment:"Équipement" };
+const tables: Record<ScopeType,string> = { site:"org_sites", unit:"org_units", service:"org_services", department:"org_departments", equipment:"org_equipment", warehouse:"warehouses" };
+const labels: Record<ScopeType,string> = { site:"Site", unit:"Unité", service:"Service", department:"Département", equipment:"Équipement", warehouse:"Entrepôt" };
 
 export default function OrganizationManagement({ companyId, members, currentUserId, onNotice }: { companyId:string; members:Member[]; currentUserId:string; onNotice:(type:"success"|"error",message:string)=>void }) {
   const [activeTab,setActiveTab] = useState<"structure"|"assignments">("structure");
@@ -16,14 +16,14 @@ export default function OrganizationManagement({ companyId, members, currentUser
   const [units,setUnits] = useState<Row[]>([]);
   const [services,setServices] = useState<Row[]>([]);
   const [departments,setDepartments] = useState<Row[]>([]);
-  const [equipment,setEquipment] = useState<Row[]>([]);
+  const [equipment,setEquipment] = useState<Row[]>([]);\n  const [warehouses,setWarehouses] = useState<Row[]>([]);
   const [assignments,setAssignments] = useState<any[]>([]);
   const [form,setForm] = useState<Record<string,string>>({});
   const [assignment,setAssignment] = useState({user_id:"",job_title:"",scope_type:"unit" as ScopeType,scope_id:"",can_view:true,can_create:false,can_edit:false,can_delete:false,can_approve:false,can_issue:false,can_receive:false,can_transfer:false,can_inventory:false});
   const [busy,setBusy] = useState(false);
   const refresh = useCallback(async () => {
     if(!supabase) return;
-    const [a,b,c,d,e,f] = await Promise.all([
+    const [a,b,c,d,e,f,g] = await Promise.all([
       supabase.from("org_sites").select("*").eq("company_id",companyId).order("name"),
       supabase.from("org_units").select("*").eq("company_id",companyId).order("name"),
       supabase.from("org_services").select("*").eq("company_id",companyId).order("name"),
@@ -31,13 +31,13 @@ export default function OrganizationManagement({ companyId, members, currentUser
       supabase.from("org_equipment").select("*").eq("company_id",companyId).order("name"),
       supabase.from("user_scope_assignments").select("*").eq("company_id",companyId).order("created_at",{ascending:false})
     ]);
-    const error=[a,b,c,d,e,f].find(x=>x.error)?.error;
+    const error=[a,b,c,d,e,f,g].find(x=>x.error)?.error;
     if(error) throw error;
-    setSites(a.data??[]);setUnits(b.data??[]);setServices(c.data??[]);setDepartments(d.data??[]);setEquipment(e.data??[]);setAssignments(f.data??[]);
+    setSites(a.data??[]);setUnits(b.data??[]);setServices(c.data??[]);setDepartments(d.data??[]);setEquipment(e.data??[]);setAssignments(f.data??[]);setWarehouses(g.data??[]);
   },[companyId]);
-  useEffect(()=>{void refresh().catch(e=>onNotice("error",e.message));},[refresh,onNotice]);
+  useEffect(()=>{void refresh().catch(e=>onNotice("error",e.message));},[refresh]);
 
-  const scopeRows = useMemo(()=>({site:sites,unit:units,service:services,department:departments,equipment}),[sites,units,services,departments,equipment]);
+  const scopeRows = useMemo(()=>({site:sites,unit:units,service:services,department:departments,equipment,warehouse:warehouses}),[sites,units,services,departments,equipment,warehouses]);
   const availableScopes = scopeRows[assignment.scope_type] ?? [];
   function setField(key:string,value:string){setForm(old=>({...old,[key]:value}));}
   async function createStructure(event:FormEvent){
