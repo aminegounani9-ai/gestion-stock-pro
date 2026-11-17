@@ -35,7 +35,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
     ]);
     const error=[a,b,c,d,e,f,g].find(x=>x.error)?.error;
     if(error) throw error;
-    setSites(a.data??[]);setUnits(b.data??[]);setServices(c.data??[]);setDepartments(d.data??[]);setEquipment(e.data??[]);setAssignments(f.data??[]);setWarehouses(g.data??[]);setWarehouses(g.data??[]);
+    setSites(a.data??[]);setUnits(b.data??[]);setServices(c.data??[]);setDepartments(d.data??[]);setEquipment(e.data??[]);setAssignments(f.data??[]);setWarehouses(g.data??[]);
   },[companyId]);
   useEffect(()=>{void refresh().catch(e=>onNotice("error",e.message));},[refresh]);
 
@@ -61,7 +61,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
     const {error}=await supabase.from(tables[type]).update({is_active:!row.is_active}).eq("id",row.id).eq("company_id",companyId);
     if(error){onNotice("error",error.message);return;}await refresh();onNotice("success",row.is_active?"Élément désactivé.":"Élément réactivé.");
   }
-  async function saveAssignment(event:React.FormEvent){
+  async function saveAssignment(event:FormEvent){
     event.preventDefault();if(!supabase)return;
     if(!assignment.user_id||!assignment.scope_id){onNotice("error","Sélectionnez un utilisateur et un périmètre.");return;}
     setBusy(true);
