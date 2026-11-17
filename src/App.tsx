@@ -88,7 +88,10 @@ type Labels = { [K in keyof typeof copy.fr]: string };
 const nav: { id: Page; icon: typeof LayoutDashboard; group: string }[] = [
   { id:"dashboard", icon:LayoutDashboard, group:"main" },
   { id:"products", icon:Package, group:"main" },
+  { id:"categories", icon:Tags, group:"main" },
   { id:"stock", icon:Activity, group:"main" },
+  { id:"transfers", icon:ArrowLeftRight, group:"main" },
+  { id:"inventory", icon:ClipboardCheck, group:"main" },
   { id:"warehouses", icon:Warehouse, group:"main" },
   { id:"suppliers", icon:Truck, group:"partners" },
   { id:"customers", icon:Users, group:"partners" },
