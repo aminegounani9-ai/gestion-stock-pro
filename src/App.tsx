@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import type { FormEvent } from "react";
 import {
   Activity, ArrowUpRight, Boxes, Building2, ChevronDown, CircleHelp,
   LayoutDashboard, LogOut, Package, Plus, Search, Settings,
-  ShoppingBag, ShoppingCart, Truck, Users, Warehouse, X, Languages, ShieldCheck, UserCog, Tags, ArrowLeftRight, ClipboardCheck, RotateCcw, Receipt, BarChart3, Wallet, Printer
+  ShoppingBag, ShoppingCart, Truck, Users, Warehouse, X, Languages, ShieldCheck, UserCog, Tags, ArrowLeftRight, ClipboardCheck, RotateCcw, Receipt, BarChart3, Wallet, Printer, ScanBarcode
 } from "lucide-react";
 import StockOperations from "./StockOperations";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
@@ -134,7 +134,7 @@ export default function App() {
   const [inviteRole, setInviteRole] = useState("manager");
   const [inviteBusy, setInviteBusy] = useState(false);
   const [inviteFlow] = useState(() => new URLSearchParams(window.location.search).get("invite") === "1");
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState("");\n  const [scannerOpen,setScannerOpen]=useState(false);
   const [modal, setModal] = useState<"product"|"warehouse"|"supplier"|"customer"|"movement"|"purchase"|"sale"|null>(null);
   const [form, setForm] = useState<Record<string,string>>({});
   const [documentLines,setDocumentLines] = useState<{product_id:string;quantity:string;unit_price:string;discount:string}[]>([{product_id:"",quantity:"",unit_price:"",discount:"0"}]);
@@ -388,7 +388,7 @@ export default function App() {
       <div className="sidebar-bottom"><div className="help-card"><CircleHelp size={18}/><b>Besoin d'aide ?</b><span>Votre gestion, simplifiée.</span></div><button className="nav-item" onClick={()=>setLang(lang==="fr"?"en":lang==="en"?"ar":"fr")}><Languages size={18}/><span>{t.language}: {lang.toUpperCase()}</span></button><button className="nav-item" onClick={signOut}><LogOut size={18}/><span>{t.logout}</span></button><div className="user-mini"><div className="avatar">{session.user.email?.slice(0,1).toUpperCase()}</div><div><b>{session.user.email?.split("@")[0]}</b><small>{session.user.email}</small></div><Settings size={16}/></div></div>
     </aside>
     <main className="main-area">
-      <header className="topbar"><div className="mobile-brand"><span className="brand-mark"><Boxes size={20}/></span><b>Gestion Stock Pro</b></div><div className="breadcrumbs">Workspace <span>/</span> <b>{title}</b></div><div className="top-actions"><div className="global-search"><Search size={16}/><input placeholder={t.search} value={search} onChange={e=>setSearch(e.target.value)}/><kbd>⌘ K</kbd></div><button className="icon-btn" title={t.language} onClick={()=>setLang(lang==="fr"?"en":lang==="en"?"ar":"fr")}><Languages size={18}/></button><div className="top-avatar">{session.user.email?.slice(0,1).toUpperCase()}</div></div></header>
+      <header className="topbar"><div className="mobile-brand"><span className="brand-mark"><Boxes size={20}/></span><b>Gestion Stock Pro</b></div><div className="breadcrumbs">Workspace <span>/</span> <b>{title}</b></div><div className="top-actions"><div className="global-search"><Search size={16}/><input placeholder={t.search} value={search} onChange={e=>setSearch(e.target.value)}/><kbd>⌘ K</kbd></div><button className="icon-btn" title="Scanner code-barres" onClick={()=>setScannerOpen(true)}><ScanBarcode size={18}/></button><button className="icon-btn" title={t.language} onClick={()=>setLang(lang==="fr"?"en":lang==="en"?"ar":"fr")}><Languages size={18}/></button><div className="top-avatar">{session.user.email?.slice(0,1).toUpperCase()}</div></div></header>
       <div className="page-content">
         <div className="page-heading"><div><span className="eyebrow">{company.name.toUpperCase()} · {new Date().toLocaleDateString(lang==="ar"?"ar-DZ":lang==="en"?"en-US":"fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</span><h1>{page==="dashboard"?t.welcome:title}</h1><p>{t.subtitle}</p></div>{page==="products"&&<button className="primary-btn" onClick={()=>{setForm({unit:"piece"});setModal("product")}}><Plus size={17}/>{t.addProduct}</button>}{page==="warehouses"&&<button className="primary-btn" onClick={()=>setModal("warehouse")}><Plus size={17}/>{t.addWarehouse}</button>}{page==="suppliers"&&<button className="primary-btn" onClick={()=>setModal("supplier")}><Plus size={17}/>{t.addSupplier}</button>}{page==="customers"&&<button className="primary-btn" onClick={()=>setModal("customer")}><Plus size={17}/>{t.addCustomer}</button>}{page==="stock"&&<button className="primary-btn" onClick={()=>setModal("movement")}><Plus size={17}/>{t.addMovement}</button>}</div>
 
@@ -408,7 +408,7 @@ export default function App() {
       </div>
       <footer className="app-footer"><span>© {new Date().getFullYear()} Gestion Stock Pro</span><span><ShieldCheck size={14}/> Données protégées par RLS</span></footer>
     </main>
-    {modal&&<div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setModal(null)}}><form className="modal-card" onSubmit={saveRecord}><div className="modal-head"><div><span className="eyebrow">NOUVEL ENREGISTREMENT</span><h2>{modal==="product"?t.addProduct:modal==="warehouse"?t.addWarehouse:modal==="supplier"?t.addSupplier:modal==="customer"?t.addCustomer:modal==="purchase"?"Nouvel achat":modal==="sale"?"Nouvelle vente":t.addMovement}</h2></div><button type="button" className="icon-btn" onClick={()=>setModal(null)}><X size={19}/></button></div>
+    {scannerOpen&&<BarcodeScanner onDetected={code=>{setSearch(code);setPage("products");setScannerOpen(false)}} onClose={()=>setScannerOpen(false)}/> }\n    {modal&&<div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setModal(null)}}><form className="modal-card" onSubmit={saveRecord}><div className="modal-head"><div><span className="eyebrow">NOUVEL ENREGISTREMENT</span><h2>{modal==="product"?t.addProduct:modal==="warehouse"?t.addWarehouse:modal==="supplier"?t.addSupplier:modal==="customer"?t.addCustomer:modal==="purchase"?"Nouvel achat":modal==="sale"?"Nouvelle vente":t.addMovement}</h2></div><button type="button" className="icon-btn" onClick={()=>setModal(null)}><X size={19}/></button></div>
       {modal==="product"&&<div className="form-grid"><label>{t.sku}<input value={form.sku||""} onChange={e=>setForm({...form,sku:e.target.value})} required/></label><label>{t.name}<input value={form.name||""} onChange={e=>setForm({...form,name:e.target.value})} required/></label><label>{t.barcode}<input value={form.barcode||""} onChange={e=>setForm({...form,barcode:e.target.value})}/></label><label>{t.unit}<select value={form.unit||"piece"} onChange={e=>setForm({...form,unit:e.target.value})}><option value="piece">Pièce</option><option value="kg">Kg</option><option value="g">g</option><option value="l">Litre</option><option value="m">Mètre</option><option value="box">Carton</option></select></label><label>{t.category}<select value={form.category_id||""} onChange={e=>setForm({...form,category_id:e.target.value})}><option value="">—</option>{categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label><label>{t.purchasePrice}<input type="number" min="0" step="0.01" value={form.purchase_price||""} onChange={e=>setForm({...form,purchase_price:e.target.value})}/></label><label>{t.salePrice}<input type="number" min="0" step="0.01" value={form.sale_price||""} onChange={e=>setForm({...form,sale_price:e.target.value})}/></label><label>{t.minStock}<input type="number" min="0" step="0.001" value={form.min_stock||""} onChange={e=>setForm({...form,min_stock:e.target.value})}/></label></div>}
       {modal==="warehouse"&&<div className="form-grid"><label>{t.warehouseCode}<input value={form.code||""} onChange={e=>setForm({...form,code:e.target.value})} required/></label><label>{t.warehouseName}<input value={form.name||""} onChange={e=>setForm({...form,name:e.target.value})} required/></label></div>}
       {(modal==="supplier"||modal==="customer")&&<div className="form-grid"><label>{modal==="supplier"?t.supplierName:t.customerName}<input value={form.name||""} onChange={e=>setForm({...form,name:e.target.value})} required/></label><label>{t.phone}<input value={form.phone||""} onChange={e=>setForm({...form,phone:e.target.value})}/></label></div>}
@@ -435,4 +435,25 @@ function Empty({t}:{t:Labels}) { return <div className="empty-state"><div classN
 function SimpleDirectory({title,rows,icon,empty}:{title:string;rows:any[];icon:string;empty:string}) {
   const Icon=icon==="supplier"?Truck:Users;
   return <section className="panel"><div className="panel-head"><div><h3>{title}</h3><p>{rows.length} enregistrement(s)</p></div></div>{rows.length?<div className="simple-list">{rows.map(r=><div className="simple-row" key={r.id}><span className="list-icon"><Icon size={18}/></span><div><b>{r.name}</b><small>{r.phone||r.email||"—"}</small></div><span className="status-pill positive">Actif</span></div>)}</div>:<div className="empty-state"><div className="empty-icon"><Icon size={24}/></div><b>{empty}</b></div>}</section>;
+}
+function BarcodeScanner({onDetected,onClose}:{onDetected:(code:string)=>void;onClose:()=>void}) {
+  const videoRef=useRef<HTMLVideoElement>(null);
+  const callbackRef=useRef(onDetected);callbackRef.current=onDetected;
+  const [error,setError]=useState("");
+  useEffect(()=>{
+    let stream:MediaStream|undefined;let timer:number|undefined;let stopped=false;
+    const start=async()=>{
+      const Detector=(window as any).BarcodeDetector;
+      if(!Detector){setError("La lecture caméra n'est pas prise en charge par ce navigateur. Utilisez un lecteur USB ou saisissez le code-barres dans la recherche.");return;}
+      if(!navigator.mediaDevices?.getUserMedia){setError("Accès caméra indisponible. Vérifiez les permissions du navigateur.");return;}
+      const detector=new Detector({formats:["ean_13","ean_8","upc_a","upc_e","code_128","code_39","qr_code"]});
+      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
+      if(stopped)return;
+      const video=videoRef.current;if(!video)return;video.srcObject=stream;await video.play();
+      timer=window.setInterval(async()=>{try{if(video.readyState<2)return;const codes=await detector.detect(video);if(codes.length&&codes[0].rawValue){if(timer)window.clearInterval(timer);callbackRef.current(codes[0].rawValue)}}catch{}},350);
+    };
+    void start().catch((e:any)=>setError(e.message||"Impossible d'ouvrir la caméra."));
+    return()=>{stopped=true;if(timer)window.clearInterval(timer);stream?.getTracks().forEach(track=>track.stop())};
+  },[]);
+  return <div className="modal-backdrop scanner-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}><section className="modal-card scanner-card"><div className="modal-head"><div><span className="eyebrow">SCAN PRODUIT</span><h2>Scanner un code-barres</h2></div><button className="icon-btn" onClick={onClose}><X size={18}/></button></div><video ref={videoRef} autoPlay muted playsInline className="scanner-video"/>{error?<p className="scanner-error">{error}</p>:<p className="scanner-hint">Placez le code-barres devant la caméra. Le produit sera recherché automatiquement.</p>}<div className="modal-actions"><button className="secondary-btn" onClick={onClose}>Fermer</button></div></section></div>;
 }
