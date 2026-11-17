@@ -1,7 +1,7 @@
 drop policy if exists movements_write_company on public.stock_movements;
 create policy movements_write_company on public.stock_movements for insert to authenticated with check (
  private.has_company_access(company_id,array['owner','admin','manager','warehouse'])
- or (private.has_company_access(company_id,array['sales']) and movement_type in ('sale','return_in') and reference_type in ('sale','stock_return'))
+ or (private.has_company_access(company_id,array['sales']) and ((movement_type='sale' and reference_type='sale' and exists(select 1 from public.sales s where s.id=reference_id and s.company_id=stock_movements.company_id)) or (movement_type='return_in' and reference_type='stock_return' and exists(select 1 from public.stock_returns sr where sr.id=reference_id and sr.company_id=stock_movements.company_id and sr.return_type='customer'))))
 );
 drop policy if exists returns_write_company on public.stock_returns;
 create policy returns_write_company on public.stock_returns for insert to authenticated with check (
