@@ -9,13 +9,13 @@ import StockOperations from "./StockOperations";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 import type { Company, Product } from "./lib/supabase";
 
-type Page = "dashboard" | "products" | "categories" | "stock" | "warehouses" | "suppliers" | "customers" | "purchases" | "sales" | "transfers" | "inventory" | "returns" | "expenses" | "payments" | "reports" | "users" | "settings";
+type Page = "dashboard" | "products" | "categories" | "stock" | "warehouses" | "suppliers" | "customers" | "purchases" | "sales" | "transfers" | "inventory" | "locations" | "lots" | "returns" | "expenses" | "payments" | "reports" | "users" | "settings";
 type Lang = "fr" | "en" | "ar";
 type Notice = { type: "success" | "error"; text: string } | null;
 
 const copy = {
   fr: {
-    dashboard:"Tableau de bord", products:"Articles", categories:"Catégories", stock:"Mouvements de stock", warehouses:"Entrepôts", transfers:"Transferts", inventory:"Inventaires", returns:"Retours", expenses:"Dépenses", payments:"Paiements", reports:"Rapports", users:"Utilisateurs", settings:"Paramètres",
+    dashboard:"Tableau de bord", locations:"Emplacements de stockage", lots:"Lots & péremption", products:"Articles", categories:"Catégories", stock:"Mouvements de stock", warehouses:"Entrepôts", transfers:"Transferts", inventory:"Inventaires", returns:"Retours", expenses:"Dépenses", payments:"Paiements", reports:"Rapports", users:"Utilisateurs", settings:"Paramètres",
     suppliers:"Fournisseurs", customers:"Clients", purchases:"Achats", sales:"Ventes",
     search:"Rechercher un article, un code...", welcome:"Vue d'ensemble", subtitle:"Suivez votre activité et votre stock en temps réel.",
     items:"Articles actifs", suppliersCount:"Fournisseurs", warehousesCount:"Entrepôts", movements:"Mouvements", movementSearch:"Rechercher une opération...", exportMovements:"Exporter CSV",
@@ -39,7 +39,7 @@ const copy = {
     margin:"Marge théorique", purchaseOrders:"Commandes d'achat", invoices:"Factures de vente",
   },
   en: {
-    dashboard:"Dashboard", products:"Products", categories:"Categories", stock:"Stock movements", warehouses:"Warehouses", transfers:"Transfers", inventory:"Stock counts", returns:"Returns", expenses:"Expenses", payments:"Payments", reports:"Reports", users:"Users", settings:"Settings", suppliers:"Suppliers",
+    dashboard:"Dashboard", locations:"Storage locations", lots:"Lots & expiry", products:"Products", categories:"Categories", stock:"Stock movements", warehouses:"Warehouses", transfers:"Transfers", inventory:"Stock counts", returns:"Returns", expenses:"Expenses", payments:"Payments", reports:"Reports", users:"Users", settings:"Settings", suppliers:"Suppliers",
     customers:"Customers", purchases:"Purchases", sales:"Sales", search:"Search products or SKU...", welcome:"Overview",
     subtitle:"Monitor your business and stock in real time.", items:"Active products", suppliersCount:"Suppliers",
     warehousesCount:"Warehouses", movements:"Movements", movementSearch:"Search movements...", exportMovements:"Export CSV", recent:"Recently added products", all:"View all",
@@ -60,7 +60,7 @@ const copy = {
     language:"Language", profile:"My workspace", margin:"Estimated margin", purchaseOrders:"Purchase orders", invoices:"Sales invoices",
   },
   ar: {
-    dashboard:"لوحة التحكم", products:"المنتجات", categories:"الفئات", stock:"حركات المخزون", warehouses:"المخازن", transfers:"التحويلات", inventory:"الجرد", returns:"المرتجعات", expenses:"المصاريف", payments:"المدفوعات", reports:"التقارير", users:"المستخدمون", settings:"الإعدادات", suppliers:"الموردون",
+    dashboard:"لوحة التحكم", locations:"مواقع التخزين", lots:"الدفعات والصلاحية", products:"المنتجات", categories:"الفئات", stock:"حركات المخزون", warehouses:"المخازن", transfers:"التحويلات", inventory:"الجرد", returns:"المرتجعات", expenses:"المصاريف", payments:"المدفوعات", reports:"التقارير", users:"المستخدمون", settings:"الإعدادات", suppliers:"الموردون",
     customers:"العملاء", purchases:"المشتريات", sales:"المبيعات", search:"ابحث عن منتج أو مرجع...",
     welcome:"نظرة عامة", subtitle:"تابع نشاطك ومخزونك في الوقت الفعلي.", items:"المنتجات النشطة",
     suppliersCount:"الموردون", warehousesCount:"المخازن", movements:"الحركات", movementSearch:"ابحث في الحركات...", exportMovements:"تصدير CSV", recent:"آخر المنتجات المضافة",
@@ -93,6 +93,8 @@ const nav: { id: Page; icon: typeof LayoutDashboard; group: string }[] = [
   { id:"transfers", icon:ArrowLeftRight, group:"main" },
   { id:"inventory", icon:ClipboardCheck, group:"main" },
   { id:"warehouses", icon:Warehouse, group:"main" },
+  { id:"locations", icon:Boxes, group:"main" },
+  { id:"lots", icon:ScanBarcode, group:"main" },
   { id:"suppliers", icon:Truck, group:"partners" },
   { id:"customers", icon:Users, group:"partners" },
   { id:"purchases", icon:ShoppingCart, group:"operations" },
@@ -456,7 +458,7 @@ export default function App() {
         {page==="users"&&isAdmin&&<section className="panel"><div className="panel-head"><div><h3>Gestion des utilisateurs</h3><p>Invitez des collaborateurs et attribuez leurs rôles</p></div></div><form className="form-grid invite-form" onSubmit={createInvitation}><label className="span-2">Adresse e-mail<input type="email" value={inviteEmail} onChange={e=>setInviteEmail(e.target.value)} required placeholder="collaborateur@exemple.com"/></label><label>Rôle<select value={inviteRole} onChange={e=>setInviteRole(e.target.value)}><option value="manager">Manager</option><option value="warehouse">Magasinier</option><option value="sales">Ventes</option><option value="viewer">Consultation</option><option value="staff">Employé</option></select></label><div className="invite-submit"><button className="primary-btn" disabled={inviteBusy}>{inviteBusy?"En cours...":"Créer l’invitation"}</button></div></form><div className="invite-link"><b>Lien d’activation à transmettre</b><code>https://gestion-stock-pro-amine-gnn.vercel.app/?invite=1</code></div><div className="invite-pending"><div className="panel-head"><div><h3>Invitations</h3><p>Invitations en attente ou déjà acceptées</p></div><button type="button" className="secondary-btn" onClick={()=>void navigator.clipboard?.writeText("https://gestion-stock-pro-amine-gnn.vercel.app/?invite=1")}>Copier le lien d’activation</button></div>{invitations.length?<div className="table-wrap"><table><thead><tr><th>E-mail</th><th>Rôle</th><th>Expiration</th><th>État</th><th></th></tr></thead><tbody>{invitations.map(inv=><tr key={inv.id}><td>{inv.email}</td><td>{inv.role}</td><td>{new Date(inv.expires_at).toLocaleDateString()}</td><td><span className={"status-pill "+(inv.accepted_at?"positive":"warning")}>{inv.accepted_at?"Acceptée":new Date(inv.expires_at)<new Date()?"Expirée":"En attente"}</span></td><td>{!inv.accepted_at&&<button className="ops-icon-btn" title="Révoquer" onClick={()=>void revokeInvitation(inv.id)}><X size={14}/></button>}</td></tr>)}</tbody></table></div>:<p className="muted">Aucune invitation pour le moment.</p>}</div><div className="table-wrap"><table><thead><tr><th>Utilisateur</th><th>Rôle</th><th>Statut</th><th>Gestion</th></tr></thead><tbody>{members.map(m=><tr key={m.user_id}><td>{m.email}</td><td><span className="status-pill">{m.role}</span></td><td><span className={"status-pill "+(m.is_active?"positive":"warning")}>{m.is_active?"Actif":"Désactivé"}</span></td><td>{m.user_id!==session.user.id&&<div className="member-actions"><select value={m.role} onChange={e=>void updateMember(m.user_id,{role:e.target.value})}><option value="admin">Admin</option><option value="manager">Manager</option><option value="warehouse">Magasinier</option><option value="sales">Ventes</option><option value="viewer">Consultation</option><option value="staff">Employé</option></select><button className="secondary-btn" onClick={()=>void updateMember(m.user_id,{is_active:!m.is_active})}>{m.is_active?"Désactiver":"Activer"}</button></div>}</td></tr>)}</tbody></table></div></section>}
         {page==="users"&&!isAdmin&&<section className="panel"><div className="empty-state"><div className="empty-icon"><ShieldCheck size={24}/></div><b>Accès réservé à l’administrateur</b></div></section>}
         {page==="sales"&&<section className="panel"><div className="panel-head"><div><h3>{t.sales}</h3><p>{sales.length} facture(s) · sortie de stock automatique</p></div><button className="primary-btn" disabled={currentRole==="viewer"} onClick={()=>{setForm({});setDocumentLines([{product_id:"",quantity:"",unit_price:"",discount:"0"}]);setModal("sale")}}><Plus size={16}/>Nouvelle vente</button></div>{sales.length?<div className="table-wrap"><table><thead><tr><th>N° facture</th><th>{t.customers}</th><th>Date</th><th>Statut</th><th>Total</th><th>Document</th></tr></thead><tbody>{sales.map(x=><tr key={x.id}><td><b>{x.invoice_number}</b></td><td>{x.customers?.name||"—"}</td><td>{new Date(x.sale_date).toLocaleDateString()}</td><td><span className="status-pill positive">{x.status}</span></td><td>{money(Number(x.total))}</td><td><button className="ops-icon-btn" title="Imprimer la facture" onClick={()=>void printDocument("sale",x.id)}><Printer size={15}/></button></td></tr>)}</tbody></table></div>:<Empty t={t}/>}</section>}
-        {(page==="categories"||page==="transfers"||page==="inventory"||page==="returns"||page==="expenses"||page==="payments"||page==="reports")&&<StockOperations page={page} companyId={company.id} products={products} warehouses={warehouses} suppliers={suppliers} customers={customers} purchases={purchases} sales={sales} role={currentRole} money={money} lang={lang} onSaved={()=>loadWorkspace(company.id)}/>}
+        {(page==="categories"||page==="transfers"||page==="inventory"||page==="locations"||page==="lots"||page==="returns"||page==="expenses"||page==="payments"||page==="reports")&&<StockOperations page={page} companyId={company.id} products={products} warehouses={warehouses} suppliers={suppliers} customers={customers} purchases={purchases} sales={sales} role={currentRole} money={money} lang={lang} onSaved={()=>loadWorkspace(company.id)}/>}
       </div>
       <footer className="app-footer"><span>© {new Date().getFullYear()} Gestion Stock Pro</span><span><ShieldCheck size={14}/> Données protégées par RLS</span></footer>
     </main>
