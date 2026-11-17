@@ -127,7 +127,7 @@ export default function App() {
 
   const loadWorkspace = useCallback(async (companyId: string) => {
     if (!supabase) return;
-    const [p,w,s,c,m] = await Promise.all([
+    const [p,w,s,c,m,b] = await Promise.all([
       supabase.from("products").select("*").eq("company_id",companyId).order("created_at",{ascending:false}),
       supabase.from("warehouses").select("*").eq("company_id",companyId).order("created_at"),
       supabase.from("suppliers").select("*").eq("company_id",companyId).order("name"),
@@ -141,7 +141,8 @@ export default function App() {
     setSuppliers(s.data ?? []);
     setCustomers(c.data ?? []);
     setMovements(m.data ?? []);
-    if (!m.error) setBalances([]);
+    if (b.error) throw b.error;
+    setBalances(b.data ?? []);
   }, []);
 
   const loadCompanies = useCallback(async (userId: string) => {
