@@ -255,6 +255,7 @@ export default function App() {
       const {error} = await supabase.from("user_invitations").upsert({company_id:company.id,email:normalizedEmail,role:inviteRole,invited_by:session.user.id,expires_at:new Date(Date.now()+7*86400000).toISOString(),accepted_at:null},{onConflict:"company_id,email"});
       if (error) throw error;
       setInviteEmail("");
+      const {data:inviteRows,error:inviteError}=await supabase.from("user_invitations").select("id,email,role,expires_at,accepted_at").eq("company_id",company.id).order("created_at",{ascending:false});if(inviteError)throw inviteError;setInvitations(inviteRows??[]);
       flash("success","Invitation créée. Partagez le lien d’activation avec cet utilisateur.");
     } catch(e:any) { flash("error",e.message); }
     finally { setInviteBusy(false); }
