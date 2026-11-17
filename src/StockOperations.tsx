@@ -11,6 +11,8 @@ type Props = {
   warehouses: any[];
   suppliers: any[];
   customers: any[];
+  purchases: any[];
+  sales: any[];
   money: (value: number) => string;
   lang: "fr" | "en" | "ar";
   onSaved: () => Promise<void>;
@@ -39,6 +41,8 @@ export default function StockOperations({page,companyId,products,warehouses,supp
         const r=await supabase.from("inventory_counts").select("*, warehouses(name), inventory_count_items(counted_quantity,difference)").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100);if(r.error)throw r.error;setRows(r.data??[]);
       } else if(page==="returns"){
         const r=await supabase.from("stock_returns").select("*, warehouses(name), customers(name), suppliers(name)").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100);if(r.error)throw r.error;setRows(r.data??[]);
+      } else if(page==="payments"){
+        const r=await supabase.from("payment_transactions").select("*, sales(invoice_number), purchase_orders(order_number)").eq("company_id",companyId).order("transaction_date",{ascending:false}).limit(200);if(r.error)throw r.error;setRows(r.data??[]);
       } else if(page==="expenses"){
         const r=await supabase.from("expenses").select("*").eq("company_id",companyId).order("expense_date",{ascending:false}).limit(200);if(r.error)throw r.error;setRows(r.data??[]);
       } else {
@@ -61,6 +65,9 @@ export default function StockOperations({page,companyId,products,warehouses,supp
     try{
       if(page==="categories"){
         const r=await supabase.from("product_categories").insert({company_id:companyId,name:form.name?.trim(),description:form.description||null});if(r.error)throw r.error;
+      } else if(page==="payments"){
+        const isReceipt=form.type!=="supplier_payment";
+        const r=await supabase.from("payment_transactions").insert({company_id:companyId,transaction_type:isReceipt?"customer_receipt":"supplier_payment",sale_id:isReceipt?form.document_id:null,purchase_order_id:isReceipt?null:form.document_id,amount:Number(form.amount),payment_method:form.method||"cash",transaction_date:form.date||new Date().toISOString().slice(0,10),reference:form.reference||null,notes:form.note||null});if(r.error)throw r.error;
       } else if(page==="expenses"){
         const r=await supabase.from("expenses").insert({company_id:companyId,expense_number:form.number||"EXP-"+Date.now(),category:form.category,description:form.description,amount:Number(form.amount),expense_date:form.date||new Date().toISOString().slice(0,10),payment_method:form.method||null,notes:form.note||null});if(r.error)throw r.error;
       } else {
