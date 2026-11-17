@@ -186,10 +186,10 @@ export default function App() {
       supabase.from("org_units").select("id,code,name,site_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
       supabase.from("org_services").select("id,code,name,site_id,unit_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
       supabase.from("org_departments").select("id,code,name,site_id,unit_id,service_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
-      supabase.from("org_equipment").select("id,equipment_tag,name,site_id,unit_id,service_id,department_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name")
+      supabase.from("org_equipment").select("id,equipment_tag,name,site_id,unit_id,service_id,department_id,status").eq("company_id",companyId).eq("status","active").order("name")
     ]);
     const orgError=[os,ou,ov,od,oe].find(x=>x.error)?.error;if(orgError)throw orgError;
-    setOrgSites(os.data??[]);setOrgUnits(ou.data??[]);setOrgServices(ov.data??[]);setOrgDepartments(od.data??[]);setOrgEquipment(oe.data??[]);
+    setOrgSites(os.data??[]);setOrgUnits(ou.data??[]);setOrgServices(ov.data??[]);setOrgDepartments(od.data??[]);setOrgEquipment((oe.data??[]).map(x=>({...x,is_active:true})));
     const {data:{user:scopeUser}}=await supabase.auth.getUser();
     const scopeResult=scopeUser?await supabase.from("user_scope_assignments").select("can_view,can_create,can_edit,can_delete,can_approve,can_issue,can_receive,can_transfer,can_inventory").eq("company_id",companyId).eq("user_id",scopeUser.id):{data:[],error:null};
     if(scopeResult.error)throw scopeResult.error;
