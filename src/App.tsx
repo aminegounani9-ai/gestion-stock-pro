@@ -252,11 +252,12 @@ export default function App() {
 
   const title = t[page];
   const money = (value:number) => new Intl.NumberFormat(lang==="en"?"en-US":lang==="ar"?"ar-DZ":"fr-DZ",{style:"currency",currency:company?.currency_code||"DZD",maximumFractionDigits:0}).format(value||0);
+  const totalStockUnits = balances.reduce((sum,row)=>sum+Number(row.quantity_on_hand||0),0);
   const stats = [
     {label:t.items,value:products.length,icon:Package,accent:"blue",detail:lang==="ar"?"في الكتالوج":"Dans le catalogue"},
     {label:t.suppliersCount,value:suppliers.length,icon:Truck,accent:"violet",detail:lang==="ar"?"شريك تجاري":"Partenaires"},
     {label:t.warehousesCount,value:warehouses.length,icon:Warehouse,accent:"amber",detail:lang==="ar"?"مواقع التخزين":"Sites de stockage"},
-    {label:t.movements,value:movements.length,icon:Activity,accent:"green",detail:lang==="ar"?"آخر الحركات":"Dernières opérations"},
+    {label:lang==="ar"?"الوحدات المتوفرة":lang==="en"?"Units in stock":"Unités en stock",value:totalStockUnits,icon:Activity,accent:"green",detail:lang==="ar"?"حسب حركات المخزون":"Calculé depuis le journal de stock"},
   ];
 
   if (!isSupabaseConfigured) return <div className="config-screen"><div className="auth-card"><div className="brand-mark"><Boxes size={26}/></div><h1>Gestion Stock Pro</h1><p>{t.configError}</p><code>VITE_SUPABASE_URL<br/>VITE_SUPABASE_PUBLISHABLE_KEY</code></div></div>;
