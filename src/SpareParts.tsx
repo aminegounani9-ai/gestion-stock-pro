@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AlertTriangle, Boxes, ClipboardList, PackagePlus, Plus, Search, Wrench } from "lucide-react";
+import { AlertTriangle, Boxes, ClipboardList, PackagePlus, Search, Wrench } from "lucide-react";
 import { supabase } from "./lib/supabase";
 
 type Props = { companyId: string; products: any[]; warehouses: any[]; suppliers: any[]; role: string; lang: "fr"|"en"|"ar"; onSaved: () => Promise<void> };
