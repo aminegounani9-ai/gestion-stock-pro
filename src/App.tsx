@@ -249,7 +249,6 @@ export default function App() {
         if(error) throw error;
       }
       if (table) { const {error} = await supabase.from(table).insert(payload); if (error) throw error; }
-      if (error) throw error;
       await loadWorkspace(company.id);
       setModal(null); setForm({});
       flash("success",modal==="product"?t.productSaved:t.save+" ✓");
