@@ -212,7 +212,7 @@ export default function App() {
     const ids = (memberships ?? []).map((m:any) => m.company_id);
     const roleMap = Object.fromEntries((memberships ?? []).map((m:any)=>[m.company_id,m.role]));
     setCompanyRoles(roleMap);
-    if (!ids.length) { setCompanies([]); setCompany(null); setCurrentRole("viewer"); setIsAdmin(false); return; }
+    if (!ids.length) { setCompanies([]); setCompany(null); setCurrentRole("viewer"); setIsAdmin(false); setScopePermissions({canView:false,canCreate:false,canEdit:false,canDelete:false,canApprove:false,canIssue:false,canReceive:false,canTransfer:false,canInventory:false}); return; }
     const {data,error: companyError} = await supabase.from("companies").select("id,name,currency_code,legal_name,tax_number,phone,email,address,city,country").in("id",ids).order("created_at");
     if (companyError) throw companyError;
     const list = (data ?? []) as Company[];
@@ -247,7 +247,7 @@ export default function App() {
     });
     const {data:{subscription}} = supabase.auth.onAuthStateChange((_event,next) => {
       setSession(next);
-      if (!next) { setCompanies([]); setCompany(null); setProducts([]); }
+      if (!next) { setCompanies([]); setCompany(null); setProducts([]); setScopePermissions({canView:false,canCreate:false,canEdit:false,canDelete:false,canApprove:false,canIssue:false,canReceive:false,canTransfer:false,canInventory:false}); }
     });
     return () => subscription.unsubscribe();
   }, [loadCompanies]);
