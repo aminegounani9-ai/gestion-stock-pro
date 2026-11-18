@@ -40,10 +40,10 @@ export default function SpareParts({companyId,products,warehouses,suppliers,role
   if(rq.error)throw rq.error;setRequests(rq.data||[]);if(users.error)throw users.error;setRequestUsers(users.data||[]);
   for(const res of [sites,units,services,depts,equipment])if(res.error)throw res.error;
   setOrgSites(sites.data||[]);setOrgUnits(units.data||[]);setOrgServices(services.data||[]);setOrgDepartments(depts.data||[]);setOrgEquipment(equipment.data||[]);
-  if(user.data.user){const [nf,sc]=await Promise.all([
+  if(user.data.user){const signedInUserId=user.data.user.id;const [nf,sc]=await Promise.all([
    supabase!.from("notifications").select("*").eq("company_id",companyId).eq("recipient_user_id",user.data.user.id).order("created_at",{ascending:false}).limit(30),
    supabase!.from("user_scope_assignments").select("user_id,job_title,scope_type,scope_id,can_approve").eq("company_id",companyId).in("user_id",(users.data||[]).map((x:any)=>x.user_id))
-  ]);if(nf.error)throw nf.error;if(sc.error)throw sc.error;setNotifications(nf.data||[]);setRequestScopes(sc.data||[]);setCurrentUserId(user.data.user.id);setRequestForm((v:any)=>({...v,requester_id:v.requester_id||user.data.user.id}));}else setNotifications([]);
+  ]);if(nf.error)throw nf.error;if(sc.error)throw sc.error;setNotifications(nf.data||[]);setRequestScopes(sc.data||[]);setCurrentUserId(signedInUserId);setRequestForm((v:any)=>({...v,requester_id:v.requester_id||signedInUserId}));}else setNotifications([]);
   setLoading(false);
  },[companyId]);
  useEffect(()=>{void load().catch(()=>setLoading(false));},[load]);
