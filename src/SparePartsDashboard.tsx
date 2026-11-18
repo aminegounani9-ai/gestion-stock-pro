@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Activity, AlertTriangle, ArrowDownToLine, ArrowUpFromLine, Boxes, ClipboardList, Package, RefreshCw, ShieldAlert, Wrench, TrendingUp, Warehouse, ArrowRight, Clock3, CheckCircle2 } from "lucide-react";
+import { Activity, AlertTriangle, ArrowDownToLine, Boxes, ClipboardList, Package, RefreshCw, ShieldAlert, Wrench, TrendingUp, Warehouse, ArrowRight, CheckCircle2 } from "lucide-react";
 import { supabase } from "./lib/supabase";
 
 type Props = { companyId:string; currency:string; lang:"fr"|"en"|"ar"; onNavigate:(page:"spareParts"|"stock"|"inventory"|"requests"|"warehouses"|"reports")=>void };
