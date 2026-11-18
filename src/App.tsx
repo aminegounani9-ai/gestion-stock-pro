@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import type { FormEvent } from "react";
 import {
-  Activity, ArrowUpRight, Boxes, Building2, ChevronDown, CircleHelp,
+  Activity, Boxes, Building2, ChevronDown, CircleHelp,
   LayoutDashboard, LogOut, Package, Plus, Search, Settings,
   ShoppingCart, Truck, Users, Warehouse, X, Languages, ShieldCheck, UserCog, Tags, ArrowLeftRight, ClipboardCheck, RotateCcw, Receipt, BarChart3, Wallet, Printer, ScanBarcode, Wrench
 } from "lucide-react";
@@ -435,15 +435,6 @@ export default function App() {
   const documentLineDiscount=documentLines.reduce((sum,line)=>sum+Math.max(0,Number(line.discount||0)),0);
   const documentNet=Math.max(0,documentGross-documentLineDiscount);
   const documentTotal=Math.max(0,documentNet-(modal==="sale"?Math.max(0,Number(form.discount||0)):0));
-  const totalStockUnits = balances.reduce((sum,row)=>sum+Number(row.quantity_on_hand||0),0);
-  const lowStockProducts = products.filter(p=>p.is_active).map(p=>({...p,onHand:balances.filter(b=>b.product_id===p.id).reduce((sum,b)=>sum+Number(b.quantity_on_hand||0),0)})).filter(p=>p.onHand<=Number(p.min_stock||0)).sort((a,b)=>a.onHand-b.onHand).slice(0,6);
-  const stats = [
-    {label:t.items,value:products.filter(p=>p.is_active).length,icon:Package,accent:"blue",detail:lang==="ar"?"في الكتالوج":"Dans le catalogue"},
-    {label:t.suppliersCount,value:suppliers.length,icon:Truck,accent:"violet",detail:lang==="ar"?"شريك تجاري":"Partenaires"},
-    {label:t.warehousesCount,value:warehouses.length,icon:Warehouse,accent:"amber",detail:lang==="ar"?"مواقع التخزين":"Sites de stockage"},
-    {label:lang==="ar"?"الوحدات المتوفرة":lang==="en"?"Units in stock":"Unités en stock",value:totalStockUnits,icon:Activity,accent:"green",detail:lang==="ar"?"حسب حركات المخزون":"Calculé depuis le journal de stock"},
-  ];
-
   if (!isSupabaseConfigured) return <div className="config-screen"><div className="auth-card"><div className="brand-mark"><Boxes size={26}/></div><h1>Gestion Stock Pro</h1><p>{t.configError}</p><code>VITE_SUPABASE_URL<br/>VITE_SUPABASE_PUBLISHABLE_KEY</code></div></div>;
   if (loading) return <div className="loading-screen"><div className="spinner"/><span>{t.loading}</span></div>;
 
