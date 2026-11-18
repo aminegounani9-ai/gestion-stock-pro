@@ -136,7 +136,6 @@ export default function App() {
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [movements, setMovements] = useState<any[]>([]);
-  const [balances, setBalances] = useState<any[]>([]);
   const [purchases, setPurchases] = useState<any[]>([]);
   const [sales, setSales] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
@@ -199,7 +198,6 @@ export default function App() {
     setSuppliers(s.data ?? []);
     setCustomers(c.data ?? []);
     setMovements(m.data ?? []);
-    setBalances(b.data ?? []);
     setPurchases(po.data ?? []);
     setSales(sa.data ?? []);
   }, []);
