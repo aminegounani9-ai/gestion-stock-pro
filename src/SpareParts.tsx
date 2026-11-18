@@ -102,7 +102,7 @@ export default function SpareParts({companyId,products,warehouses,suppliers,role
 async function markNotificationRead(id:string){const {error}=await supabase!.from("notifications").update({is_read:true,read_at:new Date().toISOString()}).eq("id",id).eq("company_id",companyId);if(error)alert(error.message);else await load();}
  const criticalCount=details.filter(d=>d.criticality==="critical"||d.criticality==="high").length;
  const lowCount=details.filter(d=>stockFor(d.product_id)-reservedFor(d.product_id)<=Number(d.safety_stock||0)).length;
- const activeReservations=reservations.filter(r=>r.status==="reserved").length;
+
  return <section className="ops-section">
   {view==="parts"&&<>
   <div className="ops-kpis"><div className="ops-kpi"><Boxes/><span>{t.parts}</span><b>{details.length}</b></div><div className="ops-kpi"><AlertTriangle/><span>{t.critical}</span><b>{criticalCount}</b></div><div className="ops-kpi"><PackagePlus/><span>{t.low}</span><b>{lowCount}</b></div><div className="ops-kpi"><Boxes/><span>Emplacements</span><b>{storageLocations.length}</b></div></div>
