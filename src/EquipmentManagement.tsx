@@ -10,7 +10,7 @@ const labels={
  ar:{title:"المعدات",sub:"سجل المعدات وقطع الغيار المتوافقة والمخزون والاستهلاك.",search:"ابحث عن المعدة أو الرمز...",parts:"قطع الغيار المتوافقة",stock:"المخزون المتاح",consumption:"الاستهلاك المسجل",history:"سجل عمليات الصرف",add:"إضافة قطعة",part:"قطعة الغيار",qty:"الكمية لكل معدة",critical:"حرجة",save:"إضافة",cancel:"إلغاء",scan:"مسح رمز QR",print:"طباعة QR",noEquipment:"لا توجد معدات متاحة.",noParts:"لا توجد قطع مرتبطة بهذه المعدة.",sku:"المرجع",name:"الوصف",available:"المتاح",consumed:"المستهلك",date:"التاريخ",request:"الطلب",workOrder:"أمر العمل",status:"الحالة",qrHint:"امسح الرمز بالهاتف لفتح ملف هذه المعدة مباشرة.",select:"اختر معدة",all:"كل المعدات",filter:"تصفية المعدات",success:"تم ربط القطعة بالمعدة.",error:"تعذر تحميل البيانات.",remove:"إزالة"}
 };
 export default function EquipmentManagement({companyId,lang,equipmentSeed}:Props){
- const t=labels[lang];const [equipment,setEquipment]=useState<Equipment[]>([]);const [products,setProducts]=useState<any[]>([]);const [selected,setSelected]=useState<string>(equipmentSeed||"");const [parts,setParts]=useState<any[]>([]);const [balances,setBalances]=useState<any[]>([]);const [history,setHistory]=useState<any[]>([]);const [search,setSearch]=useState("");const [modal,setModal]=useState(false);const [productId,setProductId]=useState("");const [qty,setQty]=useState("1");const [critical,setCritical]=useState(false);const [busy,setBusy]=useState(false);const [error,setError]=useState("");
+ const t=labels[lang];const [equipment,setEquipment]=useState<Equipment[]>([]);const [products,setProducts]=useState<any[]>([]);const [selected,setSelected]=useState<string>(equipmentSeed||"");const [parts,setParts]=useState<any[]>([]);const [history,setHistory]=useState<any[]>([]);const [search,setSearch]=useState("");const [modal,setModal]=useState(false);const [productId,setProductId]=useState("");const [qty,setQty]=useState("1");const [critical,setCritical]=useState(false);const [busy,setBusy]=useState(false);const [error,setError]=useState("");
  const current=equipment.find(e=>e.id===selected);
  const filtered=useMemo(()=>equipment.filter(e=>(e.name+" "+e.equipment_tag+" "+(e.model||"")).toLowerCase().includes(search.toLowerCase())),[equipment,search]);
  const load=async()=>{
@@ -22,7 +22,7 @@ export default function EquipmentManagement({companyId,lang,equipmentSeed}:Props
   ]);
   if(eq.error||pr.error){setError(eq.error?.message||pr.error?.message||t.error);return;}
   setEquipment((eq.data||[]) as Equipment[]);setProducts(pr.data||[]);
-  const preferred=equipmentSeed||(selected&&eq.data?.some((x:any)=>x.id===selected)?selected:eq.data?.[0]?.id)||"";
+  const preferred=(equipmentSeed&&eq.data?.some((x:any)=>x.id===equipmentSeed)?equipmentSeed:"")||(selected&&eq.data?.some((x:any)=>x.id===selected)?selected:"")||eq.data?.[0]?.id||"";
   setSelected(preferred);
  };
  const loadDetail=async(id:string)=>{
@@ -37,7 +37,7 @@ export default function EquipmentManagement({companyId,lang,equipmentSeed}:Props
   const stock=ids.length?await supabase.from("stock_balances").select("product_id,quantity_on_hand").eq("company_id",companyId).in("product_id",ids):{data:[],error:null};
   if(stock.error){setError(stock.error.message);return;}
   setParts((links.data||[]).map((x:any)=>({...x,product:products.find(p=>p.id===x.product_id),available:(stock.data||[]).filter((b:any)=>b.product_id===x.product_id).reduce((n:number,b:any)=>n+Number(b.quantity_on_hand||0),0)})));
-  setBalances(stock.data||[]);setHistory(req.data||[]);
+  setHistory(req.data||[]);
  };
  useEffect(()=>{void load();},[companyId]);
  useEffect(()=>{if(selected&&equipment.length)void loadDetail(selected);},[selected,equipment,products]);
