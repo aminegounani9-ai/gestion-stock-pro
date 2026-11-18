@@ -3,7 +3,7 @@ import type { FormEvent } from "react";
 import {
   Activity, Boxes, Building2, ChevronDown, CircleHelp,
   LayoutDashboard, LogOut, Package, Plus, Search, Settings,
-  ShoppingCart, Truck, Users, Warehouse, X, Languages, ShieldCheck, UserCog, Tags, ArrowLeftRight, ClipboardCheck, RotateCcw, Receipt, BarChart3, Wallet, Printer, ScanBarcode, Wrench
+  ShoppingCart, Truck, Users, Warehouse, X, Languages, ShieldCheck, UserCog, Tags, ArrowLeftRight, ClipboardCheck, BarChart3, Printer, ScanBarcode, Wrench
 } from "lucide-react";
 import StockOperations from "./StockOperations";
 import SpareParts from "./SpareParts";
