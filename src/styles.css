@@ -666,3 +666,60 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 /* Keep the scanner action visible on mobile; other utility icons stay in desktop toolbar. */
 @media(max-width:760px){.top-actions>.scanner-trigger{display:inline-flex;align-items:center;justify-content:center;gap:6px;width:auto;min-width:78px;height:38px;padding:0 11px;background:#3157c8;color:#fff;border-radius:9px;font-size:11px;font-weight:700;box-shadow:0 4px 12px #3157c82b;flex-shrink:0}.top-actions{margin-left:auto;gap:8px}}
+
+
+/* Consistent premium UI: typography, spacing, tables and mobile language control */
+:root{font-family:Inter,"DM Sans","Segoe UI",Arial,sans-serif;--ui-gap:16px}
+body,button,input,select,textarea{font-family:Inter,"DM Sans","Segoe UI",Arial,sans-serif}
+.page-content{padding:28px 32px 38px}
+.page-heading{gap:18px;margin-bottom:24px}
+.page-heading h1{line-height:1.2}
+.ops-section,.ops-wrap,.sp-dashboard{gap:18px}
+.ops-panel,.panel,.sp-panel{padding:21px 22px;border-radius:15px}
+.ops-kpis,.stat-grid,.sp-kpi-grid{gap:14px}
+.ops-fields,.form-grid{column-gap:18px;row-gap:15px}
+.ops-fields label,.form-grid label,.modal-card label{line-height:1.45;gap:8px}
+.ops-fields input,.ops-fields select,.ops-fields textarea,.ops-line input,.ops-line select,.form-grid input,.form-grid select,.form-grid textarea,.modal-card input,.modal-card select,.modal-card textarea{min-height:43px;border-radius:9px;padding:10px 12px;font-size:12px}
+.table-wrap{border:1px solid #e5eaf1;border-radius:12px;overflow:auto}
+.table-wrap table{border-collapse:separate;border-spacing:0;min-width:720px}
+.table-wrap th{padding:14px 15px;line-height:1.4;white-space:nowrap}
+.table-wrap td{padding:14px 15px;line-height:1.5;vertical-align:middle}
+.table-wrap tbody tr:nth-child(even){background:#fbfcfe}
+.table-wrap tbody tr:hover{background:#f1f5fb}
+.ops-lines,.document-lines{padding:16px;gap:12px;border-radius:12px}
+.ops-line,.ops-lines-head{gap:12px}
+.panel-head{margin-bottom:18px;gap:14px}
+.panel-head p{line-height:1.6}
+.primary-btn,.secondary-btn{min-height:41px;padding:0 15px;border-radius:9px;font-size:11px}
+.language-trigger{display:inline-flex;align-items:center;justify-content:center;gap:5px;width:auto;min-width:62px;padding:0 9px;font-size:10px;font-weight:800;color:#3157b5}
+.language-trigger span{font-size:10px}
+@media(max-width:760px){
+ .page-content{padding:17px 13px 25px}
+ .ops-section,.ops-wrap,.sp-dashboard{gap:13px}
+ .ops-panel,.panel,.sp-panel{padding:15px 13px;border-radius:12px}
+ .ops-fields,.form-grid{gap:11px}
+ .table-wrap th{padding:11px 10px}
+ .table-wrap td{padding:12px 10px}
+ .top-actions>.language-trigger{display:inline-flex;flex:0 0 auto;width:auto;min-width:54px;height:36px;padding:0 8px;background:#f0f4fc;border:1px solid #dfe7f5;color:#3157b5}
+ .top-actions>.language-trigger span{display:inline}
+ .top-actions{gap:7px}
+}
+
+
+/* ABC classification */
+.abc-panel{display:grid;gap:14px}
+.abc-panel .panel-head{align-items:flex-start}
+.abc-method{display:block;margin-top:8px;color:#8492a7;font-size:10px;line-height:1.5}
+.abc-total{display:grid;gap:5px;text-align:right;white-space:nowrap}
+.abc-total small{font-size:9px;color:#8492a7}
+.abc-total b{font:800 17px Manrope,Inter,sans-serif;color:#213653}
+.abc-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.abc-chip{display:flex;align-items:center;gap:10px;border:1px solid #e7ecf3;background:#fbfcfe;border-radius:10px;padding:11px 13px}
+.abc-chip>b{width:31px;height:31px;display:grid;place-items:center;border-radius:9px;font:800 14px Manrope}
+.abc-chip span{font-size:10px;color:#687891;font-weight:700}
+.class-a>b,.abc-a{background:#e8f7ef;color:#21835c}
+.class-b>b,.abc-b{background:#fff4df;color:#b67a1f}
+.class-c>b,.abc-c{background:#eef2f7;color:#64748b}
+.abc-badge{display:inline-grid;place-items:center;width:25px;height:25px;border-radius:8px;font:800 11px Manrope}
+.abc-table table{min-width:650px}
+@media(max-width:760px){.abc-panel .panel-head{flex-direction:column}.abc-total{text-align:left}.abc-summary{gap:7px}.abc-chip{padding:9px 8px;gap:7px}.abc-chip span{font-size:9px}.abc-chip>b{width:27px;height:27px}}
