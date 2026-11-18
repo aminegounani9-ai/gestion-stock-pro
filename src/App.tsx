@@ -18,7 +18,7 @@ type Notice = { type: "success" | "error"; text: string } | null;
 
 const copy = {
   fr: {
-    dashboard:"Tableau de bord", requests:"Demandes de pièces (DA)", organization:"Organisation & affectations", locations:"Emplacements de stockage", lots:"Lots & péremption", spareParts:"Pièces détachées", products:"Articles", categories:"Catégories", stock:"Mouvements de stock", warehouses:"Entrepôts", transfers:"Transferts", inventory:"Inventaires", returns:"Retours", expenses:"Dépenses", payments:"Paiements", reports:"Rapports", users:"Utilisateurs", settings:"Paramètres",
+    dashboard:"Tableau de bord", requests:"Demandes de sortie de pièces", organization:"Organisation & affectations", locations:"Emplacements de stockage", lots:"Lots & péremption", spareParts:"Pièces détachées", products:"Articles", categories:"Catégories", stock:"Mouvements de stock", warehouses:"Entrepôts", transfers:"Transferts", inventory:"Inventaires", returns:"Retours", expenses:"Dépenses", payments:"Paiements", reports:"Rapports", users:"Utilisateurs", settings:"Paramètres",
     suppliers:"Fournisseurs", customers:"Clients", purchases:"Achats", sales:"Ventes",
     search:"Rechercher un article, un code...", welcome:"Vue d'ensemble", subtitle:"Suivez votre activité et votre stock en temps réel.",
     items:"Articles actifs", suppliersCount:"Fournisseurs", warehousesCount:"Entrepôts", movements:"Mouvements", movementSearch:"Rechercher une opération...", exportMovements:"Exporter CSV",
@@ -42,7 +42,7 @@ const copy = {
     margin:"Marge théorique", purchaseOrders:"Commandes d'achat", invoices:"Factures de vente",
   },
   en: {
-    dashboard:"Dashboard", requests:"Spare-part requests (PR)", organization:"Organization & assignments", locations:"Storage locations", lots:"Lots & expiry", spareParts:"Spare parts", products:"Products", categories:"Categories", stock:"Stock movements", warehouses:"Warehouses", transfers:"Transfers", inventory:"Stock counts", returns:"Returns", expenses:"Expenses", payments:"Payments", reports:"Reports", users:"Users", settings:"Settings", suppliers:"Suppliers",
+    dashboard:"Dashboard", requests:"Spare-part issue requests", organization:"Organization & assignments", locations:"Storage locations", lots:"Lots & expiry", spareParts:"Spare parts", products:"Products", categories:"Categories", stock:"Stock movements", warehouses:"Warehouses", transfers:"Transfers", inventory:"Stock counts", returns:"Returns", expenses:"Expenses", payments:"Payments", reports:"Reports", users:"Users", settings:"Settings", suppliers:"Suppliers",
     customers:"Customers", purchases:"Purchases", sales:"Sales", search:"Search products or SKU...", welcome:"Overview",
     subtitle:"Monitor your business and stock in real time.", items:"Active products", suppliersCount:"Suppliers",
     warehousesCount:"Warehouses", movements:"Movements", movementSearch:"Search movements...", exportMovements:"Export CSV", recent:"Recently added products", all:"View all",
@@ -63,7 +63,7 @@ const copy = {
     language:"Language", profile:"My workspace", margin:"Estimated margin", purchaseOrders:"Purchase orders", invoices:"Sales invoices",
   },
   ar: {
-    dashboard:"لوحة التحكم", requests:"طلبات قطع الغيار", organization:"الهيكل التنظيمي والتعيينات", locations:"مواقع التخزين", lots:"الدفعات والصلاحية", spareParts:"قطع الغيار", products:"المنتجات", categories:"الفئات", stock:"حركات المخزون", warehouses:"المخازن", transfers:"التحويلات", inventory:"الجرد", returns:"المرتجعات", expenses:"المصاريف", payments:"المدفوعات", reports:"التقارير", users:"المستخدمون", settings:"الإعدادات", suppliers:"الموردون",
+    dashboard:"لوحة التحكم", requests:"طلبات صرف قطع الغيار", organization:"الهيكل التنظيمي والتعيينات", locations:"مواقع التخزين", lots:"الدفعات والصلاحية", spareParts:"قطع الغيار", products:"المنتجات", categories:"الفئات", stock:"حركات المخزون", warehouses:"المخازن", transfers:"التحويلات", inventory:"الجرد", returns:"المرتجعات", expenses:"المصاريف", payments:"المدفوعات", reports:"التقارير", users:"المستخدمون", settings:"الإعدادات", suppliers:"الموردون",
     customers:"العملاء", purchases:"المشتريات", sales:"المبيعات", search:"ابحث عن منتج أو مرجع...",
     welcome:"نظرة عامة", subtitle:"تابع نشاطك ومخزونك في الوقت الفعلي.", items:"المنتجات النشطة",
     suppliersCount:"الموردون", warehousesCount:"المخازن", movements:"الحركات", movementSearch:"ابحث في الحركات...", exportMovements:"تصدير CSV", recent:"آخر المنتجات المضافة",
