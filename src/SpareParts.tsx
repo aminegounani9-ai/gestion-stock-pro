@@ -30,7 +30,7 @@ export default function SpareParts({companyId,products,warehouses,suppliers,role
   setDetails(d.data||[]);setReservations(r.data||[]);setBalances(b.data||[]);setCompat(co.data||[]);setQuotes(qu.data||[]);setRepairs(re.data||[]);setSerials(sn.data||[]);
   const [rq,user,users,sites,units,services,depts,equipment]=await Promise.all([
    supabase!.from("spare_part_requests").select("*, spare_part_request_items!spare_part_request_items_company_request_fk(*, products:products!spare_part_request_items_company_product_fk(name,sku), warehouses(name))").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100),
-   supabase!.auth.getUser(),supabase!.rpc("list_company_users",{p_company_id:companyId}),
+   supabase!.auth.getUser(),supabase!.rpc("list_spare_part_requesters",{p_company_id:companyId}),
    supabase!.from("org_sites").select("id,code,name").eq("company_id",companyId).eq("is_active",true).order("name"),
    supabase!.from("org_units").select("id,code,name,site_id").eq("company_id",companyId).eq("is_active",true).order("name"),
    supabase!.from("org_services").select("id,code,name,site_id,unit_id").eq("company_id",companyId).eq("is_active",true).order("name"),
@@ -42,7 +42,7 @@ export default function SpareParts({companyId,products,warehouses,suppliers,role
   setOrgSites(sites.data||[]);setOrgUnits(units.data||[]);setOrgServices(services.data||[]);setOrgDepartments(depts.data||[]);setOrgEquipment(equipment.data||[]);
   if(user.data.user){const signedInUserId=user.data.user.id;const [nf,sc]=await Promise.all([
    supabase!.from("notifications").select("*").eq("company_id",companyId).eq("recipient_user_id",user.data.user.id).order("created_at",{ascending:false}).limit(30),
-   supabase!.from("user_scope_assignments").select("user_id,job_title,scope_type,scope_id,can_approve").eq("company_id",companyId).in("user_id",(users.data||[]).map((x:any)=>x.user_id))
+   supabase!.rpc("list_spare_part_requester_scopes",{p_company_id:companyId})
   ]);if(nf.error)throw nf.error;if(sc.error)throw sc.error;setNotifications(nf.data||[]);setRequestScopes(sc.data||[]);setCurrentUserId(signedInUserId);setRequestForm((v:any)=>({...v,requester_id:v.requester_id||signedInUserId}));}else setNotifications([]);
   setLoading(false);
  },[companyId]);
