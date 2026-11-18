@@ -46,9 +46,9 @@ export default function StockOperations({page,companyId,products,warehouses,supp
       } else if(page==="categories"){
         const r=await supabase.from("product_categories").select("*").eq("company_id",companyId).order("name");if(r.error)throw r.error;setRows(r.data??[]);
       } else if(page==="transfers"){
-        const r=await supabase.from("stock_transfers").select("*, source:warehouses!stock_transfers_source_warehouse_id_fkey(name), destination:warehouses!stock_transfers_destination_warehouse_id_fkey(name), stock_transfer_items(id,product_id,quantity,received_quantity,products(name,sku))").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100);if(r.error)throw r.error;setRows(r.data??[]);
+        const r=await supabase.from("stock_transfers").select("*, source:warehouses!stock_transfers_source_warehouse_id_fkey(name), destination:warehouses!stock_transfers_destination_warehouse_id_fkey(name), stock_transfer_items(id,product_id,quantity,received_quantity,products:products!stock_transfer_items_company_product_fk(name,sku))").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100);if(r.error)throw r.error;setRows(r.data??[]);
       } else if(page==="inventory"){
-        const r=await supabase.from("inventory_counts").select("*, warehouses(name), inventory_count_items(count_id,product_id,expected_quantity,counted_quantity,difference,products(name,sku))").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100);if(r.error)throw r.error;setRows(r.data??[]);
+        const r=await supabase.from("inventory_counts").select("*, warehouses(name), inventory_count_items!inventory_count_items_company_count_fk(count_id,product_id,expected_quantity,counted_quantity,difference,products:products!inventory_count_items_company_product_fk(name,sku))").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100);if(r.error)throw r.error;setRows(r.data??[]);
       } else if(page==="returns"){
         const r=await supabase.from("stock_returns").select("*, warehouses(name), customers(name), suppliers(name)").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100);if(r.error)throw r.error;setRows(r.data??[]);
       } else if(page==="payments"){
