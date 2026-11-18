@@ -144,7 +144,7 @@ async function markNotificationRead(id:string){const {error}=await supabase!.fro
 
   </>}
   {view==="requests"&&<>
-  {view==="requests"&&<div className="panel ops-panel"><div className="panel-head"><div><h3><Bell size={17}/> Notifications & demandes de pièces</h3><p>{notifications.filter(n=>!n.is_read).length} notification(s) non lue(s) · {requests.length} demande(s)</p></div></div>{notifications.length>0&&<div className="notification-list">{notifications.slice(0,8).map(n=><div className={"notification-row "+(!n.is_read?"unread":"")} key={n.id}><span><b>{n.title}</b><small>{n.message} · {new Date(n.created_at).toLocaleString()}</small></span>{!n.is_read&&<button type="button" className="ops-icon-btn" onClick={()=>void markNotificationRead(n.id)}>Lu</button>}</div>)}</div>}</div>
+  <div className="panel ops-panel"><div className="panel-head"><div><h3><Bell size={17}/> Notifications & demandes de pièces</h3><p>{notifications.filter(n=>!n.is_read).length} notification(s) non lue(s) · {requests.length} demande(s)</p></div></div>{notifications.length>0&&<div className="notification-list">{notifications.slice(0,8).map(n=><div className={"notification-row "+(!n.is_read?"unread":"")} key={n.id}><span><b>{n.title}</b><small>{n.message} · {new Date(n.created_at).toLocaleString()}</small></span>{!n.is_read&&<button type="button" className="ops-icon-btn" onClick={()=>void markNotificationRead(n.id)}>Lu</button>}</div>)}</div>}</div>
    {canRequest&&<div className="panel ops-panel"><div className="panel-head"><div><h3>Nouvelle demande de sortie de pièces</h3><p>Le demandeur saisit les pièces ; l’approbation finale est réservée au Responsable.</p></div><ClipboardList size={18}/></div><form onSubmit={createRequest}>
  <div className="ops-fields">
   <label>Demandeur<select required value={requestForm.requester_id||""} onChange={e=>{const id=e.target.value;const scopes=requestScopes.filter(x=>x.user_id===id);const pick=(type:string)=>scopes.find(x=>x.scope_type===type)?.scope_id||"";setRequestForm((v:any)=>({...v,requester_id:id,site_id:pick("site"),unit_id:pick("unit"),service_id:pick("service"),department_id:pick("department"),equipment_id:pick("equipment")}));}}><option value="">Sélectionner un demandeur</option>{requestUsers.filter(x=>x.is_active).map(x=><option key={x.user_id} value={x.user_id}>{x.display_name||x.email} · {x.role}</option>)}</select></label>
@@ -195,7 +195,7 @@ async function markNotificationRead(id:string){const {error}=await supabase!.fro
     {quotes.length>0&&<div className="table-wrap"><table><thead><tr><th>Pièce</th><th>Fournisseur</th><th>Prix</th><th>MOQ</th><th>Délai</th><th>Préféré</th></tr></thead><tbody>{quotes.map(x=><tr key={x.id}><td>{x.products?.sku||"—"}</td><td>{x.suppliers?.name||"—"}</td><td>{Number(x.unit_price).toLocaleString()} {x.currency}</td><td>{x.minimum_order_quantity}</td><td>{x.lead_time_days??"—"}</td><td>{x.is_preferred?"Oui":"Non"}</td></tr>)}</tbody></table></div>}
    </div>
   </div>
-  {false&&{false&&<div className="panel ops-panel"><div className="panel-head"><h3>Suivi des réparations</h3><span>{repairs.length}</span></div>
+  {false&&<div className="panel ops-panel"><div className="panel-head"><h3>Suivi des réparations</h3><span>{repairs.length}</span></div>
    {canWrite&&<form onSubmit={addRepair}><div className="ops-fields">
     <label>Pièce<select required value={repairForm.product_id||""} onChange={e=>setRepairForm({...repairForm,product_id:e.target.value})}><option value="">—</option>{details.map(d=><option key={d.product_id} value={d.product_id}>{d.products?.sku} · {d.products?.name}</option>)}</select></label>
     <label>N° série / actif<input value={repairForm.serial_or_asset_number||""} onChange={e=>setRepairForm({...repairForm,serial_or_asset_number:e.target.value})}/></label>
@@ -209,7 +209,7 @@ async function markNotificationRead(id:string){const {error}=await supabase!.fro
     <label className="ops-wide">Description panne<textarea rows={2} value={repairForm.fault_description||""} onChange={e=>setRepairForm({...repairForm,fault_description:e.target.value})}/></label>
    </div><div className="ops-actions"><button className="primary-btn" disabled={saving}>Créer suivi réparation</button></div></form>}
    {repairs.length>0&&<div className="table-wrap"><table><thead><tr><th>Pièce</th><th>N° série</th><th>Prestataire</th><th>Envoi</th><th>Retour prévu</th><th>Coût</th><th>État</th><th>Action</th></tr></thead><tbody>{repairs.map(x=><tr key={x.id}><td>{x.products?.sku} · {x.products?.name}</td><td>{x.serial_or_asset_number||"—"}</td><td>{x.repair_vendor||"—"}</td><td>{x.sent_to_repair_at}</td><td>{x.expected_return_date||"—"}</td><td>{x.repair_cost??"—"} {x.currency}</td><td><span className="status-pill">{x.status}</span></td><td>{canWrite&&x.status!=="returned"&&x.status!=="scrapped"&&<select value={x.status} onChange={e=>void updateRepair(x.id,e.target.value)}><option value="sent">Envoyée</option><option value="in_repair">En réparation</option><option value="returned">Retournée</option><option value="scrapped">Réformée</option></select>}</td></tr>)}</tbody></table></div>}
-  </div>
+  </div>}
 
   {false&&<div className="panel ops-panel"><div className="panel-head"><div><h3>Traçabilité des numéros de série</h3><p>Suivi unitaire des articles sérialisés par entrepôt</p></div><span>{serials.length}</span></div>
    {canReceive&&<form onSubmit={addSerial}><div className="ops-fields">
@@ -219,7 +219,7 @@ async function markNotificationRead(id:string){const {error}=await supabase!.fro
     <label className="ops-wide">Notes<input value={serialForm.notes||""} onChange={e=>setSerialForm({...serialForm,notes:e.target.value})}/></label>
    </div><div className="ops-actions"><button className="primary-btn" disabled={saving}>Enregistrer les numéros</button></div></form>}
    {serials.length>0?<div className="table-wrap"><table><thead><tr><th>Numéro de série</th><th>Article</th><th>Entrepôt</th><th>Réception</th><th>État</th>{canWrite&&<th>Modifier l'état</th>}</tr></thead><tbody>{serials.map(x=><tr key={x.id}><td><b>{x.serial_number}</b></td><td>{x.products?.sku} · {x.products?.name}</td><td>{x.warehouses?.name||"—"}</td><td>{x.received_at?new Date(x.received_at).toLocaleDateString():"—"}</td><td><span className="status-pill">{x.status}</span></td>{canWrite&&<td><select value={x.status} onChange={e=>void updateSerial(x.id,e.target.value)}><option value="in_stock">En stock</option><option value="reserved">Réservé</option><option value="sold">Vendu</option><option value="returned">Retourné</option><option value="quarantine">Quarantaine</option><option value="scrapped">Réformé</option></select></td>}</tr>)}</tbody></table></div>:<div className="ops-empty">Aucun numéro de série enregistré.</div>}
-  </div>
+  </div>}
   </>}
  </section>;
 }
