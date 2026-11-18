@@ -39,7 +39,6 @@ export interface Product {
   name: string;
   unit: string;
   purchase_price: number;
-  sale_price: number;
   min_stock: number;
   is_active: boolean;
   created_at: string;
