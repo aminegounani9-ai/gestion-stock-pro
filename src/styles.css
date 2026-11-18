@@ -313,3 +313,115 @@ body{background:var(--ui-bg);color:var(--ui-ink);font-family:Inter,"Segoe UI",Ar
 .notification-empty{min-height:175px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:#98a5b7}.notification-empty b{font-size:11px;color:#52627a}.notification-empty small{font-size:9px}
 @keyframes notification-in{from{opacity:0;transform:translateY(-5px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:760px){.topbar{height:66px;min-height:66px;padding:0 12px;gap:8px}.topbar .breadcrumbs{display:none}.global-search{max-width:42vw}.notification-popover{position:fixed;top:62px;right:10px;left:auto}.notification-dismiss{inset:66px 0 64px}.page-heading h1{font-size:22px}.page-content{padding-top:19px}}
+
+
+/* ===== Gestion Stock Pro — responsive enterprise UI refinement ===== */
+:root{
+  --ui-ink:#17233d;--ui-muted:#68758b;--ui-line:#dce3ed;--ui-soft:#f3f6fb;
+  --ui-primary:#284fba;--ui-primary-dark:#1d3f9e;--ui-focus:#7895ed;
+}
+html{scroll-behavior:smooth}
+body{color:var(--ui-ink);-webkit-text-size-adjust:100%}
+button,[role="button"],a{ -webkit-tap-highlight-color:transparent }
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{
+  outline:3px solid #7895ed66;outline-offset:2px
+}
+button:disabled{cursor:not-allowed;opacity:.58}
+button:not(:disabled){touch-action:manipulation}
+.primary-btn,.secondary-btn,.link-btn,.ops-add-line,.sp-refresh,.org-tabs button,
+.modal-actions button,.ops-actions button,.sp-quick button,.icon-btn,.ops-icon-btn{
+  min-height:40px;line-height:1.35;white-space:normal
+}
+.primary-btn{background:linear-gradient(135deg,#315dcc,#2449ad);box-shadow:0 4px 12px #2449ad25}
+.primary-btn:hover{background:linear-gradient(135deg,#244fb8,#1b3d98)}
+.secondary-btn{border:1px solid #d9e1ed;background:#f5f7fb;color:#33435f}
+.secondary-btn:hover{background:#eaf0fb;border-color:#bdcbea;color:#23459f}
+.icon-btn,.ops-icon-btn{width:40px;height:40px;min-width:40px;border:1px solid #e0e6ef}
+.icon-btn:hover{background:#e9eef9;color:#2449ad}
+input,select,textarea{color:#1c2a43}
+input::placeholder,textarea::placeholder{color:#98a3b5;opacity:1}
+label{line-height:1.45}
+.form-grid input,.form-grid select,.auth-form input,.setup-card input,
+.ops-fields input,.ops-fields select,.ops-period input,.ops-line input,.ops-line select{
+  min-height:43px;border-color:#d5deea;background:#fff;color:#1d2b44;font-size:12px
+}
+.form-grid input:hover,.form-grid select:hover,.ops-fields input:hover,.ops-fields select:hover,
+.ops-line input:hover,.ops-line select:hover{border-color:#aab9d2}
+textarea{border:1px solid #d5deea;border-radius:8px;padding:10px 12px;min-height:88px;width:100%;font:inherit;font-size:12px}
+.table-wrap{max-width:100%;overflow:auto;overscroll-behavior-x:contain;border:1px solid #dfe5ee;border-radius:10px;background:#fff;scrollbar-width:thin;scrollbar-color:#b8c4d7 #f2f5f9}
+table{width:100%;border-collapse:separate;border-spacing:0;white-space:nowrap}
+thead th{position:sticky;top:0;z-index:2;background:#edf2f9;color:#34445f;border-bottom:1px solid #cfd8e6;border-right:1px solid #dce3ed;padding:13px 12px;font-size:10px;letter-spacing:.55px}
+thead th:last-child,tbody td:last-child{border-right:0}
+tbody td{padding:12px;border-bottom:1px solid #e1e7ef;border-right:1px solid #edf0f5;color:#43516a;font-size:11px;vertical-align:middle;background:#fff}
+tbody tr:nth-child(even) td{background:#fafbfd}
+tbody tr:hover td{background:#f0f5ff}
+tbody tr:last-child td{border-bottom:0}
+td b{color:#1f2d46;font-size:11px}
+td input,td select{min-width:90px;min-height:38px;border:1px solid #d6deea;border-radius:6px;padding:6px 8px;background:#fff}
+.table-wrap:focus-within{border-color:#a8b9dc}
+.status-pill{border:1px solid #dce3ed;min-height:24px;padding:5px 9px;font-size:10px}
+.panel,.sp-panel,.ops-panel,.sp-panel{border-color:#dfe5ee;box-shadow:0 5px 20px #20375b0a}
+.panel-head h3,.sp-panel-head h3{color:#1c2b45}
+.page-heading h1{color:#17233d}
+.modal-card{border:1px solid #dce3ed}
+.modal-actions{position:sticky;bottom:-17px;background:#fff;padding:12px 0 2px}
+.modal-actions button{min-height:43px}
+.org-tabs{display:flex;gap:7px;flex-wrap:wrap}
+.org-tabs button{border:1px solid #dce3ed;background:#f6f8fc;color:#53627b;border-radius:8px;padding:9px 13px;font-weight:650}
+.org-tabs button.active{background:#e9efff;border-color:#9fb4eb;color:#2449ad}
+.sp-quick button{border:1px solid #e0e6ef;border-radius:9px;padding:12px;background:#fff}
+.sp-quick button:hover{background:#f2f6ff;border-color:#b9c9eb}
+.sp-refresh{border:1px solid #ffffff55;border-radius:9px;padding:10px 14px}
+.notification-popover,.notifications-popover{max-width:min(390px,calc(100vw - 24px))}
+.app-footer{border-color:#dfe5ee}
+@media(max-width:760px){
+  .page-content{padding:15px 11px 24px}
+  .page-heading h1{font-size:20px;line-height:1.25}
+  .page-heading p{max-width:100%;font-size:12px}
+  .page-heading>.primary-btn,.page-heading>button{width:100%;min-height:44px}
+  .primary-btn,.secondary-btn{min-height:43px;padding:10px 12px;font-size:12px}
+  .topbar{gap:8px}
+  .top-actions{gap:7px}
+  .icon-btn{width:40px;height:40px}
+  .table-wrap{width:100%;margin:0;border-radius:9px}
+  table{min-width:680px}
+  thead th{font-size:9px;padding:11px 9px}
+  tbody td{font-size:10px;padding:11px 9px}
+  .form-grid,.ops-fields{gap:12px}
+  .form-grid label,.ops-fields label,.ops-period label{font-size:11px}
+  .form-grid input,.form-grid select,.ops-fields input,.ops-fields select,
+  .ops-period input,.ops-line input,.ops-line select{min-height:45px;font-size:13px}
+  .modal-card{width:100%;max-height:calc(100dvh - 20px);overflow:auto;padding:16px}
+  .modal-head{gap:12px}
+  .modal-head h2{font-size:18px}
+  .modal-actions{position:sticky;bottom:-16px;padding:12px 0 1px;background:#fff}
+  .modal-actions button{min-height:45px}
+  .ops-actions{justify-content:stretch}
+  .ops-actions button{width:100%;min-height:45px}
+  .ops-lines{overflow:hidden}
+  .ops-line{align-items:stretch}
+  .ops-line input,.ops-line select{min-width:0}
+  .ops-add-line{min-height:42px}
+  .app-footer{height:auto;min-height:44px;gap:8px;flex-wrap:wrap;padding-top:9px;padding-bottom:9px}
+  .toast{font-size:12px;line-height:1.45}
+  .nav-item{min-height:48px}
+  .nav-item svg{width:20px;height:20px}
+}
+@media(max-width:420px){
+  .stat-grid{gap:8px}
+  .stat-card{padding:11px}
+  .stat-card>span{font-size:9px;line-height:1.4}
+  .stat-value{font-size:19px}
+  .top-actions{gap:5px}
+  .global-search{width:min(39vw,150px)}
+  .top-avatar{display:grid;width:30px;height:30px}
+  .panel{padding:13px 10px}
+  .panel-head h3{font-size:13px}
+  .modal-actions{gap:7px}
+  .modal-actions button{padding:9px 8px;font-size:11px}
+}
+@media(min-width:761px) and (max-width:1100px){
+  .page-content{padding:24px 20px}
+  .topbar{padding:0 20px}
+  .table-wrap{max-width:100%}
+}
