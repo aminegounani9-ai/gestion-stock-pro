@@ -10,6 +10,7 @@ import SpareParts from "./SpareParts";
 import SparePartsDashboard from "./SparePartsDashboard";
 import OrganizationManagement from "./OrganizationManagement";
 import ImportExportCenter from "./ImportExportCenter";
+import ModuleErrorBoundary from "./ModuleErrorBoundary";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 import type { Company, Product } from "./lib/supabase";
 
@@ -477,6 +478,7 @@ export default function App() {
       <div className="page-content">
         <div className="page-heading"><div><span className="eyebrow">{company.name.toUpperCase()} · {new Date().toLocaleDateString(lang==="ar"?"ar-DZ":lang==="en"?"en-US":"fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</span><h1>{page==="dashboard"?t.welcome:title}</h1><p>{page==="requests"?(lang==="ar"?"إنشاء ومتابعة طلبات قطع الغيار قبل صرفها من المخزن":lang==="en"?"Create and track spare-part requests before warehouse issue":"Créer et suivre les demandes de pièces avant leur délivrance par le magasin"):page==="spareParts"?(lang==="ar"?"المرجع التقني والتوافق مع المعدات والمخزون":lang==="en"?"Technical catalogue, equipment compatibility and stock":"Référentiel technique, compatibilité équipements et disponibilité du stock"):t.subtitle}</p></div>{page==="products"&&["owner","admin","manager"].includes(currentRole)&&<button className="primary-btn" onClick={()=>{setEditingId(null);setForm({unit:"piece"});setModal("product")}}><Plus size={17}/>{t.addProduct}</button>}{page==="warehouses"&&["owner","admin","manager"].includes(currentRole)&&<button className="primary-btn" onClick={()=>{setEditingId(null);setForm({});setModal("warehouse")}}><Plus size={17}/>{t.addWarehouse}</button>}{page==="suppliers"&&["owner","admin","manager","warehouse"].includes(currentRole)&&<button className="primary-btn" onClick={()=>{setEditingId(null);setForm({});setModal("supplier")}}><Plus size={17}/>{t.addSupplier}</button>}{page==="customers"&&["owner","admin","manager","sales"].includes(currentRole)&&<button className="primary-btn" onClick={()=>{setEditingId(null);setForm({});setModal("customer")}}><Plus size={17}/>{t.addCustomer}</button>}{page==="stock"&&["owner","admin","manager","warehouse"].includes(currentRole)&&<button className="primary-btn" onClick={()=>setModal("movement")}><Plus size={17}/>{t.addMovement}</button>}</div>
 
+        <ModuleErrorBoundary resetKey={page} lang={lang}>
         {page==="dashboard"&&<SparePartsDashboard companyId={company.id} currency={company.currency_code||"DZD"} lang={lang} onNavigate={setPage}/>}
 
         {page==="products"&&<section className="panel"><div className="panel-head"><div><h3>{t.products}</h3><p>{products.length} {t.items.toLowerCase()}</p></div><div className="table-search"><Search size={15}/><input placeholder={t.search} value={search} onChange={e=>setSearch(e.target.value)}/></div></div><ProductTable products={filteredProducts} money={money} t={t} onEdit={["owner","admin","manager"].includes(currentRole)?p=>editRecord("product",p):undefined} onArchive={["owner","admin","manager"].includes(currentRole)?p=>void archiveProduct(p):undefined}/></section>}
@@ -493,6 +495,7 @@ export default function App() {
         {page==="spareParts"&&<SpareParts companyId={company.id} products={products} warehouses={warehouses} suppliers={suppliers} role={currentRole} access={{...scopePermissions,isAdmin}} lang={lang} searchTerm={search} view="parts" onSaved={()=>loadWorkspace(company.id)}/>}
         {page==="requests"&&<SpareParts companyId={company.id} products={products} warehouses={warehouses} suppliers={suppliers} role={currentRole} access={{...scopePermissions,isAdmin}} lang={lang} searchTerm={search} view="requests" onSaved={()=>loadWorkspace(company.id)}/>}
         {(page==="categories"||page==="transfers"||page==="inventory"||page==="locations"||page==="lots"||page==="returns"||page==="expenses"||page==="payments"||page==="reports")&&<StockOperations page={page} companyId={company.id} products={products} warehouses={warehouses} suppliers={suppliers} customers={customers} purchases={purchases} sales={sales} role={currentRole} access={{...scopePermissions,isAdmin}} money={money} lang={lang} onSaved={()=>loadWorkspace(company.id)}/>}
+        </ModuleErrorBoundary>
       </div>
       <footer className="app-footer"><span>© {new Date().getFullYear()} Gestion Stock Pro</span><span><ShieldCheck size={14}/> {lang==="ar"?"البيانات محمية بسياسات RLS":lang==="en"?"Data protected by RLS":"Données protégées par RLS"}</span></footer>
     </main>
@@ -530,20 +533,21 @@ function BarcodeScanner({onDetected,onClose}:{onDetected:(code:string)=>void;onC
   const videoRef=useRef<HTMLVideoElement>(null);
   const callbackRef=useRef(onDetected);callbackRef.current=onDetected;
   const [error,setError]=useState("");
+  const [manualCode,setManualCode]=useState("");
   useEffect(()=>{
     let stream:MediaStream|undefined;let timer:number|undefined;let stopped=false;
     const start=async()=>{
       const Detector=(window as any).BarcodeDetector;
-      if(!Detector){setError("La lecture caméra n'est pas prise en charge par ce navigateur. Utilisez un lecteur USB ou saisissez le code-barres dans la recherche.");return;}
-      if(!navigator.mediaDevices?.getUserMedia){setError("Accès caméra indisponible. Vérifiez les permissions du navigateur.");return;}
+      if(!Detector){setError("Ce navigateur ne prend pas en charge le scan caméra natif. Vous pouvez saisir le code ci-dessous ou utiliser Chrome récent sur Android.");return;}
+      if(!navigator.mediaDevices?.getUserMedia){setError("Accès caméra indisponible. Autorisez la caméra dans les paramètres du navigateur.");return;}
       const detector=new Detector({formats:["ean_13","ean_8","upc_a","upc_e","code_128","code_39","qr_code"]});
       stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
-      if(stopped)return;
+      if(stopped){stream.getTracks().forEach(track=>track.stop());return;}
       const video=videoRef.current;if(!video)return;video.srcObject=stream;await video.play();
-      timer=window.setInterval(async()=>{try{if(video.readyState<2)return;const codes=await detector.detect(video);if(codes.length&&codes[0].rawValue){if(timer)window.clearInterval(timer);callbackRef.current(codes[0].rawValue)}}catch{}},350);
+      timer=window.setInterval(async()=>{try{if(video.readyState<2)return;const codes=await detector.detect(video);if(codes.length&&codes[0].rawValue){if(timer)window.clearInterval(timer);callbackRef.current(codes[0].rawValue)}}catch{}},300);
     };
-    void start().catch((e:any)=>setError(e.message||"Impossible d'ouvrir la caméra."));
+    void start().catch((e:any)=>setError(e?.name==="NotAllowedError"?"Autorisez l’accès à la caméra pour ce site.":e?.message||"Impossible d'ouvrir la caméra."));
     return()=>{stopped=true;if(timer)window.clearInterval(timer);stream?.getTracks().forEach(track=>track.stop())};
   },[]);
-  return <div className="modal-backdrop scanner-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}><section className="modal-card scanner-card"><div className="modal-head"><div><span className="eyebrow">SCAN PRODUIT</span><h2>Scanner un code-barres</h2></div><button className="icon-btn" onClick={onClose}><X size={18}/></button></div><video ref={videoRef} autoPlay muted playsInline className="scanner-video"/>{error?<p className="scanner-error">{error}</p>:<p className="scanner-hint">Placez le code-barres devant la caméra. Le produit sera recherché automatiquement.</p>}<div className="modal-actions"><button className="secondary-btn" onClick={onClose}>Fermer</button></div></section></div>;
+  return <div className="modal-backdrop scanner-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}><section className="modal-card scanner-card"><div className="modal-head"><div><span className="eyebrow">SCAN PRODUIT · MOBILE</span><h2>Scanner un code-barres</h2></div><button className="icon-btn" onClick={onClose}><X size={18}/></button></div><video ref={videoRef} autoPlay muted playsInline className="scanner-video"/>{error&&<p className="scanner-error">{error}</p>}<p className="scanner-hint">Sur téléphone, autorisez la caméra et placez le code-barres devant l’objectif arrière. Le produit sera recherché dans le catalogue.</p><form className="scanner-manual" onSubmit={e=>{e.preventDefault();if(manualCode.trim())callbackRef.current(manualCode.trim())}}><label>Ou saisir le code / SKU<input autoFocus value={manualCode} onChange={e=>setManualCode(e.target.value)} placeholder="Code-barres ou référence"/></label><button className="primary-btn" type="submit" disabled={!manualCode.trim()}>Rechercher</button></form><div className="modal-actions"><button className="secondary-btn" onClick={onClose}>Fermer</button></div></section></div>;
 }
