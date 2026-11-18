@@ -1,0 +1,54 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Activity, AlertTriangle, ArrowDownToLine, ArrowUpFromLine, Boxes, ClipboardList, Package, RefreshCw, ShieldAlert, Wrench, TrendingUp, Warehouse } from "lucide-react";
+import { supabase } from "./lib/supabase";
+type Props = { companyId:string; currency:string; lang:"fr"|"en"|"ar"; onNavigate:(page:"spareParts"|"stock"|"inventory"|"purchases")=>void };
+type Row = Record<string,any>;
+const words = {
+ fr:{eyebrow:"PILOTAGE DES PIÈCES DÉTACHÉES",title:"Vue d'ensemble du magasin technique",subtitle:"Disponibilité, criticité et mouvements de vos pièces de rechange.",value:"Valeur du stock",refs:"Références actives",low:"Sous seuil",critical:"Pièces critiques",requests:"Demandes à traiter",repairs:"Réparations en cours",recent:"Derniers mouvements",alerts:"Priorités magasin",coverage:"État du stock",healthy:"Références au-dessus du seuil",lowLabel:"À réapprovisionner",empty:"Aucun mouvement récent",noAlerts:"Aucune alerte de stock détectée",refresh:"Actualiser",loading:"Chargement des indicateurs…",view:"Ouvrir",qty:"Quantité",date:"Date",part:"Pièce détachée",type:"Opération",warehouse:"Entrepôt",valueNote:"Valorisation au prix d'achat",stockNote:"Seuil de réapprovisionnement",criticalNote:"Classées critiques ou haute priorité",requestNote:"Demandes non clôturées",repairNote:"Cycles non terminés",out:"Sortie",in:"Entrée",adjust:"Ajustement",other:"Mouvement"},
+ en:{eyebrow:"SPARE PARTS CONTROL TOWER",title:"Technical store overview",subtitle:"Availability, criticality and spare-parts movements.",value:"Stock value",refs:"Active references",low:"Below threshold",critical:"Critical parts",requests:"Requests to process",repairs:"Repairs in progress",recent:"Latest movements",alerts:"Store priorities",coverage:"Stock health",healthy:"References above threshold",lowLabel:"Replenishment needed",empty:"No recent movements",noAlerts:"No stock alerts detected",refresh:"Refresh",loading:"Loading indicators…",view:"Open",qty:"Quantity",date:"Date",part:"Spare part",type:"Operation",warehouse:"Warehouse",valueNote:"Valued at purchase price",stockNote:"Reorder threshold",criticalNote:"Critical or high priority",requestNote:"Requests not closed",repairNote:"Open repair cycles",out:"Issue",in:"Receipt",adjust:"Adjustment",other:"Movement"},
+ ar:{eyebrow:"مراقبة قطع الغيار",title:"نظرة عامة على المخزن التقني",subtitle:"التوفر والأهمية وحركة قطع الغيار.",value:"قيمة المخزون",refs:"المراجع النشطة",low:"تحت الحد",critical:"قطع حرجة",requests:"طلبات للمعالجة",repairs:"إصلاحات جارية",recent:"آخر الحركات",alerts:"أولويات المخزن",coverage:"حالة المخزون",healthy:"مراجع فوق الحد",lowLabel:"تحتاج إلى التموين",empty:"لا توجد حركات حديثة",noAlerts:"لا توجد تنبيهات للمخزون",refresh:"تحديث",loading:"جار تحميل المؤشرات…",view:"فتح",qty:"الكمية",date:"التاريخ",part:"قطعة الغيار",type:"العملية",warehouse:"المخزن",valueNote:"حسب سعر الشراء",stockNote:"حد إعادة الطلب",criticalNote:"حرجة أو ذات أولوية عالية",requestNote:"طلبات غير مغلقة",repairNote:"دورات إصلاح مفتوحة",out:"صرف",in:"استلام",adjust:"تعديل",other:"حركة"}
+};
+export default function SparePartsDashboard({companyId,currency,lang,onNavigate}:Props){
+ const t=words[lang];const [details,setDetails]=useState<Row[]>([]);const [balances,setBalances]=useState<Row[]>([]);const [requests,setRequests]=useState<Row[]>([]);const [repairs,setRepairs]=useState<Row[]>([]);const [movements,setMovements]=useState<Row[]>([]);const [loading,setLoading]=useState(true);const [error,setError]=useState("");
+ const load=useCallback(async()=>{if(!supabase){setError("Supabase non configuré.");setLoading(false);return;}setLoading(true);setError("");try{
+  const [d,b,r,rep,m]=await Promise.all([
+   supabase.from("spare_part_details").select("product_id,part_number,criticality,safety_stock,reorder_point,max_stock,products(id,name,sku,unit,min_stock,purchase_price,is_active)").eq("company_id",companyId),
+   supabase.from("stock_balances").select("product_id,warehouse_id,quantity_on_hand,warehouses(name)").eq("company_id",companyId),
+   supabase.from("spare_part_requests").select("id,status,created_at,priority").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100),
+   supabase.from("spare_part_repair_cycles").select("id,status,product_id,created_at,products(name,sku)").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100),
+   supabase.from("stock_movements").select("id,movement_type,quantity,occurred_at,products(name,sku),warehouses(name)").eq("company_id",companyId).order("occurred_at",{ascending:false}).limit(8)
+  ]);const failed=[d,b,r,rep,m].find(x=>x.error);if(failed?.error)throw failed.error;
+  setDetails(d.data??[]);setBalances(b.data??[]);setRequests(r.data??[]);setRepairs(rep.data??[]);setMovements(m.data??[]);
+ }catch(e:any){setError(e?.message||"Erreur de chargement");}finally{setLoading(false);}},[companyId]);
+ useEffect(()=>{void load();},[load]);
+ const metrics=useMemo(()=>{const stock=new Map<string,number>();balances.forEach(b=>stock.set(b.product_id,(stock.get(b.product_id)||0)+Number(b.quantity_on_hand||0)));
+  const rows=details.filter(x=>x.products?.is_active!==false).map(x=>{const qty=stock.get(x.product_id)||0;const threshold=Math.max(Number(x.safety_stock||0),Number(x.reorder_point||0),Number(x.products?.min_stock||0));return {...x,qty,threshold,value:qty*Number(x.products?.purchase_price||0)};});
+  const low=rows.filter(x=>x.qty<=x.threshold);const critical=rows.filter(x=>["critical","high"].includes(String(x.criticality||"").toLowerCase()));
+  const openRequests=requests.filter(x=>!["issued","completed","cancelled","rejected","closed","processed"].includes(String(x.status||"").toLowerCase()));
+  const openRepairs=repairs.filter(x=>!["returned","completed","closed","cancelled","received"].includes(String(x.status||"").toLowerCase()));
+  return {rows,low,critical,value:rows.reduce((n,x)=>n+x.value,0),units:rows.reduce((n,x)=>n+x.qty,0),openRequests,openRepairs,healthy:Math.max(0,rows.length-low.length)};
+ },[details,balances,requests,repairs]);
+ const money=new Intl.NumberFormat(lang==="en"?"en-US":lang==="ar"?"ar-DZ":"fr-DZ",{style:"currency",currency:currency||"DZD",maximumFractionDigits:0});
+ const fmt=(n:number)=>new Intl.NumberFormat(lang==="en"?"en-US":lang==="ar"?"ar-DZ":"fr-FR",{maximumFractionDigits:0}).format(n);
+ const movementLabel=(v:string)=>{const x=String(v||"").toLowerCase();if(x.includes("issue")||x.includes("out")||x.includes("sortie"))return t.out;if(x.includes("receipt")||x==="in"||x.includes("entrée"))return t.in;if(x.includes("adjust"))return t.adjust;return t.other;};
+ const cards=[
+  {label:t.value,value:money.format(metrics.value),note:t.valueNote,icon:TrendingUp,tone:"blue",go:()=>onNavigate("stock")},
+  {label:t.refs,value:fmt(metrics.rows.length),note:t.refs,icon:Package,tone:"violet",go:()=>onNavigate("spareParts")},
+  {label:t.low,value:fmt(metrics.low.length),note:t.stockNote,icon:AlertTriangle,tone:"amber",go:()=>onNavigate("spareParts")},
+  {label:t.critical,value:fmt(metrics.critical.length),note:t.criticalNote,icon:ShieldAlert,tone:"red",go:()=>onNavigate("spareParts")},
+  {label:t.requests,value:fmt(metrics.openRequests.length),note:t.requestNote,icon:ClipboardList,tone:"teal",go:()=>onNavigate("spareParts")},
+  {label:t.repairs,value:fmt(metrics.openRepairs.length),note:t.repairNote,icon:Wrench,tone:"slate",go:()=>onNavigate("spareParts")}
+ ];
+ return <div className="sp-dashboard">
+  <section className="sp-hero"><div><span className="sp-eyebrow">{t.eyebrow}</span><h2>{t.title}</h2><p>{t.subtitle}</p></div><button className="sp-refresh" onClick={()=>void load()} disabled={loading}><RefreshCw size={15}/>{t.refresh}</button><div className="sp-hero-mark"><Boxes size={90}/></div></section>
+  {error&&<div className="sp-error"><AlertTriangle size={16}/>{error}</div>}
+  {loading&&details.length===0?<div className="sp-loading">{t.loading}</div>:<>
+   <section className="sp-kpi-grid">{cards.map(c=>{const Icon=c.icon;return <button type="button" className="sp-kpi" key={c.label} onClick={c.go}><span className={"sp-kpi-icon "+c.tone}><Icon size={19}/></span><span className="sp-kpi-label">{c.label}</span><strong>{c.value}</strong><small>{c.note}</small></button>})}</section>
+   <section className="sp-overview-grid">
+    <article className="sp-panel sp-health"><div className="sp-panel-head"><div><span className="sp-section-tag">STOCK HEALTH</span><h3>{t.coverage}</h3></div><Warehouse size={19}/></div><div className="sp-health-total"><strong>{fmt(metrics.units)}</strong><span>{t.qty}</span></div><div className="sp-health-track"><span style={{width:`${metrics.rows.length?metrics.healthy/metrics.rows.length*100:0}%`}}/><i style={{width:`${metrics.rows.length?metrics.low.length/metrics.rows.length*100:0}%`}}/></div><div className="sp-health-legend"><span><i className="good-dot"/>{t.healthy}<b>{fmt(metrics.healthy)}</b></span><span><i className="low-dot"/>{t.lowLabel}<b>{fmt(metrics.low.length)}</b></span></div><button className="sp-text-link" onClick={()=>onNavigate("inventory")}>{t.view}<ArrowUpFromLine size={14}/></button></article>
+    <article className="sp-panel sp-priority"><div className="sp-panel-head"><div><span className="sp-section-tag">ACTION CENTER</span><h3>{t.alerts}</h3></div><AlertTriangle size={19}/></div>{metrics.low.length?metrics.low.slice(0,5).map(x=><div className="sp-alert-row" key={x.product_id}><span className="sp-alert-icon"><AlertTriangle size={15}/></span><div><b>{x.products?.name||"—"}</b><small>{x.products?.sku||x.part_number||"—"} · {t.stockNote}</small></div><strong>{fmt(x.qty)} / {fmt(x.threshold)}</strong></div>):<div className="sp-no-alert"><ShieldAlert size={24}/><b>{t.noAlerts}</b></div>}</article>
+   </section>
+   <section className="sp-panel sp-movements"><div className="sp-panel-head"><div><span className="sp-section-tag">LIVE ACTIVITY</span><h3>{t.recent}</h3></div><button className="sp-text-link" onClick={()=>onNavigate("stock")}>{t.view}<ArrowDownToLine size={14}/></button></div>{movements.length?<div className="sp-movement-table"><div className="sp-movement-header"><span>{t.part}</span><span>{t.type}</span><span>{t.qty}</span><span>{t.warehouse}</span><span>{t.date}</span></div>{movements.map(m=><div className="sp-movement-row" key={m.id}><div><b>{m.products?.name||"—"}</b><small>{m.products?.sku||""}</small></div><span className="sp-movement-type">{movementLabel(m.movement_type)}</span><strong>{fmt(Number(m.quantity||0))}</strong><span>{m.warehouses?.name||"—"}</span><time>{m.occurred_at?new Date(m.occurred_at).toLocaleDateString(lang==="ar"?"ar-DZ":lang==="en"?"en-US":"fr-FR"):"—"}</time></div>)}</div>:<div className="sp-no-alert"><Activity size={22}/><b>{t.empty}</b></div>}</section>
+  </>}
+ </div>;
+}
