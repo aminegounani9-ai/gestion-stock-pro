@@ -40,9 +40,9 @@ export default function StockOperations({page,companyId,products,warehouses,supp
     if(!supabase)return;setLoading(true);
     try {
       if(page==="locations"){
-        const r=await supabase.from("storage_locations").select("*, warehouses(name), parent:storage_locations!storage_locations_parent_id_fkey(name)").eq("company_id",companyId).order("warehouse_id").order("code");if(r.error)throw r.error;setRows(r.data??[]);
+        const r=await supabase.from("storage_locations").select("*, warehouses(name)").eq("company_id",companyId).order("warehouse_id").order("code");if(r.error)throw r.error;const locationData=r.data??[];const parentNames=new Map(locationData.map((x:any)=>[x.id,x.name]));setRows(locationData.map((x:any)=>({...x,parent:{name:parentNames.get(x.parent_id)||null}})));
       } else if(page==="lots"){
-        const [r,loc]=await Promise.all([supabase.from("stock_lots").select("*, products(name,sku), warehouses(name), storage_locations(name,code), suppliers(name)").eq("company_id",companyId).order("expiry_date",{ascending:true,nullsFirst:false}).limit(300),supabase.from("storage_locations").select("id,warehouse_id,code,name").eq("company_id",companyId).eq("is_active",true).order("code")]);if(r.error)throw r.error;if(loc.error)throw loc.error;setRows(r.data??[]);setLocationRows(loc.data??[]);
+        const [r,loc]=await Promise.all([supabase.from("stock_lots").select("*, product:products!stock_lots_product_id_fkey(name,sku), warehouses(name), location:storage_locations!stock_lots_location_id_fkey(name,code), suppliers(name)").eq("company_id",companyId).order("expiry_date",{ascending:true,nullsFirst:false}).limit(300),supabase.from("storage_locations").select("id,warehouse_id,code,name").eq("company_id",companyId).eq("is_active",true).order("code")]);if(r.error)throw r.error;if(loc.error)throw loc.error;setRows(r.data??[]);setLocationRows(loc.data??[]);
       } else if(page==="categories"){
         const r=await supabase.from("product_categories").select("*").eq("company_id",companyId).order("name");if(r.error)throw r.error;setRows(r.data??[]);
       } else if(page==="transfers"){
