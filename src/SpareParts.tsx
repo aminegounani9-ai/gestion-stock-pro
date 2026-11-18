@@ -47,7 +47,8 @@ export default function SpareParts({companyId,products,warehouses,suppliers,role
   ]);if(nf.error)throw nf.error;if(sc.error)throw sc.error;setNotifications(nf.data||[]);setRequestScopes(sc.data||[]);setCurrentUserId(signedInUserId);setRequestForm((v:any)=>({...v,requester_id:v.requester_id||signedInUserId}));}else setNotifications([]);
   setLoading(false);
  },[companyId]);
- useEffect(()=>{void load().catch(()=>setLoading(false));},[load]);\n  useEffect(()=>{if(searchTerm)setSearch(searchTerm);},[searchTerm]);
+ useEffect(()=>{void load().catch(()=>setLoading(false));},[load]);
+ useEffect(()=>{if(searchTerm)setSearch(searchTerm);},[searchTerm]);
  useEffect(()=>{let active=true;const refresh=async()=>{const {data}=await supabase!.auth.getUser();if(!data.user)return;const {data:items,error}=await supabase!.from("notifications").select("*").eq("company_id",companyId).eq("recipient_user_id",data.user.id).order("created_at",{ascending:false}).limit(30);if(active&&!error)setNotifications(items||[]);};const timer=window.setInterval(()=>void refresh(),30000);return()=>{active=false;window.clearInterval(timer)};},[companyId]);
  const rows=useMemo(()=>details.filter(x=>[x.products?.sku,x.products?.name,x.part_number,x.manufacturer,x.equipment_tag,x.equipment_model].join(" ").toLowerCase().includes(search.toLowerCase())),[details,search]);
  const stockFor=(productId:string,warehouseId?:string)=>balances.filter(x=>x.product_id===productId&&(!warehouseId||x.warehouse_id===warehouseId)).reduce((n,x)=>n+Number(x.quantity_on_hand||0),0);
