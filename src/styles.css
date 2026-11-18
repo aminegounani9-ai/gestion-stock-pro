@@ -425,3 +425,89 @@ td input,td select{min-width:90px;min-height:38px;border:1px solid #d6deea;borde
   .topbar{padding:0 20px}
   .table-wrap{max-width:100%}
 }
+
+
+/* ===== Light, calm and spacious professional visual system ===== */
+:root{
+  --canvas:#f6f8fc;--surface:#ffffff;--surface-alt:#f8faff;
+  --ink:#202d43;--muted:#748198;--border:#e2e8f1;
+  --accent:#4167c7;--accent-soft:#edf2ff;--success:#23845f;
+}
+body,.app-shell{background:var(--canvas);color:var(--ink)}
+.main-area{background:var(--canvas)}
+.topbar{background:rgba(255,255,255,.96);border-bottom:1px solid var(--border);box-shadow:0 2px 8px #1b315008}
+.page-content{padding-top:32px;padding-bottom:42px}
+.page-heading{margin-bottom:28px}
+.page-heading h1{font-size:27px;letter-spacing:-.65px}
+.page-heading p{color:#7b879b;line-height:1.65}
+.panel,.sp-panel,.ops-panel,.stat-card,.sp-kpi{
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  box-shadow:0 4px 18px rgba(31,49,82,.045)
+}
+.panel{padding:23px}
+.panel-head{margin-bottom:20px}
+.panel-head h3,.sp-panel-head h3{font-size:14px;letter-spacing:-.15px}
+.dashboard-grid,.ops-wrap,.sp-chart-grid,.sp-overview-grid{gap:20px}
+.stat-grid{gap:17px}
+.stat-card{padding:21px}
+.stat-card>span{color:#758198;font-weight:600}
+.stat-value{color:#1e2d49}
+.primary-btn{background:#4167c7;box-shadow:0 3px 9px #4167c720}
+.primary-btn:hover{background:#3458b5}
+.secondary-btn{background:#f5f7fb;border-color:#dfe5ee;color:#52617a}
+.table-wrap{padding:0;border:1px solid #dfe6f0;border-radius:12px;box-shadow:0 2px 8px #1b315006}
+table{border-collapse:separate;border-spacing:0}
+thead th{background:#f0f4fa;color:#53627a;border-bottom:1px solid #dce4ef;border-right:1px solid #e2e8f1;padding:15px 16px;font-size:10px}
+tbody td{padding:15px 16px;border-bottom:1px solid #e8edf4;border-right:1px solid #edf1f6;font-size:11px;line-height:1.5}
+tbody tr:nth-child(even) td{background:#fbfcfe}
+tbody tr:hover td{background:#f2f6ff}
+tbody tr:last-child td{border-bottom:0}
+.product-cell{gap:12px}
+.product-thumb,.list-icon{width:36px;height:36px;border:1px solid #e4eafa;background:#f1f5ff}
+.sku{background:#f1f4f9;color:#52627b;border:1px solid #e5eaf2}
+.status-pill{font-weight:700;letter-spacing:.05px}
+.form-grid,.ops-fields{gap:17px}
+.form-grid label,.ops-fields label,.auth-form label{gap:8px;color:#52617a;font-size:11px;font-weight:650}
+.form-grid input,.form-grid select,.ops-fields input,.ops-fields select,
+.ops-period input,.ops-line input,.ops-line select,.auth-form input{
+  min-height:45px;border:1px solid #dce4ef;border-radius:9px;background:#fff;
+  padding:0 13px;font-size:12px;box-shadow:0 1px 2px #1b315006
+}
+.form-grid input:focus,.form-grid select:focus,.ops-fields input:focus,.ops-fields select:focus,
+.ops-line input:focus,.ops-line select:focus{border-color:#8da6e7;box-shadow:0 0 0 3px #4167c718}
+.modal-card{border:1px solid #e0e6ef;border-radius:17px;box-shadow:0 24px 70px #15244324}
+.modal-head{margin-bottom:24px}
+.modal-head h2{color:#1f2e48}
+.modal-actions{gap:10px}
+.empty-state{color:#8793a7}
+.empty-icon,.placeholder-icon{background:#f0f4fc;color:#5a78c5;border:1px solid #e4eafa}
+.org-tabs{gap:9px}
+.org-tabs button{padding:10px 15px;background:#f7f9fc;border-color:#e1e7f0}
+.org-tabs button.active{background:#edf2ff;border-color:#b7c7ef;color:#3158b5}
+.ops-lines,.document-lines{border-color:#e1e7f0;background:#fbfcfe;border-radius:12px;padding:16px}
+.ops-kpi{background:#f9fbfe;border-color:#e4eaf2}
+.sp-hero{border-radius:16px}
+.sp-kpi{padding:19px}
+.sp-kpi:hover{border-color:#bdccef;box-shadow:0 8px 24px #284fba12;transform:translateY(-1px)}
+.sp-quick button{padding:14px;border-color:#e4eaf2}
+.app-footer{color:#8995a8}
+@media(min-width:761px){
+  .page-content{max-width:1680px}
+  .panel{padding:24px}
+  .table-wrap table{min-width:100%}
+}
+@media(max-width:760px){
+  .page-content{padding:17px 12px 28px}
+  .page-heading{margin-bottom:18px}
+  .page-heading h1{font-size:21px}
+  .panel{padding:16px 13px}
+  .panel-head{margin-bottom:15px}
+  .stat-card{padding:14px}
+  .table-wrap{border-radius:10px}
+  table{min-width:700px}
+  thead th{padding:13px 12px}
+  tbody td{padding:13px 12px}
+  .form-grid,.ops-fields{gap:13px}
+  .ops-lines,.document-lines{padding:11px}
+  .modal-card{border-radius:14px}
+}
