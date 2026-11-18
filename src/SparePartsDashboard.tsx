@@ -22,7 +22,7 @@ export default function SparePartsDashboard({companyId,currency,lang,onNavigate}
  }catch(e:any){setError(e?.message||"Erreur de chargement");}finally{setLoading(false);}},[companyId]);
  useEffect(()=>{void load();},[load]);
  const metrics=useMemo(()=>{const stock=new Map<string,number>();balances.forEach(b=>stock.set(b.product_id,(stock.get(b.product_id)||0)+Number(b.quantity_on_hand||0)));
-  const rows=details.filter(x=>x.products?.is_active!==false).map(x=>{const qty=stock.get(x.product_id)||0;const threshold=Math.max(Number(x.safety_stock||0),Number(x.reorder_point||0),Number(x.products?.min_stock||0));return {...x,qty,threshold,value:qty*Number(x.products?.purchase_price||0)};});
+  const rows:Row[]=details.filter(x=>x.products?.is_active!==false).map(x=>{const qty=stock.get(x.product_id)||0;const threshold=Math.max(Number(x.safety_stock||0),Number(x.reorder_point||0),Number(x.products?.min_stock||0));return {...x,qty,threshold,value:qty*Number(x.products?.purchase_price||0)};});
   const low=rows.filter(x=>x.qty<=x.threshold);const critical=rows.filter(x=>["critical","high"].includes(String(x.criticality||"").toLowerCase()));
   const openRequests=requests.filter(x=>!["issued","completed","cancelled","rejected","closed","processed"].includes(String(x.status||"").toLowerCase()));
   const openRepairs=repairs.filter(x=>!["returned","completed","closed","cancelled","received"].includes(String(x.status||"").toLowerCase()));
