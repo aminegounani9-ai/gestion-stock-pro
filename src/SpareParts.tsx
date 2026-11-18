@@ -194,7 +194,7 @@ async function markNotificationRead(id:string){const {error}=await supabase!.fro
     </div><div className="ops-actions"><button className="primary-btn" disabled={saving}>Enregistrer offre</button></div></form>}
     {quotes.length>0&&<div className="table-wrap"><table><thead><tr><th>Pièce</th><th>Fournisseur</th><th>Prix</th><th>MOQ</th><th>Délai</th><th>Préféré</th></tr></thead><tbody>{quotes.map(x=><tr key={x.id}><td>{x.products?.sku||"—"}</td><td>{x.suppliers?.name||"—"}</td><td>{Number(x.unit_price).toLocaleString()} {x.currency}</td><td>{x.minimum_order_quantity}</td><td>{x.lead_time_days??"—"}</td><td>{x.is_preferred?"Oui":"Non"}</td></tr>)}</tbody></table></div>}
    </div>
-  </div>
+  </div>}
   {false&&<div className="panel ops-panel"><div className="panel-head"><h3>Suivi des réparations</h3><span>{repairs.length}</span></div>
    {canWrite&&<form onSubmit={addRepair}><div className="ops-fields">
     <label>Pièce<select required value={repairForm.product_id||""} onChange={e=>setRepairForm({...repairForm,product_id:e.target.value})}><option value="">—</option>{details.map(d=><option key={d.product_id} value={d.product_id}>{d.products?.sku} · {d.products?.name}</option>)}</select></label>
