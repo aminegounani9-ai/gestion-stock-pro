@@ -30,7 +30,7 @@ export default function EquipmentManagement({companyId,lang,equipmentSeed}:Props
   const e=equipment.find(x=>x.id===id);if(!e)return;
   const [links,req]=await Promise.all([
    supabase.from("spare_part_equipment_compatibility").select("id,product_id,quantity_per_equipment,is_critical,notes").eq("company_id",companyId).eq("equipment_tag",e.equipment_tag),
-   supabase.from("spare_part_requests").select("id,request_number,work_order_reference,status,issued_at,created_at,spare_part_request_items(id,product_id,issued_quantity,products(name,sku,unit))").eq("company_id",companyId).eq("equipment_id",id).order("created_at",{ascending:false}).limit(100)
+   supabase.from("spare_part_requests").select("id,request_number,work_order_reference,status,issued_at,created_at,spare_part_request_items(id,product_id,issued_quantity,products(name,sku,unit))").eq("company_id",companyId).or("equipment_id.eq."+id+",equipment_tag.eq."+e.equipment_tag).order("created_at",{ascending:false}).limit(100)
   ]);
   if(links.error||req.error){setError(links.error?.message||req.error?.message||t.error);return;}
   const ids=(links.data||[]).map((x:any)=>x.product_id);
@@ -50,7 +50,7 @@ export default function EquipmentManagement({companyId,lang,equipmentSeed}:Props
   setBusy(false);if(e){setError(e.message);return;}setModal(false);setProductId("");setQty("1");setCritical(false);await loadDetail(current.id);
  }
  async function removePart(id:string){if(!supabase||!current||!window.confirm(t.remove+" ?"))return;const {error:e}=await supabase.from("spare_part_equipment_compatibility").delete().eq("id",id).eq("company_id",companyId);if(e)setError(e.message);else await loadDetail(current.id);}
- function printQr(){const w=window.open("","_blank","width=480,height=600");if(!w)return;w.document.write('<html><head><title>Equipment QR</title><style>body{font-family:Arial;text-align:center;padding:30px}img{width:240px;height:240px}h2{margin-bottom:5px}</style></head><body><h2>'+current?.name+'</h2><p>'+current?.equipment_tag+'</p><img src="'+qrImage+'"/><p>'+t.qrHint+'</p></body></html>');w.document.close();w.onload=()=>w.print();}
+ function printQr(){const w=window.open("","_blank","width=480,height=600");if(!w)return;const safeName=String(current?.name||'Equipment').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[c]||c));w.document.write('<html><head><title>Equipment QR</title><style>body{font-family:Arial;text-align:center;padding:30px}img{width:240px;height:240px}h2{margin-bottom:5px}</style></head><body><h2'+safeName+'</h2><p>'+current?.equipment_tag+'</p><img src="'+qrImage+'"/><p>'+t.qrHint+'</p></body></html>');w.document.close();w.onload=()=>w.print();}
  return <div className="equipment-module" dir={lang==="ar"?"rtl":"ltr"}>
   <div className="page-heading"><div><h1>{t.title}</h1><p>{t.sub}</p></div><button className="secondary-btn" onClick={()=>void load()}><RefreshCw size={15}/></button></div>
   {error&&<div className="equipment-error">{error}</div>}
