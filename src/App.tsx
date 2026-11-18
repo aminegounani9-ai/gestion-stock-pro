@@ -90,20 +90,15 @@ type Labels = { [K in keyof typeof copy.fr]: string };
 
 const nav: { id: Page; icon: typeof LayoutDashboard; group: string }[] = [
   { id:"dashboard", icon:LayoutDashboard, group:"main" },
-  { id:"organization", icon:Building2, group:"admin" },
-  { id:"products", icon:Package, group:"main" },
-  { id:"categories", icon:Tags, group:"main" },
-  { id:"stock", icon:Activity, group:"main" },
-  { id:"transfers", icon:ArrowLeftRight, group:"main" },
-  { id:"inventory", icon:ClipboardCheck, group:"main" },
-  { id:"warehouses", icon:Warehouse, group:"main" },
-  { id:"locations", icon:Boxes, group:"main" },
-  { id:"lots", icon:ScanBarcode, group:"main" },
   { id:"spareParts", icon:Wrench, group:"main" },
   { id:"requests", icon:ClipboardCheck, group:"main" },
-  { id:"suppliers", icon:Truck, group:"operations" },
-  { id:"purchases", icon:ShoppingCart, group:"operations" },
+  { id:"stock", icon:Activity, group:"main" },
+  { id:"warehouses", icon:Warehouse, group:"main" },
+  { id:"locations", icon:Boxes, group:"main" },
+  { id:"transfers", icon:ArrowLeftRight, group:"main" },
+  { id:"inventory", icon:ClipboardCheck, group:"main" },
   { id:"reports", icon:BarChart3, group:"operations" },
+  { id:"organization", icon:Building2, group:"admin" },
   { id:"users", icon:UserCog, group:"admin" },
   { id:"settings", icon:Settings, group:"admin" },
 ];
@@ -435,7 +430,7 @@ export default function App() {
   if (loading) return <div className="loading-screen"><div className="spinner"/><span>{t.loading}</span></div>;
 
   if (!session) return <div className="auth-screen" dir={rtl?"rtl":"ltr"}>
-    <div className="auth-visual"><div className="auth-brand"><span className="brand-mark"><Boxes size={24}/></span><b>Gestion Stock Pro</b></div><div className="visual-copy"><span className="eyebrow">INVENTORY · OPERATIONS · CONTROL</span><h1>{lang==="ar"?"تحكم أفضل في مخزونك.":"Votre stock, enfin sous contrôle."}</h1><p>{lang==="ar"?"منصة واحدة لإدارة المنتجات والمخازن والمشتريات والمبيعات.":"Une plateforme claire pour piloter vos articles, entrepôts, achats et ventes."}</p><div className="visual-stats"><div><b>01</b><span>Workspace</span></div><div><b>02</b><span>Inventory</span></div><div><b>03</b><span>Insights</span></div></div></div><div className="visual-footer">Gestion Stock Pro · {new Date().getFullYear()}</div></div>
+    <div className="auth-visual"><div className="auth-brand"><span className="brand-mark"><Boxes size={24}/></span><b>Gestion Stock Pro</b></div><div className="visual-copy"><span className="eyebrow">MAINTENANCE · SPARE PARTS · STOCK CONTROL</span><h1>{lang==="ar"?"تحكم أفضل في مخزونك.":"Votre stock, enfin sous contrôle."}</h1><p>{lang==="ar"?"منصة واحدة لإدارة المنتجات والمخازن والمشتريات والمبيعات.":"Une plateforme claire pour piloter vos articles, entrepôts, achats et ventes."}</p><div className="visual-stats"><div><b>01</b><span>Workspace</span></div><div><b>02</b><span>Inventory</span></div><div><b>03</b><span>Insights</span></div></div></div><div className="visual-footer">Gestion Stock Pro · {new Date().getFullYear()}</div></div>
     <div className="auth-panel"><div className="lang-switch"><Languages size={16}/><select value={lang} onChange={e=>setLang(e.target.value as Lang)}><option value="fr">Français</option><option value="en">English</option><option value="ar">العربية</option></select></div><form className="auth-form" onSubmit={submitAuth}><span className="eyebrow">{authMode==="login"?"ESPACE SÉCURISÉ":"NOUVEAU COMPTE"}</span><h2>{authMode==="login"?t.login:t.signup}</h2><p>{t.authSubtitle}</p><label>{t.email}<input type="email" value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="email"/></label><label>{t.password}<input type="password" value={password} onChange={e=>setPassword(e.target.value)} required minLength={8} autoComplete={authMode==="login"?"current-password":"new-password"}/></label><button className="primary-btn full" disabled={busy}>{busy?t.loading:authMode==="login"?t.login:t.signup}</button>{inviteFlow&&<div className="auth-toggle">{authMode==="login"?t.haveAccount:t.login} <button type="button" onClick={()=>setAuthMode(authMode==="login"?"signup":"login")}>{authMode==="login"?t.signup:t.login}</button></div>}
       {!inviteFlow&&<div className="auth-toggle">Accès réservé aux utilisateurs invités par l’administrateur.</div>}<div className="secure-note"><ShieldCheck size={15}/> Connexion sécurisée · Supabase Auth</div></form></div>
     {notice&&<div className={"toast "+notice.type}>{notice.text}</div>}
@@ -448,7 +443,7 @@ export default function App() {
       <div className="brand"><span className="brand-mark"><Boxes size={22}/></span><div><b>Gestion Stock</b><small>PRO MANAGEMENT</small></div></div>
       <div className="workspace-switch"><span className="workspace-icon"><Building2 size={17}/></span><div><small>{t.chooseCompany}</small><select className="workspace-select" value={company.id} onChange={async e=>{const selected=companies.find(c=>c.id===e.target.value);if(selected){const role=companyRoles[selected.id]||"viewer";setCompany(selected);setSettingsForm({name:selected.name,legal_name:selected.legal_name||"",tax_number:selected.tax_number||"",phone:selected.phone||"",email:selected.email||"",address:selected.address||"",city:selected.city||"",country:selected.country||"Algeria",currency_code:selected.currency_code||"DZD"});setCurrentRole(role);const admin=["owner","admin"].includes(role);setIsAdmin(admin);await loadWorkspace(selected.id);if(admin){const result=await supabase?.rpc("list_company_users",{p_company_id:selected.id});if(result?.error)flash("error",result.error.message);else setMembers(result?.data??[]);const invites=await supabase?.from("user_invitations").select("id,email,role,expires_at,accepted_at").eq("company_id",selected.id).order("created_at",{ascending:false});if(invites?.error)flash("error",invites.error.message);else setInvitations(invites?.data??[])}else{setMembers([]);setInvitations([])}}}}>{companies.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></div><ChevronDown size={15}/></div>
       <div className="nav-label">{lang==="ar"?"القائمة الرئيسية":"MENU PRINCIPAL"}</div>
-      <nav>{nav.filter(item=>{if(isAdmin)return true;if(item.id==="users"||item.id==="settings"||item.id==="organization")return false;if(currentRole==="sales")return ["dashboard","products","categories","customers","sales","returns","payments"].includes(item.id);if(item.id==="dashboard")return true;if(!scopePermissions.canView&&!Object.values(scopePermissions).some(Boolean))return false;return ["products","categories","stock","transfers","inventory","warehouses","locations","lots","spareParts","requests","suppliers","purchases","reports"].includes(item.id)}).map((item)=>{const Icon=item.icon;const label=t[item.id];return <button key={item.id} className={"nav-item "+(page===item.id?"active":"")} onClick={()=>setPage(item.id)}><Icon size={18}/><span>{label}</span>{item.id==="stock"&&<i className="nav-dot"/>}</button>})}</nav>
+      <nav>{nav.filter(item=>{if(isAdmin)return true;if(item.id==="users"||item.id==="settings"||item.id==="organization")return false;if(currentRole==="sales")return ["dashboard","products","categories","customers","sales","returns","payments"].includes(item.id);if(item.id==="dashboard")return true;if(!scopePermissions.canView&&!Object.values(scopePermissions).some(Boolean))return false;return ["spareParts","requests","stock","transfers","inventory","warehouses","locations","reports"].includes(item.id)}).map((item)=>{const Icon=item.icon;const label=t[item.id];return <button key={item.id} className={"nav-item "+(page===item.id?"active":"")} onClick={()=>setPage(item.id)}><Icon size={18}/><span>{label}</span>{item.id==="stock"&&<i className="nav-dot"/>}</button>})}</nav>
       <div className="sidebar-bottom"><div className="help-card"><CircleHelp size={18}/><b>Besoin d'aide ?</b><span>Votre gestion, simplifiée.</span></div><button className="nav-item" onClick={()=>setLang(lang==="fr"?"en":lang==="en"?"ar":"fr")}><Languages size={18}/><span>{t.language}: {lang.toUpperCase()}</span></button><button className="nav-item" onClick={signOut}><LogOut size={18}/><span>{t.logout}</span></button><div className="user-mini"><div className="avatar">{session.user.email?.slice(0,1).toUpperCase()}</div><div><b>{session.user.email?.split("@")[0]}</b><small>{session.user.email}</small></div><Settings size={16}/></div></div>
     </aside>
     <main className="main-area">
