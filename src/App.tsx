@@ -8,20 +8,21 @@ import {
 import StockOperations from "./StockOperations";
 import SpareParts from "./SpareParts";
 import SparePartsDashboard from "./SparePartsDashboard";
+import EquipmentManagement from "./EquipmentManagement";
 import OrganizationManagement from "./OrganizationManagement";
 import ImportExportCenter from "./ImportExportCenter";
 import ModuleErrorBoundary from "./ModuleErrorBoundary";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 import type { Company, Product } from "./lib/supabase";
 
-type Page = "dashboard" | "requests" | "products" | "categories" | "stock" | "warehouses" | "suppliers" | "customers" | "purchases" | "sales" | "transfers" | "inventory" | "locations" | "lots" | "spareParts" | "returns" | "expenses" | "payments" | "reports" | "users" | "settings" | "organization";
+type Page = "dashboard" | "requests" | "products" | "categories" | "stock" | "warehouses" | "suppliers" | "customers" | "purchases" | "sales" | "transfers" | "inventory" | "locations" | "lots" | "spareParts" | "returns" | "expenses" | "payments" | "reports" | "users" | "settings" | "organization" | "equipment";
 type Lang = "fr" | "en" | "ar";
 type Notice = { type: "success" | "error"; text: string } | null;
 type AppNotification = { id:string; title:string; message:string; notification_type:string; entity_type:string|null; entity_id:string|null; is_read:boolean; created_at:string };
 
 const copy = {
   fr: {
-    dashboard:"Tableau de bord", requests:"Demandes de sortie de pièces", organization:"Organisation & affectations", locations:"Emplacements de stockage", lots:"Lots & péremption", spareParts:"Pièces détachées", products:"Articles", categories:"Catégories", stock:"Mouvements de stock", warehouses:"Entrepôts", transfers:"Transferts", inventory:"Inventaires", returns:"Retours", expenses:"Dépenses", payments:"Paiements", reports:"Rapports", users:"Utilisateurs", settings:"Paramètres",
+    dashboard:"Tableau de bord", requests:"Demandes de sortie de pièces", organization:"Organisation & affectations", locations:"Emplacements de stockage", lots:"Lots & péremption", spareParts:"Pièces détachées", equipment:"Équipements", products:"Articles", categories:"Catégories", stock:"Mouvements de stock", warehouses:"Entrepôts", transfers:"Transferts", inventory:"Inventaires", returns:"Retours", expenses:"Dépenses", payments:"Paiements", reports:"Rapports", users:"Utilisateurs", settings:"Paramètres",
     suppliers:"Fournisseurs", customers:"Clients", purchases:"Achats", sales:"Ventes",
     search:"Rechercher un article, un code...", welcome:"Vue d'ensemble", subtitle:"Suivez votre activité et votre stock en temps réel.",
     items:"Articles actifs", suppliersCount:"Fournisseurs", warehousesCount:"Entrepôts", movements:"Mouvements", movementSearch:"Rechercher une opération...", exportMovements:"Exporter CSV",
@@ -45,7 +46,7 @@ const copy = {
     margin:"Marge théorique", purchaseOrders:"Commandes d'achat", invoices:"Factures de vente",
   },
   en: {
-    dashboard:"Dashboard", requests:"Spare-part issue requests", organization:"Organization & assignments", locations:"Storage locations", lots:"Lots & expiry", spareParts:"Spare parts", products:"Products", categories:"Categories", stock:"Stock movements", warehouses:"Warehouses", transfers:"Transfers", inventory:"Stock counts", returns:"Returns", expenses:"Expenses", payments:"Payments", reports:"Reports", users:"Users", settings:"Settings", suppliers:"Suppliers",
+    dashboard:"Dashboard", requests:"Spare-part issue requests", organization:"Organization & assignments", locations:"Storage locations", lots:"Lots & expiry", spareParts:"Spare parts", equipment:"Equipment", products:"Products", categories:"Categories", stock:"Stock movements", warehouses:"Warehouses", transfers:"Transfers", inventory:"Stock counts", returns:"Returns", expenses:"Expenses", payments:"Payments", reports:"Reports", users:"Users", settings:"Settings", suppliers:"Suppliers",
     customers:"Customers", purchases:"Purchases", sales:"Sales", search:"Search products or SKU...", welcome:"Overview",
     subtitle:"Monitor your business and stock in real time.", items:"Active products", suppliersCount:"Suppliers",
     warehousesCount:"Warehouses", movements:"Movements", movementSearch:"Search movements...", exportMovements:"Export CSV", recent:"Recently added products", all:"View all",
@@ -66,7 +67,7 @@ const copy = {
     language:"Language", profile:"My workspace", margin:"Estimated margin", purchaseOrders:"Purchase orders", invoices:"Sales invoices",
   },
   ar: {
-    dashboard:"لوحة التحكم", requests:"طلبات صرف قطع الغيار", organization:"الهيكل التنظيمي والتعيينات", locations:"مواقع التخزين", lots:"الدفعات والصلاحية", spareParts:"قطع الغيار", products:"المنتجات", categories:"الفئات", stock:"حركات المخزون", warehouses:"المخازن", transfers:"التحويلات", inventory:"الجرد", returns:"المرتجعات", expenses:"المصاريف", payments:"المدفوعات", reports:"التقارير", users:"المستخدمون", settings:"الإعدادات", suppliers:"الموردون",
+    dashboard:"لوحة التحكم", requests:"طلبات صرف قطع الغيار", organization:"الهيكل التنظيمي والتعيينات", locations:"مواقع التخزين", lots:"الدفعات والصلاحية", spareParts:"قطع الغيار", equipment:"المعدات", products:"المنتجات", categories:"الفئات", stock:"حركات المخزون", warehouses:"المخازن", transfers:"التحويلات", inventory:"الجرد", returns:"المرتجعات", expenses:"المصاريف", payments:"المدفوعات", reports:"التقارير", users:"المستخدمون", settings:"الإعدادات", suppliers:"الموردون",
     customers:"العملاء", purchases:"المشتريات", sales:"المبيعات", search:"ابحث عن منتج أو مرجع...",
     welcome:"نظرة عامة", subtitle:"تابع نشاطك ومخزونك في الوقت الفعلي.", items:"المنتجات النشطة",
     suppliersCount:"الموردون", warehousesCount:"المخازن", movements:"الحركات", movementSearch:"ابحث في الحركات...", exportMovements:"تصدير CSV", recent:"آخر المنتجات المضافة",
@@ -94,6 +95,7 @@ type Labels = { [K in keyof typeof copy.fr]: string };
 const nav: { id: Page; icon: typeof LayoutDashboard; group: string }[] = [
   { id:"dashboard", icon:LayoutDashboard, group:"main" },
   { id:"spareParts", icon:Wrench, group:"main" },
+  { id:"equipment", icon:Wrench, group:"main" },
   { id:"requests", icon:ClipboardCheck, group:"main" },
   { id:"stock", icon:Activity, group:"main" },
   { id:"warehouses", icon:Warehouse, group:"main" },
@@ -108,7 +110,8 @@ const nav: { id: Page; icon: typeof LayoutDashboard; group: string }[] = [
 
 export default function App() {
   const [session, setSession] = useState<any>(null);
-  const [page, setPage] = useState<Page>("dashboard");
+  const [page, setPage] = useState<Page>(() => new URLSearchParams(window.location.search).get("equipment") ? "equipment" : "dashboard");
+  const [equipmentSeed] = useState<string|null>(() => new URLSearchParams(window.location.search).get("equipment"));
   const [lang, setLang] = useState<Lang>(() => { const saved=localStorage.getItem("gsp_lang"); return saved==="en"||saved==="ar"||saved==="fr"?saved:"fr"; });
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -493,6 +496,7 @@ export default function App() {
         {page==="organization"&&isAdmin&&<OrganizationManagement companyId={company.id} members={members} currentUserId={session.user.id} onNotice={flash} lang={lang}/>}
         {page==="users"&&!isAdmin&&<section className="panel"><div className="empty-state"><div className="empty-icon"><ShieldCheck size={24}/></div><b>{lang==="ar"?"الدخول مخصص للمسؤول":lang==="en"?"Administrator access only":"Accès réservé à l’administrateur"}</b></div></section>}
         {page==="sales"&&<section className="panel"><div className="panel-head"><div><h3>{t.sales}</h3><p>{sales.length} facture(s) · sortie de stock automatique</p></div><button className="primary-btn" disabled={currentRole==="viewer"} onClick={()=>{setForm({});setDocumentLines([{product_id:"",quantity:"",unit_price:"",discount:"0"}]);setModal("sale")}}><Plus size={16}/>Nouvelle vente</button></div>{sales.length?<div className="table-wrap"><table><thead><tr><th>N° facture</th><th>{t.customers}</th><th>Date</th><th>Statut</th><th>Total</th><th>Document</th></tr></thead><tbody>{sales.map(x=><tr key={x.id}><td><b>{x.invoice_number}</b></td><td>{x.customers?.name||"—"}</td><td>{new Date(x.sale_date).toLocaleDateString()}</td><td><span className="status-pill positive">{x.status}</span></td><td>{money(Number(x.total))}</td><td><button className="ops-icon-btn" title="Imprimer la facture" onClick={()=>void printDocument("sale",x.id)}><Printer size={15}/></button></td></tr>)}</tbody></table></div>:<Empty t={t}/>}</section>}
+        {page==="equipment"&&<EquipmentManagement companyId={company.id} lang={lang} equipmentSeed={equipmentSeed}/>}
         {page==="spareParts"&&<SpareParts companyId={company.id} products={products} warehouses={warehouses} suppliers={suppliers} role={currentRole} access={{...scopePermissions,isAdmin}} lang={lang} searchTerm={search} view="parts" onSaved={()=>loadWorkspace(company.id)}/>}
         {page==="requests"&&<SpareParts companyId={company.id} products={products} warehouses={warehouses} suppliers={suppliers} role={currentRole} access={{...scopePermissions,isAdmin}} lang={lang} searchTerm={search} view="requests" onSaved={()=>loadWorkspace(company.id)}/>}
         {(page==="categories"||page==="transfers"||page==="inventory"||page==="locations"||page==="lots"||page==="returns"||page==="expenses"||page==="payments"||page==="reports")&&<StockOperations page={page} companyId={company.id} products={products} warehouses={warehouses} suppliers={suppliers} customers={customers} purchases={purchases} sales={sales} role={currentRole} access={{...scopePermissions,isAdmin}} money={money} lang={lang} onSaved={()=>loadWorkspace(company.id)}/>}
