@@ -126,3 +126,39 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 @media(max-width:1050px){.sp-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.sp-overview-grid{grid-template-columns:1fr 1.2fr}}
 @media(max-width:700px){.sp-hero{padding:21px;align-items:flex-start;flex-direction:column}.sp-hero h2{font-size:19px}.sp-refresh{align-self:flex-start}.sp-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.sp-kpi{padding:13px;grid-template-columns:34px minmax(0,1fr);column-gap:8px}.sp-kpi-icon{width:33px;height:33px}.sp-kpi strong{font-size:18px}.sp-overview-grid{grid-template-columns:1fr}.sp-panel{padding:16px}.sp-alert-row{grid-template-columns:28px minmax(0,1fr) auto}.sp-alert-row>strong{font-size:9px}}
 @media(max-width:380px){.sp-kpi-grid{grid-template-columns:1fr}.sp-kpi{grid-template-columns:40px minmax(0,1fr)}}
+
+
+/* SOPHAL industrial stock workspace — visual consistency pass */
+:root{--sophal-ink:#1d2b43;--sophal-muted:#718096;--sophal-line:#e5eaf1;--sophal-surface:#ffffff;--sophal-canvas:#f4f6fa}
+.app-shell{background:var(--sophal-canvas)}
+.sidebar{background:#17253d;border-right:1px solid #243650}
+.brand{padding:22px 20px 19px}
+.brand small{letter-spacing:1.2px}
+.nav-label{margin:18px 16px 9px;color:#8fa0b8;font-size:9px;letter-spacing:1.2px;font-weight:800}
+.nav-item{min-height:42px;margin:2px 9px;padding:0 12px;border-radius:9px;color:#c5d0df;font-size:12px;transition:background .16s,color .16s}
+.nav-item:hover{background:#263852;color:#fff}
+.nav-item.active{background:#304b70;color:#fff;box-shadow:inset 3px 0 #7ca7e8}
+.main-area{background:var(--sophal-canvas)}
+.topbar{background:#fff;border-bottom:1px solid var(--sophal-line);box-shadow:0 2px 10px #1d2b4308}
+.page-content{max-width:1600px;margin:0 auto;padding:26px 30px 34px}
+.page-heading{align-items:center;margin-bottom:22px}
+.page-heading h1{color:var(--sophal-ink);font-size:25px;letter-spacing:-.6px}
+.page-heading p{color:var(--sophal-muted);font-size:12px;line-height:1.6;margin-top:6px}
+.panel,.ops-panel{border:1px solid var(--sophal-line);border-radius:13px;box-shadow:0 4px 18px #1d2b4308;background:#fff}
+.panel-head,.ops-panel .panel-head{padding-bottom:13px;border-bottom:1px solid #edf0f5;margin-bottom:16px}
+.panel-head h3,.ops-panel .panel-head h3{color:var(--sophal-ink);font-size:14px;font-weight:750}
+.panel-head p{color:#8390a4;font-size:11px;line-height:1.55}
+.ops-kpi{border:1px solid var(--sophal-line);border-radius:12px;background:#fff;box-shadow:0 3px 12px #1d2b4308;padding:16px}
+.ops-fields label,.modal-card label{display:flex;flex-direction:column;gap:7px;color:#526177;font-size:11px;font-weight:700}
+.ops-fields input,.ops-fields select,.ops-fields textarea,.ops-line input,.ops-line select,.modal-card input,.modal-card select,.modal-card textarea{border:1px solid #dce3ed;border-radius:8px;background:#fbfcfe;color:#26364f;padding:10px 11px;font-size:12px;min-height:40px;outline:none;transition:border-color .15s,box-shadow .15s,background .15s}
+.ops-fields input:focus,.ops-fields select:focus,.ops-fields textarea:focus,.ops-line input:focus,.ops-line select:focus,.modal-card input:focus,.modal-card select:focus,.modal-card textarea:focus{border-color:#6f91c8;box-shadow:0 0 0 3px #6f91c81a;background:#fff}
+.primary-btn{border-radius:8px;min-height:39px;padding:0 14px;font-size:11px;font-weight:750;box-shadow:0 2px 5px #1b3b6a12}
+.ops-icon-btn{border-radius:7px;min-height:32px;padding:6px 9px;font-size:10px}
+.table-wrap{border:1px solid #edf0f5;border-radius:10px;background:#fff}
+.table-wrap th{background:#f6f8fb;color:#738198;font-size:9px;letter-spacing:.45px;text-transform:uppercase}
+.table-wrap td{color:#46566e;font-size:11px}
+.table-wrap tbody tr:hover{background:#f8faff}
+.status-pill{font-size:9px;font-weight:750;border-radius:20px;padding:5px 8px}
+.modal-backdrop{backdrop-filter:blur(4px);background:#12213b70}
+.modal-card{border:1px solid #e4e9f1;border-radius:15px;box-shadow:0 24px 70px #0b1c3540}
+@media(max-width:700px){.page-content{padding:17px 13px 24px}.page-heading h1{font-size:21px}.ops-panel{padding:15px}.ops-fields{gap:11px}}
