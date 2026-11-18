@@ -511,3 +511,56 @@ tbody tr:last-child td{border-bottom:0}
   .ops-lines,.document-lines{padding:11px}
   .modal-card{border-radius:14px}
 }
+
+
+/* Spare-part request tracking — clear, compact and responsive */
+.request-tracking-panel{padding:24px;overflow:hidden}
+.request-tracking-panel>.panel-head{display:flex;align-items:center;justify-content:space-between;gap:18px;padding-bottom:18px;border-bottom:1px solid #e8edf4}
+.request-tracking-heading{display:grid;gap:7px;min-width:0}
+.request-tracking-heading h3{display:flex;align-items:center;gap:9px;font-size:16px;font-weight:800;color:#1d2d49}
+.request-tracking-heading p{max-width:850px;font-size:11px;line-height:1.65;color:#78869b}
+.request-tracking-panel>.panel-head>span{display:grid;place-items:center;min-width:38px;height:38px;padding:0 10px;border:1px solid #dce5f3;border-radius:11px;background:#f2f6ff;color:#3158b5;font-size:13px;font-weight:800}
+.request-tracking-table{margin-top:18px;border:1px solid #dce4ef;border-radius:13px;overflow:auto;background:#fff}
+.request-tracking-table table{min-width:1040px;border-collapse:separate;border-spacing:0}
+.request-tracking-table thead th{position:sticky;top:0;z-index:2;padding:15px 14px;background:#edf2fa;color:#435570;border-bottom:1px solid #d6dfec;font-size:10px;font-weight:800;letter-spacing:.45px;white-space:nowrap}
+.request-tracking-table tbody td{padding:15px 14px;vertical-align:top;border-bottom:1px solid #e8edf4;border-right:1px solid #eff2f7;background:#fff;color:#45536b;font-size:11px;line-height:1.55;white-space:normal}
+.request-tracking-table tbody tr:nth-child(even) td{background:#fafbfd}
+.request-tracking-table tbody tr:hover td{background:#f3f7ff}
+.request-tracking-table tbody tr:last-child td{border-bottom:0}
+.request-tracking-table tbody td:first-child{min-width:145px}
+.request-tracking-table tbody td:nth-child(2){min-width:165px}
+.request-tracking-table tbody td:nth-child(3){min-width:260px}
+.request-tracking-table tbody td:nth-child(4){min-width:95px}
+.request-tracking-table tbody td:nth-child(5){min-width:150px}
+.request-tracking-table tbody td:last-child{min-width:190px;border-right:0}
+.request-tracking-table td b{color:#263650;font-size:11px;font-weight:800}
+.request-tracking-table td small{display:block;margin-top:5px;color:#7c899d;font-size:10px;line-height:1.5}
+.request-tracking-table .request-line{display:grid;gap:7px;padding:9px 0;border-bottom:1px dashed #e5eaf2}
+.request-tracking-table .request-line:first-child{padding-top:0}
+.request-tracking-table .request-line:last-child{padding-bottom:0;border-bottom:0}
+.request-tracking-table .request-line>b{color:#263650;font-size:11px;line-height:1.5}
+.request-tracking-table .request-line>small{margin:0;color:#75839a}
+.request-tracking-table .request-line select,.request-tracking-table .request-line input{width:100%;min-width:0;min-height:37px;padding:7px 9px;border:1px solid #dce4ef;border-radius:8px;background:#fff;color:#34445e;font-size:11px}
+.request-tracking-table .status-pill{display:inline-flex;align-items:center;justify-content:center;min-height:27px;padding:5px 10px;border:1px solid #dce5f2;border-radius:20px;background:#f2f5fa;color:#50617b;font-size:10px;font-weight:800;white-space:nowrap}
+.request-tracking-table .status-pill.positive{background:#eaf7f0;border-color:#ccebd9;color:#20744f}
+.request-tracking-table .status-pill.warning{background:#fff6e7;border-color:#f3dfb8;color:#98651b}
+.request-tracking-table .status-pill.negative{background:#fff0f0;border-color:#f3d0d0;color:#b33d46}
+.request-tracking-table td:last-child{display:flex;flex-wrap:wrap;align-items:flex-start;gap:7px}
+.request-tracking-table td:last-child button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:36px;padding:8px 11px;border:1px solid #dce4ef;border-radius:8px;background:#f7f9fc;color:#40516d;font-size:10px;font-weight:750;line-height:1.35;white-space:nowrap;transition:all .16s}
+.request-tracking-table td:last-child button:hover{border-color:#b9c9e8;background:#edf3ff;color:#2d54a8;transform:translateY(-1px)}
+.request-tracking-table td:last-child button.primary-btn{border-color:#3158b5;background:#4167c7;color:#fff;box-shadow:0 3px 8px #4167c720}
+.request-tracking-table td:last-child button.primary-btn:hover{background:#3158b5;color:#fff}
+.request-tracking-table .request-line input:focus,.request-tracking-table .request-line select:focus{outline:0;border-color:#8ca6e3;box-shadow:0 0 0 3px #4167c718}
+@media(max-width:760px){
+ .request-tracking-panel{padding:15px 12px}
+ .request-tracking-panel>.panel-head{align-items:flex-start;padding-bottom:14px}
+ .request-tracking-heading h3{font-size:14px;line-height:1.4}
+ .request-tracking-heading p{font-size:10px}
+ .request-tracking-panel>.panel-head>span{min-width:34px;height:34px}
+ .request-tracking-table{margin-top:14px;border-radius:10px}
+ .request-tracking-table table{min-width:980px}
+ .request-tracking-table thead th{padding:12px 10px;font-size:9px}
+ .request-tracking-table tbody td{padding:12px 10px;font-size:10px}
+ .request-tracking-table td:last-child button{min-height:40px;padding:9px 10px;font-size:10px}
+ .request-tracking-table .request-line select,.request-tracking-table .request-line input{min-height:40px;font-size:12px}
+}
