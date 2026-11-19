@@ -425,7 +425,7 @@ export default function App() {
   async function markAllNotificationsRead(){
     if(!supabase||!company||!session?.user?.id)return;
     const unread=notifications.filter(n=>!n.is_read);if(!unread.length)return;
-    const {error}=await supabase.from("notifications").update({is_read:true}).eq("company_id",company.id).eq("recipient_user_id",session.user.id).eq("is_read",false);
+    const {error}=await supabase.from("notifications").update({is_read:true}).eq("company_id",company.id).eq("recipient_user_id",session.user.id).eq("is_read",false).neq("notification_type","project_update").neq("notification_type","project_task");
     if(error){flash("error",error.message);return;}setNotifications(list=>list.map(n=>({...n,is_read:true})));
   }
 
