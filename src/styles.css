@@ -1421,3 +1421,43 @@ html,body,#root{width:100%;min-height:100%;overflow-x:hidden}
   /* Keep the current desktop interface exactly as it is. */
   .mobile-logout { display:none !important; }
 }
+
+
+/* Equipment register — polished list/table appearance + collapse rail */
+.equipment-layout{grid-template-columns:minmax(275px,340px) minmax(0,1fr);gap:16px;transition:grid-template-columns .22s ease}
+.equipment-list{padding:13px;gap:10px;border:1px solid #e1e8f2;background:linear-gradient(180deg,#fbfcff 0%,#fff 100%);box-shadow:0 8px 24px #1d355710}
+.equipment-list-head{gap:11px}
+.equipment-list-title{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:34px}
+.equipment-list-title>b{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:800;color:#203452;letter-spacing:.1px}
+.equipment-list-title>b span{display:inline-grid;place-items:center;min-width:25px;height:23px;padding:0 7px;border-radius:8px;background:#eaf0ff;color:#3158b5;font-size:10px}
+.equipment-collapse-btn{display:grid;place-items:center;width:34px;height:32px;border:1px solid #dce5f1;border-radius:9px;background:#fff;color:#45628e;cursor:pointer;transition:all .18s ease}
+.equipment-collapse-btn:hover{background:#edf3ff;border-color:#b8c9eb;color:#244f9d}
+.equipment-search{min-height:42px;border-color:#dce5f0;background:#fff;box-shadow:0 2px 5px #1d355706}
+.equipment-search:focus-within{border-color:#91aee4;box-shadow:0 0 0 3px #4167c712}
+.equipment-list-row{padding:2px 0;border-bottom:1px solid #edf1f6;gap:8px}
+.equipment-list-row:last-of-type{border-bottom:0}
+.equipment-list-item{min-height:60px;padding:9px 10px;border:1px solid transparent;border-radius:11px;background:transparent;transition:background .18s,border-color .18s,transform .18s}
+.equipment-list-item:hover{background:#f4f7fc;border-color:#e5ebf4;transform:translateY(-1px)}
+.equipment-list-item.active{border-color:#b8c9ed;background:linear-gradient(100deg,#edf3ff,#f8faff);box-shadow:inset 3px 0 #4167c7,0 3px 10px #3158b50d}
+.equipment-list-item b{font-size:11px;font-weight:800;color:#263a5a;line-height:1.45;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.equipment-list-item small{display:block;width:fit-content;max-width:100%;padding:3px 7px;border-radius:6px;background:#f0f3f8;color:#667791;font-size:9px;font-weight:700;white-space:normal;overflow-wrap:anywhere}
+.equipment-icon{width:36px;height:36px;flex-basis:36px;border:1px solid #e0e8f7;background:linear-gradient(145deg,#eaf0ff,#f4f7ff);color:#365fb2}
+.equipment-qr-checkbox{margin:0 2px}
+.equipment-layout-collapsed{grid-template-columns:58px minmax(0,1fr)}
+.equipment-list-collapsed{padding:9px 7px;gap:0;overflow:hidden;align-content:start;min-height:54px;max-height:none}
+.equipment-list-collapsed .equipment-list-head{display:block}
+.equipment-list-collapsed .equipment-list-head>:not(.equipment-list-title),.equipment-list-collapsed .equipment-list-row,.equipment-list-collapsed>.equipment-empty{display:none!important}
+.equipment-list-collapsed .equipment-list-title{justify-content:center}
+.equipment-list-collapsed .equipment-list-title>b{display:none}
+.equipment-list-collapsed .equipment-collapse-btn{width:40px;height:38px;background:#edf3ff;border-color:#d5e1f4;color:#3158b5}
+@media(max-width:760px){
+ .equipment-layout{grid-template-columns:minmax(0,1fr);gap:12px}
+ .equipment-layout-collapsed{grid-template-columns:minmax(0,1fr)}
+ .equipment-list{max-height:56dvh;padding:11px}
+ .equipment-list-collapsed{min-height:48px;max-height:48px;padding:5px 9px}
+ .equipment-list-collapsed .equipment-list-title{justify-content:flex-end}
+ .equipment-list-collapsed .equipment-collapse-btn{width:100%;height:36px}
+ .equipment-list-title>b{font-size:12px}
+ .equipment-list-row{padding:2px 0}
+ .equipment-list-item{min-height:56px}
+}
