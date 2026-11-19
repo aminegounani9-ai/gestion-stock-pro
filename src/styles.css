@@ -758,3 +758,13 @@ body,button,input,select,textarea{font-family:Inter,"DM Sans","Segoe UI",Arial,s
 .equipment-check input{min-height:0!important;width:16px;height:16px}
 @media(max-width:900px){.equipment-layout{grid-template-columns:1fr}.equipment-list{max-height:260px}.equipment-list-item{min-width:0}}
 @media(max-width:600px){.equipment-hero{align-items:flex-start;padding:14px;gap:10px}.equipment-hero h2{font-size:17px}.equipment-qr img{width:84px;height:84px}.equipment-qr{max-width:112px}.equipment-kpis{gap:7px}.equipment-kpi{grid-template-columns:1fr;gap:5px;padding:10px}.equipment-kpi svg{width:17px}.equipment-kpi span{font-size:8px;line-height:1.35}.equipment-kpi b{font-size:16px}.equipment-module .panel-head{align-items:flex-start;flex-wrap:wrap}}
+
+
+/* PWA install action */
+.install-trigger{display:inline-flex;align-items:center;justify-content:center;gap:6px;width:auto;min-width:82px;padding:0 10px;background:#eaf1ff;color:#294fae;border:1px solid #dbe6ff;font-size:10px;font-weight:800;white-space:nowrap}
+.install-trigger:hover{background:#dce8ff}
+@media(max-width:760px){
+ .top-actions>.install-trigger{display:inline-flex;align-items:center;justify-content:center;gap:5px;flex:0 0 auto;width:auto;min-width:68px;height:36px;padding:0 8px;background:#eaf1ff;color:#294fae;border:1px solid #dbe6ff;border-radius:9px;font-size:10px;font-weight:800}
+ .top-actions>.install-trigger span{display:inline}
+ .top-actions{gap:6px}
+}
