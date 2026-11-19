@@ -66,7 +66,7 @@ export default function SpareParts({companyId,products,warehouses,suppliers,role
  const stockFor=(productId:string,warehouseId?:string)=>balances.filter(x=>x.product_id===productId&&(!warehouseId||x.warehouse_id===warehouseId)).reduce((n,x)=>n+Number(x.quantity_on_hand||0),0);
  const reservedFor=(productId:string,warehouseId?:string)=>reservations.filter(x=>x.product_id===productId&&x.status==="reserved"&&(!warehouseId||x.warehouse_id===warehouseId)).reduce((n,x)=>n+Number(x.quantity),0);
  const selectedEquipment=orgEquipment.find((e:any)=>e.id===requestForm.equipment_id)||null;
- const equipmentCompatibleParts=selectedEquipment?compat.filter((c:any)=>c.equipment_tag===selectedEquipment.equipment_tag).map((c:any)=>{const d=details.find((x:any)=>x.product_id===c.product_id);return d?{...d,quantity_per_equipment:c.quantity_per_equipment,is_critical:c.is_critical,available:stockFor(c.product_id)-reservedFor(c.product_id)}:null;}).filter(Boolean):[];
+ const equipmentCompatibleParts: Detail[]=selectedEquipment?compat.filter((c:any)=>c.equipment_tag===selectedEquipment.equipment_tag).map((c:any):Detail|null=>{const d=details.find((x:any)=>x.product_id===c.product_id);return d?{...d,quantity_per_equipment:c.quantity_per_equipment,is_critical:c.is_critical,available:stockFor(c.product_id)-reservedFor(c.product_id)}:null;}).filter((d):d is Detail=>d!==null):[];
  const equipmentRequestHistory=selectedEquipment?requests.filter((r:any)=>r.equipment_id===selectedEquipment.id||r.equipment_tag===selectedEquipment.equipment_tag):[];
  const equipmentSite=orgSites.find((x:any)=>x.id===selectedEquipment?.site_id);
  const equipmentUnit=orgUnits.find((x:any)=>x.id===selectedEquipment?.unit_id);
