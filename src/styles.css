@@ -936,3 +936,6 @@ html,body,#root{width:100%;min-height:100%;overflow-x:hidden}
 .equipment-info-grid .equipment-info-notes{grid-column:1/-1}
 @media(max-width:900px){.equipment-info-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:480px){.equipment-info-grid{gap:8px}.equipment-info-grid>div{padding:9px}.equipment-info-grid b{font-size:10px}}
+
+/* Logout shortcut is reserved for compact mobile navigation. */
+@media(min-width:761px){.top-actions>.mobile-logout{display:none!important}}
