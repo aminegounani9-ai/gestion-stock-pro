@@ -898,3 +898,41 @@ html,body,#root{width:100%;min-height:100%;overflow-x:hidden}
 .mobile-brand .brand-mark.sophal-brand-mark{width:34px;height:34px;flex-basis:34px}
 .sophal-brand-image{width:100%!important;height:100%!important;display:block!important;object-fit:contain!important;object-position:center!important;background:#fff!important}
 @media(max-width:760px){.brand .brand-mark.sophal-brand-mark{width:40px;height:40px;flex-basis:40px}.ops-load-error{align-items:flex-start;flex-direction:column}}
+
+
+/* Header toolbar stabilization: prevent utility controls from shrinking or overlapping */
+.topbar{min-width:0;gap:16px}
+.breadcrumbs{flex:0 1 auto;min-width:110px;overflow:hidden;text-overflow:ellipsis}
+.top-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;min-width:0;flex:1 1 auto;white-space:nowrap}
+.top-actions>.global-search{flex:1 1 220px;min-width:140px;max-width:300px}
+.top-actions>.icon-btn,.top-actions>.notification-wrap,.top-actions>.top-avatar{flex:0 0 auto}
+.top-actions>.icon-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:39px;height:39px;padding:0 10px;white-space:nowrap}
+.top-actions>.install-trigger,.top-actions>.language-trigger,.top-actions>.scanner-trigger{width:auto;min-width:39px}
+.top-actions .notification-wrap{position:relative;flex:0 0 auto}
+.top-actions .top-avatar{display:grid;place-items:center}
+@media(min-width:761px) and (max-width:1180px){
+ .topbar{padding-left:18px;padding-right:18px;gap:10px}
+ .top-actions{gap:6px}
+ .top-actions>.global-search{max-width:190px;min-width:115px}
+ .top-actions>.icon-btn{padding:0 8px}
+ .top-actions>.install-trigger span,.top-actions>.language-trigger span{display:none}
+}
+@media(max-width:760px){
+ .topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;padding:8px 12px}
+ .mobile-brand{flex:0 1 auto;min-width:0;max-width:44%;overflow:hidden}
+ .mobile-brand>b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .top-actions{flex:0 0 auto;display:flex;align-items:center;justify-content:flex-end;gap:6px;min-width:0;margin-left:auto}
+ .top-actions>.icon-btn{display:none}
+ .top-actions>.scanner-trigger{display:inline-flex;flex:0 0 auto;min-width:76px;width:auto;height:38px;padding:0 10px}
+ .top-actions>.notification-wrap{display:block;flex:0 0 auto}
+ .top-actions>.notification-wrap>.icon-btn{display:inline-flex;width:36px;height:36px;padding:0}
+ .top-actions>.mobile-logout{display:inline-flex;flex:0 0 auto;width:36px;height:36px;padding:0}
+ .top-actions>.top-avatar{display:none}
+}
+.equipment-info-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+.equipment-info-grid>div{display:grid;gap:5px;min-width:0;padding:11px 12px;border:1px solid #edf0f5;border-radius:9px;background:#fbfcfe}
+.equipment-info-grid small{font-size:10px;color:#8491a5}
+.equipment-info-grid b{font-size:11px;color:#30415c;overflow-wrap:anywhere;line-height:1.45}
+.equipment-info-grid .equipment-info-notes{grid-column:1/-1}
+@media(max-width:900px){.equipment-info-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.equipment-info-grid{gap:8px}.equipment-info-grid>div{padding:9px}.equipment-info-grid b{font-size:10px}}
