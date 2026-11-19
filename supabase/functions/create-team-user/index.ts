@@ -71,6 +71,18 @@ Deno.serve(async (req: Request) => {
       if (!direct && !parentAllowed) return respond({ error: "Vous ne pouvez créer un compte que dans votre périmètre autorisé." }, 403);
     }
 
+    // The auth.users guard trigger only permits users with a pending invitation.
+    // Create/update that invitation first; the AFTER INSERT trigger will create company_members.
+    const { error: invitationError } = await adminClient.from("user_invitations").upsert({
+      company_id: companyId,
+      email,
+      role,
+      invited_by: caller.id,
+      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      accepted_at: null,
+    }, { onConflict: "company_id,email" });
+    if (invitationError) throw invitationError;
+
     const { data: created, error: createError } = await adminClient.auth.admin.createUser({
       email, password, email_confirm: true, user_metadata: { full_name: fullName, job_title: jobTitle },
     });
@@ -78,10 +90,7 @@ Deno.serve(async (req: Request) => {
     if (!created.user) throw new Error("Supabase n'a pas retourné le compte créé.");
     const userId = created.user.id;
     try {
-      const { error } = await adminClient.from("company_members").insert({
-        company_id: companyId, user_id: userId, role, is_active: true, created_by: caller.id,
-      });
-      if (error) throw error;
+      // company_members is created atomically by private.assign_invited_company_membership().
       const { error: assignmentError } = await adminClient.from("user_scope_assignments").insert({
         company_id: companyId, user_id: userId, job_title: jobTitle || null,
         scope_type: scopeType, scope_id: scopeId, can_view: true,
