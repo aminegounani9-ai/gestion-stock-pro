@@ -150,6 +150,7 @@ export default function App() {
   const [members, setMembers] = useState<any[]>([]);
   const [invitations,setInvitations]=useState<any[]>([]);
   const [myScopeAssignments,setMyScopeAssignments]=useState<any[]>([]);
+  const [myScopeAssignments,setMyScopeAssignments]=useState<any[]>([]);
   const [companyRoles, setCompanyRoles] = useState<Record<string,string>>({});
   const [currentRole, setCurrentRole] = useState("viewer");
   const [isAdmin, setIsAdmin] = useState(false);
@@ -222,6 +223,7 @@ export default function App() {
     const scopeResult=scopeUser?await supabase.from("user_scope_assignments").select("scope_type,scope_id,job_title,can_view,can_create,can_edit,can_delete,can_approve,can_issue,can_receive,can_transfer,can_inventory").eq("company_id",companyId).eq("user_id",scopeUser.id):{data:[],error:null};
     if(scopeResult.error)throw scopeResult.error;
     const userScopes=scopeResult.data??[];
+    setMyScopeAssignments(userScopes);
     setMyScopeAssignments(userScopes);
     setScopePermissions({canView:userScopes.some(x=>x.can_view),canCreate:userScopes.some(x=>x.can_create),canEdit:userScopes.some(x=>x.can_edit),canDelete:userScopes.some(x=>x.can_delete),canApprove:userScopes.some(x=>x.can_approve),canIssue:userScopes.some(x=>x.can_issue),canReceive:userScopes.some(x=>x.can_receive),canTransfer:userScopes.some(x=>x.can_transfer),canInventory:userScopes.some(x=>x.can_inventory)});
     setProducts((p.data ?? []) as Product[]);
