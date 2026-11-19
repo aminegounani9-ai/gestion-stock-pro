@@ -1,5 +1,5 @@
-const CACHE_NAME = "gestion-stock-pro-shell-v7";
-const APP_SHELL = ["/", "/icon.svg", "/icon-192.svg", "/icon-512.svg", "/sophal-mark.svg", "/manifest.webmanifest"];
+const CACHE_NAME = "gestion-stock-pro-shell-v8";
+const APP_SHELL = ["/", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));
@@ -18,26 +18,21 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (request.method !== "GET" || url.origin !== self.location.origin) return;
 
-  if (request.mode === "navigate") {
+  // Always prefer the newest deployed app shell and hashed JS/CSS assets.
+  // Fall back to the last cached response only when the network is unavailable.
+  if (request.mode === "navigate" || url.pathname.startsWith("/assets/") || url.pathname === "/manifest.webmanifest") {
     event.respondWith(
       fetch(request).then((response) => {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put("/", copy));
-        return response;
-      }).catch(async () => (await caches.match(request)) || (await caches.match("/")))
-    );
-    return;
-  }
-
-  if (url.pathname.startsWith("/assets/") || url.pathname === "/icon.svg" || url.pathname === "/icon-192.svg" || url.pathname === "/icon-512.svg" || url.pathname === "/sophal-mark.svg" || url.pathname === "/manifest.webmanifest") {
-    event.respondWith(
-      caches.match(request).then((cached) => cached || fetch(request).then((response) => {
         if (response.ok) {
           const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          const cacheKey = request.mode === "navigate" ? "/" : request;
+          caches.open(CACHE_NAME).then((cache) => cache.put(cacheKey, copy));
         }
         return response;
-      }))
+      }).catch(async () => {
+        const cached = await caches.match(request);
+        return cached || (request.mode === "navigate" ? await caches.match("/") : Response.error());
+      })
     );
   }
 });
