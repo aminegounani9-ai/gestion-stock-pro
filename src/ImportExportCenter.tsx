@@ -40,24 +40,24 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
   if(q.error)throw q.error;
   let rows:any[]=q.data??[];
   if(ds.id==="requests"){
-   const z=await supabase.from("spare_part_requests").select("*, spare_part_request_items(requested_quantity,warehouse_id,notes,products(sku))").eq("company_id",companyId).limit(10000);if(z.error)throw z.error;
+   const z=await supabase.from("spare_part_requests").select("*, spare_part_request_items!spare_part_request_items_company_request_fk(requested_quantity,warehouse_id,notes,products:products!spare_part_request_items_company_product_fk(sku))").eq("company_id",companyId).limit(10000);if(z.error)throw z.error;
    const requesterResult=await supabase.rpc("list_spare_part_requesters",{p_company_id:companyId});if(requesterResult.error)throw requesterResult.error;
    const requesterRows=requesterResult.data||[];
    rows=(z.data||[]).flatMap((d:any)=>(d.spare_part_request_items||[]).map((it:any)=>({request_number:d.request_number,requester_email:requesterRows.find((u:any)=>u.user_id===d.requested_for_user_id)?.email||"",site_id:d.site_id,unit_id:d.unit_id,service_id:d.service_id,department_id:d.department_id,equipment_tag:d.equipment_tag,work_order_reference:d.work_order_reference,priority:d.priority,required_date:d.required_date,justification:d.justification,product_sku:it.products?.sku||"",warehouse_id:it.warehouse_id,quantity:it.requested_quantity,item_notes:it.notes})));
   }else if(ds.id==="purchases"){
-   const z=await supabase.from("purchase_orders").select("*, suppliers(name), purchase_order_items(quantity,unit_cost,products(sku))").eq("company_id",companyId).limit(10000);if(z.error)throw z.error;
+   const z=await supabase.from("purchase_orders").select("*, suppliers(name), purchase_order_items!purchase_order_items_company_id_purchase_order_id_fkey(quantity,unit_cost,products:products!purchase_order_items_company_id_product_id_fkey(sku))").eq("company_id",companyId).limit(10000);if(z.error)throw z.error;
    rows=(z.data||[]).flatMap((d:any)=>(d.purchase_order_items||[]).map((it:any)=>({order_number:d.order_number,supplier_name:d.suppliers?.name||"",warehouse_id:d.warehouse_id,product_sku:it.products?.sku||"",quantity:it.quantity,unit_cost:it.unit_cost,note:d.notes})));
   }else if(ds.id==="sales"){
-   const z=await supabase.from("sales").select("*, customers(name), sale_items(quantity,unit_price,discount,products(sku))").eq("company_id",companyId).limit(10000);if(z.error)throw z.error;
+   const z=await supabase.from("sales").select("*, customers(name), sale_items!sale_items_company_id_sale_id_fkey(quantity,unit_price,discount,products:products!sale_items_company_id_product_id_fkey(sku))").eq("company_id",companyId).limit(10000);if(z.error)throw z.error;
    rows=(z.data||[]).flatMap((d:any)=>(d.sale_items||[]).map((it:any)=>({invoice_number:d.invoice_number,customer_name:d.customers?.name||"",warehouse_id:d.warehouse_id,product_sku:it.products?.sku||"",quantity:it.quantity,unit_price:it.unit_price,discount:it.discount,invoice_discount:d.discount,note:d.notes})));
   }else if(ds.id==="transfers"){
-   const z=await supabase.from("stock_transfers").select("*, source:warehouses!stock_transfers_source_warehouse_id_fkey(code), destination:warehouses!stock_transfers_destination_warehouse_id_fkey(code), stock_transfer_items(quantity,unit_cost,products(sku))").eq("company_id",companyId).limit(10000);if(z.error)throw z.error;
+   const z=await supabase.from("stock_transfers").select("*, source:warehouses!stock_transfers_source_warehouse_id_fkey(code), destination:warehouses!stock_transfers_destination_warehouse_id_fkey(code), stock_transfer_items(quantity,unit_cost,products:products!stock_transfer_items_company_product_fk(sku))").eq("company_id",companyId).limit(10000);if(z.error)throw z.error;
    rows=(z.data||[]).flatMap((d:any)=>(d.stock_transfer_items||[]).map((it:any)=>({number:d.transfer_number,source_warehouse_code:d.source?.code||"",destination_warehouse_code:d.destination?.code||"",product_sku:it.products?.sku||"",quantity:it.quantity,unit_cost:it.unit_cost,note:d.notes})));
   }else if(ds.id==="inventory"){
-   const z=await supabase.from("inventory_counts").select("*, warehouses(code), inventory_count_items(counted_quantity,products(sku))").eq("company_id",companyId).limit(10000);if(z.error)throw z.error;
+   const z=await supabase.from("inventory_counts").select("*, warehouses(code), inventory_count_items!inventory_count_items_company_count_fk(counted_quantity,products:products!inventory_count_items_company_product_fk(sku))").eq("company_id",companyId).limit(10000);if(z.error)throw z.error;
    rows=(z.data||[]).flatMap((d:any)=>(d.inventory_count_items||[]).map((it:any)=>({number:d.count_number,warehouse_code:d.warehouses?.code||"",product_sku:it.products?.sku||"",counted_quantity:it.counted_quantity,note:d.notes})));
   }else if(ds.id==="returns"){
-   const z=await supabase.from("stock_returns").select("*, warehouses(code), customers(name), suppliers(name), stock_return_items(quantity,unit_price,products(sku))").eq("company_id",companyId).limit(10000);if(z.error)throw z.error;
+   const z=await supabase.from("stock_returns").select("*, warehouses(code), customers(name), suppliers(name), stock_return_items(quantity,unit_price,products:products!stock_return_items_company_product_fk(sku))").eq("company_id",companyId).limit(10000);if(z.error)throw z.error;
    rows=(z.data||[]).flatMap((d:any)=>(d.stock_return_items||[]).map((it:any)=>({number:d.return_number,return_type:d.return_type,warehouse_code:d.warehouses?.code||"",partner_name:d.return_type==="supplier"?d.suppliers?.name||"":d.customers?.name||"",product_sku:it.products?.sku||"",quantity:it.quantity,unit_price:it.unit_price,reason:d.reason,note:d.notes})));
   }
   if(ds.id==="spare_parts")rows=rows.map((r:any)=>{const d=Array.isArray(r.spare_part_details)?r.spare_part_details[0]:(r.spare_part_details||{});return {...r,...d};});
