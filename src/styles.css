@@ -1243,3 +1243,10 @@ html,body,#root{width:100%;min-height:100%;overflow-x:hidden}
 .sp-qr-count{margin-inline:auto 4px;color:#65748d;font-size:10px;font-weight:700;white-space:nowrap}
 .sp-qr-toolbar input[type=checkbox],.ops-section input[type=checkbox]{accent-color:#3157c8;width:16px;height:16px;cursor:pointer}
 @media(max-width:720px){.product-filters{width:100%;align-items:stretch;flex-direction:column}.product-filters>select,.product-filters .table-search{width:100%}.sp-qr-toolbar{align-items:stretch;flex-direction:column}.sp-qr-toolbar label{min-width:0}.sp-qr-count{margin:0}.sp-qr-toolbar button{width:100%}}
+
+/* Notification preferences */
+.notification-preferences { margin-bottom: 18px; }
+.notification-setting-row { display:flex; align-items:center; justify-content:space-between; gap:18px; padding:14px 16px; border:1px solid var(--border, #e5e7eb); border-radius:12px; background:var(--surface-soft, rgba(120,120,120,.045)); }
+.notification-setting-row span { display:flex; flex-direction:column; gap:5px; }
+.notification-setting-row small { color:var(--muted, #737373); font-size:12px; line-height:1.5; }
+.notification-setting-row input[type="checkbox"] { width:19px; height:19px; flex:0 0 auto; accent-color:var(--primary, #2563eb); }
