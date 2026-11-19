@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "./lib/supabase";
-import { CalendarRange, Flag, ShieldAlert, CircleAlert, ClipboardList, FileText, Users, GitBranch, MessageSquare, Printer, Download, Plus, Trash2, Pencil, ExternalLink, ChevronDown, RefreshCw } from "lucide-react";
+import { CalendarRange, Flag, ShieldAlert, CircleAlert, ClipboardList, FileText, Users, MessageSquare, Printer, Download, Plus, Trash2, Pencil, ExternalLink, RefreshCw } from "lucide-react";
 
 type Row = Record<string, any>;
 type Props = { companyId:string; currentUserId:string; currentRole:string; members:Row[]; lang:"fr"|"en"|"ar"; currency:string; projects:Row[]; tasks:Row[]; selectedProjectId:string };
@@ -69,7 +69,6 @@ export default function ProjectManagementSuite({companyId,currentUserId,currentR
  const span=Math.max(1,Math.ceil((maxTime-minTime)/86400000)+1);
  const tabs=[["timeline",CalendarRange],["milestones",Flag],["risks",ShieldAlert],["issues",CircleAlert],["meetings",Users],["documents",FileText],["raci",ClipboardList],["collab",MessageSquare],["reports",Printer]] as const;
  const titles:Record<string,string>={milestones:t.milestones,risks:t.risks,issues:t.issues,meetings:t.meetings,documents:t.documents,raci:t.raci};
- const tableFor:Record<string,string>={milestones:"project_milestones",risks:"project_risks",issues:"project_issues",meetings:"project_meetings",documents:"project_documents",raci:"project_raci"};
  const field=(name:string,label:string,type="text",wide=false,options?:[string,string][])=> <label className={wide?"pms-wide":""} key={name}>{label}{options?<select value={form[name]??""} onChange={e=>setForm((v:Row)=>({...v,[name]:e.target.value}))}>{options.map(o=><option key={o[0]} value={o[0]}>{o[1]}</option>)}</select>:type==="textarea"?<textarea rows={3} value={form[name]??""} onChange={e=>setForm((v:Row)=>({...v,[name]:e.target.value}))}/>:<input type={type} value={form[name]??""} onChange={e=>setForm((v:Row)=>({...v,[name]:e.target.value}))}/>}</label>;
  const openNew=()=>{
   const defaults:Record<string,Row>={
