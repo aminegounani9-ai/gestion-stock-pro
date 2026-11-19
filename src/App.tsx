@@ -96,6 +96,8 @@ type Labels = { [K in keyof typeof copy.fr]: string };
 
 const nav: { id: Page; icon: typeof LayoutDashboard; group: string }[] = [
   { id:"dashboard", icon:LayoutDashboard, group:"main" },
+  { id:"products", icon:Package, group:"main" },
+  { id:"categories", icon:Boxes, group:"main" },
   { id:"spareParts", icon:Wrench, group:"main" },
   { id:"equipment", icon:Wrench, group:"main" },
   { id:"requests", icon:ClipboardCheck, group:"main" },
@@ -104,6 +106,14 @@ const nav: { id: Page; icon: typeof LayoutDashboard; group: string }[] = [
   { id:"locations", icon:Boxes, group:"main" },
   { id:"transfers", icon:ArrowLeftRight, group:"main" },
   { id:"inventory", icon:ClipboardCheck, group:"main" },
+  { id:"lots", icon:Boxes, group:"main" },
+  { id:"suppliers", icon:Truck, group:"operations" },
+  { id:"customers", icon:Users, group:"operations" },
+  { id:"purchases", icon:Package, group:"operations" },
+  { id:"sales", icon:Activity, group:"operations" },
+  { id:"returns", icon:ArrowLeftRight, group:"operations" },
+  { id:"expenses", icon:Activity, group:"operations" },
+  { id:"payments", icon:ClipboardCheck, group:"operations" },
   { id:"reports", icon:BarChart3, group:"operations" },
   { id:"organization", icon:Building2, group:"admin" },
   { id:"users", icon:UserCog, group:"admin" },
@@ -471,7 +481,6 @@ export default function App() {
     <aside className="sidebar">
       <div className="brand"><span className="brand-mark sophal-brand-mark"><img className="sophal-brand-image" src="/sophal-mark.svg" alt="SOPHAL" /></span><div><b>Gestion Stock</b><small>PRO MANAGEMENT</small></div></div>
       <div className="workspace-switch"><span className="workspace-icon"><Building2 size={17}/></span><div><small>{t.chooseCompany}</small><select className="workspace-select" value={company.id} onChange={async e=>{const selected=companies.find(c=>c.id===e.target.value);if(selected){const role=companyRoles[selected.id]||"viewer";setCompany(selected);setSettingsForm({name:selected.name,legal_name:selected.legal_name||"",tax_number:selected.tax_number||"",phone:selected.phone||"",email:selected.email||"",address:selected.address||"",city:selected.city||"",country:selected.country||"Algeria",currency_code:selected.currency_code||"DZD"});setCurrentRole(role);const admin=["owner","admin"].includes(role);const canManage=["owner","admin","manager","supervisor"].includes(role);setIsAdmin(admin);await loadWorkspace(selected.id);const moduleRows=await supabase?.from("user_module_permissions").select("module_key,can_view").eq("company_id",selected.id).eq("user_id",session.user.id);if(moduleRows?.error)flash("error",moduleRows.error.message);else setModulePermissions(Object.fromEntries((moduleRows?.data??[]).map((row:any)=>[row.module_key,{can_view:row.can_view}])));if(canManage){const result=await supabase?.rpc("list_company_users",{p_company_id:selected.id});if(result?.error)flash("error",result.error.message);else setMembers(result?.data??[]);const invites=await supabase?.from("user_invitations").select("id,email,role,expires_at,accepted_at").eq("company_id",selected.id).order("created_at",{ascending:false});if(invites?.error)flash("error",invites.error.message);else setInvitations(invites?.data??[])}else{setMembers([]);setInvitations([])}}}}>{companies.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></div><ChevronDown size={15}/></div>
-      <div className="nav-label">{lang==="ar"?"القائمة الرئيسية":lang==="en"?"MAIN MENU":"MENU PRINCIPAL"}</div>
       <nav className="sidebar-navigation">{(["main","operations","admin"] as const).map(group=>{const items=visibleNav.filter(item=>item.group===group);if(!items.length)return null;const groupLabel=group==="main"?(lang==="ar"?"العمليات اليومية":lang==="en"?"WORKSPACE":"ESPACE DE TRAVAIL"):group==="operations"?(lang==="ar"?"التقارير والتحليل":lang==="en"?"INSIGHTS":"PILOTAGE"):(lang==="ar"?"الإدارة":lang==="en"?"ADMINISTRATION":"ADMINISTRATION");return <div className="nav-group" key={group}><div className="nav-group-title">{groupLabel}</div>{items.map(item=>{const Icon=item.icon;const label=t[item.id];return <button key={item.id} type="button" title={label} aria-label={label} aria-current={page===item.id?"page":undefined} className={"nav-item "+(page===item.id?"active":"")} onClick={()=>setPage(item.id)}><Icon size={18}/><span>{label}</span>{item.id==="stock"&&<i className="nav-dot"/>}</button>})}</div>})}</nav>
       <div className="sidebar-bottom"><div className="help-card"><CircleHelp size={18}/><b>Besoin d'aide ?</b><span>Votre gestion, simplifiée.</span></div><button className="nav-item" onClick={()=>setLang(lang==="fr"?"en":lang==="en"?"ar":"fr")}><Languages size={18}/><span>{t.language}: {lang.toUpperCase()}</span></button><button className="nav-item" onClick={signOut}><LogOut size={18}/><span>{t.logout}</span></button><div className="user-mini"><div className="avatar">{session.user.email?.slice(0,1).toUpperCase()}</div><div><b>{session.user.email?.split("@")[0]}</b><small>{session.user.email}</small></div><Settings size={16}/></div></div>
     </aside>
