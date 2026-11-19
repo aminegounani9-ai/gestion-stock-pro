@@ -138,7 +138,17 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
  if(["departments","equipment","warehouses"].includes(ds.id)){for(const [key,table,field,col] of [["service_code","org_services","code","service_id"],["department_code","org_departments","code","department_id"]] as string[][]){const v=get(r,key);if(v){payload[col]=await lookup(table,field,v,key==="service_code"?"site_id":key==="department_code"?"site_id":undefined,payload.site_id);if(!payload[col])throw new Error(key+" introuvable: "+v)}}}
  if(ds.id==="equipment"){payload.equipment_tag=String(get(r,"equipment_tag")??"").trim();if(!payload.equipment_tag)throw new Error("equipment_tag obligatoire");payload.status="active";}
  if(ds.id==="warehouses"){const tag=get(r,"equipment_tag");if(tag){payload.equipment_id=await lookup("org_equipment","equipment_tag",tag);if(!payload.equipment_id)throw new Error("Équipement introuvable: "+tag);}}
- if(ds.id==="locations"){const v=get(r,"warehouse_code");payload.warehouse_id=await lookup("warehouses","code",v);if(!payload.warehouse_id)throw new Error("Warehouse_Code introuvable");const parent=get(r,"parent_code");if(parent){payload.parent_id=await lookup("storage_locations","code",parent,"warehouse_id",payload.warehouse_id);if(!payload.parent_id)throw new Error("Parent_Code introuvable: "+parent);}payload.notes=get(r,"note");payload.location_type=payload.location_type||"bin";}
+ if(ds.id==="movements"){
+  const productId=await lookup("products","sku",get(r,"product_sku"));
+  const warehouseId=await lookup("warehouses","code",get(r,"warehouse_code"));
+  if(!productId)throw new Error("Pièce introuvable: "+get(r,"product_sku"));
+  if(!warehouseId)throw new Error("Entrepôt introuvable: "+get(r,"warehouse_code"));
+  const movementType=String(get(r,"movement_type")||"");
+  if(!["opening","adjustment_in","adjustment_out"].includes(movementType))throw new Error("Type de mouvement invalide: "+movementType);
+  const {data:{user}}=await supabase.auth.getUser();
+  const saved=await supabase.from("stock_movements").insert({company_id:companyId,product_id:productId,warehouse_id:warehouseId,movement_type:movementType,quantity:Number(get(r,"quantity")),note:get(r,"note"),created_by:user?.id||null});
+  if(saved.error)throw saved.error;
+ }else if(ds.id==="locations"){const v=get(r,"warehouse_code");payload.warehouse_id=await lookup("warehouses","code",v);if(!payload.warehouse_id)throw new Error("Warehouse_Code introuvable");const parent=get(r,"parent_code");if(parent){payload.parent_id=await lookup("storage_locations","code",parent,"warehouse_id",payload.warehouse_id);if(!payload.parent_id)throw new Error("Parent_Code introuvable: "+parent);}payload.notes=get(r,"note");payload.location_type=payload.location_type||"bin";}
  if(ds.id==="products"){
   const cat=get(r,"category_name");if(cat){const found=await supabase.from("product_categories").select("id").eq("company_id",companyId).eq("name",String(cat)).maybeSingle();if(found.error)throw found.error;if(!found.data?.id)throw new Error("Catégorie introuvable: "+cat);payload.category_id=found.data.id;}
   const saved=await supabase.from("products").upsert(payload,{onConflict:"company_id,sku"});if(saved.error)throw saved.error;
