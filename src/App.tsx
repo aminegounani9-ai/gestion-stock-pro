@@ -127,13 +127,13 @@ function FormLayoutEnhancer() {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "form-collapse-toggle";
-        button.textContent = document.documentElement.dir === "rtl" ? "تصغير" : "Réduire";
+        button.textContent = header.closest("[dir=rtl]") !== null ? "تصغير" : "Réduire";
         button.setAttribute("aria-expanded", "true");
         button.addEventListener("click", () => {
           const collapsed = card.classList.toggle("form-is-collapsed");
           button.textContent = collapsed
-            ? (document.documentElement.dir === "rtl" ? "توسيع" : "Agrandir")
-            : (document.documentElement.dir === "rtl" ? "تصغير" : "Réduire");
+            ? (header.closest("[dir=rtl]") !== null ? "توسيع" : "Agrandir")
+            : (header.closest("[dir=rtl]") !== null ? "تصغير" : "Réduire");
           button.setAttribute("aria-expanded", String(!collapsed));
         });
         header.appendChild(button);
