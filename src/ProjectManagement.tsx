@@ -54,7 +54,8 @@ export default function ProjectManagement({companyId,currentUserId,currentRole,m
  const unread=notifications.filter(x=>!x.is_read).length;
  const statusCount=statusKeys.map(k=>({key:k,count:projects.filter(p=>p.status===k).length}));
  const taskCount=taskStatuses.map(k=>({key:k,count:tasks.filter(x=>x.status===k).length}));
- const labelStatus=(s:string)=>({planned:t.plannedStatus,in_progress:t.inProgress,on_hold:t.onHold,completed:t.done,cancelled:t.cancelled,todo:t.todo,blocked:t.blocked,review:t.review,done:t.taskDone}[s]||s);\n const labelPriority=(s:string)=>({low:t.low,medium:t.medium,high:t.high,critical:t.critical}[s]||s);
+ const labelStatus=(s:string)=>({planned:t.plannedStatus,in_progress:t.inProgress,on_hold:t.onHold,completed:t.done,cancelled:t.cancelled,todo:t.todo,blocked:t.blocked,review:t.review,done:t.taskDone}[s]||s);
+ const labelPriority=(s:string)=>({low:t.low,medium:t.medium,high:t.high,critical:t.critical}[s]||s);
  const roleLabel=(id:string)=>members.find(m=>m.user_id===id)?.email||"—";
  async function log(projectId:string,message:string,taskId?:string){await supabase?.from("project_activity").insert({company_id:companyId,project_id:projectId,task_id:taskId||null,actor_user_id:currentUserId,activity_type:"update",message});}
  async function saveProject(e:React.FormEvent){
