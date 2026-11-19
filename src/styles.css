@@ -2287,3 +2287,221 @@ form label,.form-grid>*,.ops-fields>*,.pm-form-grid>*,.sp-form-grid>*{min-width:
     max-height: calc(100dvh - 12px) !important;
   }
 }
+
+
+/* ===== VERIFIED FINAL OVERRIDE: mobile dialogs in every module ===== */
+@media (max-width: 900px) {
+  .modal-backdrop,
+  .pm-modal-backdrop,
+  .org-form-backdrop,
+  .scanner-backdrop,
+  .sp-modal-backdrop {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 2000 !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: minmax(0, 1fr) !important;
+    place-items: center !important;
+    width: 100% !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)) !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  .modal-backdrop > .modal-card,
+  .org-form-backdrop > .modal-card,
+  .scanner-backdrop > .modal-card,
+  .equipment-module .modal-backdrop > .modal-card,
+  .pm-modal-backdrop > .pm-modal,
+  .sp-modal-backdrop > .sp-modal-shell {
+    justify-self: center !important;
+    align-self: center !important;
+    position: relative !important;
+    box-sizing: border-box !important;
+    width: min(100%, 680px) !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 20px) !important;
+    height: auto !important;
+    margin: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch !important;
+    border-radius: 16px !important;
+  }
+
+  /* Spare-parts request dialog has a different DOM: backdrop > shell > panel > form. */
+  .sp-modal-backdrop > .sp-modal-shell {
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 0 !important;
+  }
+  .sp-modal-shell > .ops-panel,
+  .sp-modal-shell > .panel {
+    display: flex !important;
+    flex: 1 1 auto !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    border-radius: inherit !important;
+  }
+  .sp-modal-shell > .panel > .panel-head {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 5 !important;
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+  }
+  .sp-modal-shell > .panel > form {
+    display: flex !important;
+    flex: 1 1 auto !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 14px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .modal-backdrop > form.modal-card,
+  .org-form-backdrop > form.modal-card,
+  .equipment-module .modal-backdrop > form.modal-card {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+  .modal-backdrop > .modal-card:not(form),
+  .scanner-backdrop > .modal-card {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .modal-card,
+  .pm-modal,
+  .sp-modal-shell {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .modal-card .form-grid,
+  .modal-card .ops-fields,
+  .pm-modal .pm-form-grid,
+  .sp-modal-shell .ops-fields,
+  .sp-modal-shell .ops-lines,
+  .org-form-backdrop .form-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .modal-card input:not([type=checkbox]):not([type=radio]):not([type=file]),
+  .modal-card select,
+  .modal-card textarea,
+  .pm-modal input:not([type=checkbox]):not([type=radio]),
+  .pm-modal select,
+  .pm-modal textarea,
+  .sp-modal-shell input:not([type=checkbox]):not([type=radio]),
+  .sp-modal-shell select,
+  .sp-modal-shell textarea {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    font-size: 16px !important;
+  }
+
+  .modal-card .modal-actions,
+  .pm-modal footer,
+  .sp-modal-shell .ops-actions,
+  .sp-modal-shell .modal-actions,
+  .excel-modal .modal-actions {
+    position: sticky !important;
+    bottom: 0 !important;
+    z-index: 8 !important;
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    margin-top: auto !important;
+    padding: 12px max(12px, env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)) !important;
+    background: #fff !important;
+    border-top: 1px solid #e5ebf3 !important;
+  }
+
+  .sp-modal-shell .ops-actions {
+    display: flex !important;
+    justify-content: stretch !important;
+    gap: 8px !important;
+  }
+  .sp-modal-shell .ops-actions > button,
+  .modal-card .modal-actions > button,
+  .pm-modal footer > button {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    min-height: 46px !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .ops-line,
+  .document-line {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, .65fr) 40px !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .modal-backdrop,
+  .pm-modal-backdrop,
+  .org-form-backdrop,
+  .scanner-backdrop,
+  .sp-modal-backdrop {
+    padding: max(7px, env(safe-area-inset-top)) max(7px, env(safe-area-inset-right)) max(7px, env(safe-area-inset-bottom)) max(7px, env(safe-area-inset-left)) !important;
+  }
+  .modal-backdrop > .modal-card,
+  .org-form-backdrop > .modal-card,
+  .scanner-backdrop > .modal-card,
+  .pm-modal-backdrop > .pm-modal,
+  .sp-modal-backdrop > .sp-modal-shell {
+    max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 14px) !important;
+    border-radius: 13px !important;
+  }
+}
+
+@media (max-height: 560px) and (max-width: 900px) {
+  .modal-backdrop,
+  .pm-modal-backdrop,
+  .org-form-backdrop,
+  .scanner-backdrop,
+  .sp-modal-backdrop {
+    place-items: center !important;
+  }
+  .modal-backdrop > .modal-card,
+  .org-form-backdrop > .modal-card,
+  .scanner-backdrop > .modal-card,
+  .pm-modal-backdrop > .pm-modal,
+  .sp-modal-backdrop > .sp-modal-shell {
+    max-height: calc(100dvh - 12px) !important;
+  }
+}
