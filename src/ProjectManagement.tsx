@@ -18,30 +18,30 @@ export default function ProjectManagement({companyId,currentUserId,currentRole,m
  const t=words[lang], rtl=lang==="ar";
  const [projects,setProjects]=useState<Project[]>([]),[tasks,setTasks]=useState<Task[]>([]),[notifications,setNotifications]=useState<any[]>([]);
  const [selected,setSelected]=useState<string>(""),[tab,setTab]=useState<"overview"|"tasks"|"notifications">("overview");
- const [query,setQuery]=useState(""),[statusFilter,setStatusFilter]=useState("all"),[showProjectForm,setShowProjectForm]=useState(false),[showTaskForm,setShowTaskForm]=useState(false),[busy,setBusy]=useState(false);
+ const [query,setQuery]=useState(""),[statusFilter,setStatusFilter]=useState("all"),[showProjectForm,setShowProjectForm]=useState(false),[showTaskForm,setShowTaskForm]=useState(false),[editingProjectId,setEditingProjectId]=useState<string|null>(null),[busy,setBusy]=useState(false);
  const [projectForm,setProjectForm]=useState<Record<string,string>>({project_code:"",name:"",project_type:"internal",priority:"medium",status:"planned",description:"",objectives:"",scope:"",sponsor:"",client_name:"",site:"",department:"",project_manager_id:currentUserId,responsible_user_id:"",start_date:new Date().toISOString().slice(0,10),target_end_date:"",budget:"0",actual_cost:"0",risk_level:"medium",success_criteria:"",notes:""});
  const [taskForm,setTaskForm]=useState<Record<string,string>>({title:"",description:"",status:"todo",priority:"medium",assigned_to:"",start_date:new Date().toISOString().slice(0,10),due_date:"",estimated_hours:"0",actual_hours:"0",progress:"0"});
  const canManage=["owner","admin","director","manager"].includes(currentRole);
  const canEdit=canManage||currentRole==="project_responsible";
  const money=(v:number)=>new Intl.NumberFormat(lang==="en"?"en-US":lang==="ar"?"ar-DZ":"fr-DZ",{style:"currency",currency:currency||"DZD",maximumFractionDigits:0}).format(v||0);
  const load=useCallback(async()=>{
-  if(!supabase)return;
+  const client=supabase;if(!client)return;
   const [p,tasksResult,n]=await Promise.all([
-   supabase.from("projects").select("*").eq("company_id",companyId).order("created_at",{ascending:false}),
-   supabase.from("project_tasks").select("*").eq("company_id",companyId).order("due_date",{ascending:true}),
-   supabase.from("notifications").select("id,title,message,notification_type,entity_type,entity_id,is_read,created_at").eq("company_id",companyId).eq("recipient_user_id",currentUserId).in("notification_type",["project_update","project_task"]).order("created_at",{ascending:false}).limit(100)
+   client.from("projects").select("*").eq("company_id",companyId).order("created_at",{ascending:false}),
+   client.from("project_tasks").select("*").eq("company_id",companyId).order("due_date",{ascending:true}),
+   client.from("notifications").select("id,title,message,notification_type,entity_type,entity_id,is_read,created_at").eq("company_id",companyId).eq("recipient_user_id",currentUserId).in("notification_type",["project_update","project_task"]).order("created_at",{ascending:false}).limit(100)
   ]);
   if(p.error)console.error(p.error);else setProjects((p.data||[]) as Project[]);
   if(tasksResult.error)console.error(tasksResult.error);else setTasks((tasksResult.data||[]) as Task[]);
   if(!n.error)setNotifications(n.data||[]);
  },[companyId,currentUserId]);
- useEffect(()=>{void load();if(!supabase)return;const channel=supabase.channel("project-live-"+companyId+"-"+currentUserId)
+ useEffect(()=>{void load();const client=supabase;if(!client)return;const channel=client.channel("project-live-"+companyId+"-"+currentUserId)
   .on("postgres_changes",{event:"*",schema:"public",table:"projects",filter:"company_id=eq."+companyId},()=>void load())
   .on("postgres_changes",{event:"*",schema:"public",table:"project_tasks",filter:"company_id=eq."+companyId},()=>void load())
   .on("postgres_changes",{event:"INSERT",schema:"public",table:"notifications",filter:"recipient_user_id=eq."+currentUserId},(payload:any)=>{if(["project_update","project_task"].includes(payload.new?.notification_type))void load();})
   .subscribe();
   const timer=window.setInterval(()=>void load(),60000);
-  return()=>{window.clearInterval(timer);void supabase.removeChannel(channel);};
+  return()=>{window.clearInterval(timer);void client.removeChannel(channel);};
  },[load,companyId,currentUserId]);
  const selectedProject=projects.find(p=>p.id===selected)||projects[0]||null;
  useEffect(()=>{if(!selected&&projects.length)setSelected(projects[0].id);},[projects,selected]);
@@ -76,7 +76,7 @@ export default function ProjectManagement({companyId,currentUserId,currentRole,m
   }catch(err:any){alert(err.message||"Erreur lors de la création de la tâche.");}finally{setBusy(false);}
  }
  async function updateTask(task:Task,patch:Record<string,any>){
-  if(!supabase||!canEdit)return;const next={...patch,updated_at:new Date().toISOString()};
+  if(!supabase||!canEdit)return;const next:Record<string,any>={...patch,updated_at:new Date().toISOString()};
   if(patch.status==="done"){next.progress=100;next.completed_at=new Date().toISOString();}else if(patch.status&&patch.status!=="done")next.completed_at=null;
   const {error}=await supabase.from("project_tasks").update(next).eq("id",task.id).eq("company_id",companyId);
   if(error){alert(error.message);return;}
