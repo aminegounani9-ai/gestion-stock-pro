@@ -109,6 +109,14 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,ro
  async function updateSerial(id:string,status:string){if(!canWrite)return;const {error}=await supabase!.from("stock_serial_numbers").update({status}).eq("id",id).eq("company_id",companyId);if(error)alert(error.message);else await load();}
  const qrUrl=(value:string)=>`https://api.qrserver.com/v1/create-qr-code/?size=256x256&margin=1&ecc=M&data=${encodeURIComponent(value)}`;
  
+  function printQrBatch(items:any[]){
+    const list=items.filter(Boolean);if(!list.length){alert("Sélectionnez au moins une pièce.");return;}
+    const esc=(v:any)=>String(v??"—").replace(/[&<>"']/g,(m:string)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m] as string));
+    const labels=list.map(d=>{const p=d.products||{};const qr=qrUrl(String(p.sku||d.product_id||"").trim());return "<section class='label'><img class='qr' src='"+qr+"'><div><div class='brand'>GESTION STOCK PRO</div><div class='sku'>"+esc(p.sku)+"</div><div class='name'>"+esc(p.name)+"</div><div class='meta'>"+esc(categoryName(p.category_id))+" · "+esc(p.unit||"")+"</div></div></section>";}).join("");
+    const w=window.open("","_blank","width=900,height=700");if(!w){alert("Autorisez les fenêtres pop-up pour imprimer.");return;}
+    w.document.write("<!doctype html><html><head><meta charset='utf-8'><title>Etiquettes QR pièces</title><style>*{box-sizing:border-box}body{font:12px Arial;color:#18253b;margin:10mm}.grid{display:grid;grid-template-columns:repeat(2,72mm);gap:4mm;align-content:start}.label{width:72mm;min-height:32mm;border:1px solid #bcc7d6;border-radius:2mm;padding:2mm;display:grid;grid-template-columns:24mm 1fr;gap:2mm;align-items:center;break-inside:avoid}.qr{width:23mm;height:23mm;object-fit:contain}.brand{font-size:7px;letter-spacing:.5px;color:#536783;font-weight:bold}.sku{font-size:14px;font-weight:800;color:#203a68;margin:2mm 0}.name{font-size:11px;font-weight:bold;margin-bottom:2mm}.meta{font-size:8px;color:#526176}@media print{body{margin:5mm}.grid{gap:3mm}}</style></head><body><div class='grid'>"+labels+"</div><script>const imgs=[...document.images];let left=imgs.length;const done=()=>{left--;if(left<=0){window.focus();window.print()}};if(!left){window.print()}else imgs.forEach(i=>{if(i.complete)done();else{i.onload=done;i.onerror=done}});</script></body></html>");
+    w.document.close();
+  }
   function printQrLabel(d:any){
     const p=d.products||{},unit=orgUnits.find(x=>x.id===d.unit_id)?.name||"",site=orgSites.find(x=>x.id===d.site_id)?.name||"",eq=orgEquipment.find(x=>x.id===d.equipment_id),wh=warehouses.find(x=>x.id===d.warehouse_id),loc=storageLocations.find(x=>x.id===d.storage_location_id);
     const payload=String(p.sku||d.product_id||"").trim();
