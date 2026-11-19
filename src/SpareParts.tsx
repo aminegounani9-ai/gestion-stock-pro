@@ -66,7 +66,8 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,ro
  },[companyId]);
  useEffect(()=>{void load().catch((error:any)=>{setLoading(false);setLoadError(error?.message||"Impossible de charger les données du module.");});},[load]);
  useEffect(()=>{if(searchTerm)setSearch(searchTerm);},[searchTerm]);
- const categoryName=(id:string|null|undefined)=>categories.find((x:any)=>x.id===id)?.name||"—";\n const rows=useMemo(()=>details.filter(x=>(categoryFilter==="all"||x.products?.category_id===categoryFilter)&&[x.products?.sku,x.products?.name,x.part_number,x.manufacturer,x.equipment_tag,x.equipment_model,categoryName(x.products?.category_id)].join(" ").toLowerCase().includes(search.toLowerCase())),[details,search,categoryFilter,categories]);
+ const categoryName=(id:string|null|undefined)=>categories.find((x:any)=>x.id===id)?.name||"—";
+ const rows=useMemo(()=>details.filter(x=>(categoryFilter==="all"||x.products?.category_id===categoryFilter)&&[x.products?.sku,x.products?.name,x.part_number,x.manufacturer,x.equipment_tag,x.equipment_model,categoryName(x.products?.category_id)].join(" ").toLowerCase().includes(search.toLowerCase())),[details,search,categoryFilter,categories]);
  const trackingRequests=useMemo(()=>requests.filter((req:any)=>{const haystack=[req.request_number,req.requested_for,req.work_order_reference,req.equipment_tag,req.department,...(req.spare_part_request_items||[]).flatMap((it:any)=>[it.products?.sku,it.products?.name])].join(" ").toLowerCase();return (!requestSearch||haystack.includes(requestSearch.toLowerCase()))&&(requestStatus==="all"||req.status===requestStatus);}),[requests,requestSearch,requestStatus]);
  const requestCount=(status:string)=>requests.filter((r:any)=>r.status===status).length;
  const requestStatusLabel=(status:string)=>({submitted:"En attente",approved:"Approuvée",partially_issued:"Partiellement délivrée",fulfilled:"Délivrée",rejected:"Refusée",cancelled:"Annulée"} as Record<string,string>)[status]||status;
@@ -161,6 +162,7 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,ro
    <label>Référence interne (SKU)<input required value={form.sku||""} onChange={e=>setForm({...form,sku:e.target.value})} placeholder="Ex. MNT-0001"/></label>
    <label>Désignation de la pièce<input required value={form.name||""} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Ex. Roulement 6205-2RS"/></label>
    <label>Unité de mesure<select value={form.unit||"piece"} onChange={e=>setForm({...form,unit:e.target.value})}><option value="piece">Pièce</option><option value="set">Ensemble</option><option value="m">Mètre</option><option value="kg">Kg</option><option value="l">Litre</option><option value="pack">Paquet</option></select></label>
+   <label>Catégorie de la pièce<select value={form.category_id||""} onChange={e=>setForm({...form,category_id:e.target.value})}><option value="">— Sans catégorie —</option>{categories.map((x:any)=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
    <label>Prix d'achat unitaire<input type="number" min="0" step="0.01" value={form.purchase_price??"0"} onChange={e=>setForm({...form,purchase_price:e.target.value})}/></label>
    <label>Fabricant<input value={form.manufacturer||""} onChange={e=>setForm({...form,manufacturer:e.target.value})}/></label>
    <label>Référence fabricant<input value={form.part_number||form.manufacturer_reference||""} onChange={e=>setForm({...form,part_number:e.target.value,manufacturer_reference:e.target.value})}/></label>
