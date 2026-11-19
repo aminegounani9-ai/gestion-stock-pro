@@ -1031,3 +1031,13 @@ html,body,#root{width:100%;min-height:100%;overflow-x:hidden}
 .users-create-form .users-assignment-grid label{display:grid;gap:6px}
 .users-create-form input,.users-create-form select{width:100%;box-sizing:border-box}
 @media(max-width:760px){.users-create-form{grid-template-columns:1fr}.users-create-form>label,.users-create-form>.users-assignment-grid,.users-create-form>.primary-btn{grid-column:1}.users-assignment-grid{grid-template-columns:1fr}}
+
+/* Equipment creation workflow */
+.equipment-heading-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.equipment-create-modal{width:min(820px,calc(100vw - 28px));max-height:min(88vh,900px);overflow:auto}
+.equipment-create-modal .form-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.equipment-create-modal .form-grid label{min-width:0}
+.equipment-create-modal input,.equipment-create-modal select,.equipment-create-modal textarea{width:100%;box-sizing:border-box}
+.equipment-create-modal .span-2{grid-column:1/-1}
+.equipment-error{margin:10px 0;padding:10px 12px;border:1px solid #f1c7c7;border-radius:9px;background:#fff6f5;color:#a33b3b;font-size:12px}
+@media(max-width:650px){.equipment-create-modal .form-grid{grid-template-columns:1fr}.equipment-create-modal .span-2{grid-column:1}}
