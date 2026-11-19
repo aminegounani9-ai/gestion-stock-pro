@@ -1,5 +1,5 @@
-const CACHE_NAME = "gestion-stock-pro-shell-v1";
-const APP_SHELL = ["/", "/icon.svg", "/manifest.webmanifest"];
+const CACHE_NAME = "gestion-stock-pro-shell-v2";
+const APP_SHELL = ["/", "/icon.svg", "/icon-192.svg", "/icon-512.svg", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));
@@ -29,7 +29,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (url.pathname.startsWith("/assets/") || url.pathname === "/icon.svg" || url.pathname === "/manifest.webmanifest") {
+  if (url.pathname.startsWith("/assets/") || url.pathname === "/icon.svg" || url.pathname === "/icon-192.svg" || url.pathname === "/icon-512.svg" || url.pathname === "/manifest.webmanifest") {
     event.respondWith(
       caches.match(request).then((cached) => cached || fetch(request).then((response) => {
         if (response.ok) {
