@@ -108,7 +108,7 @@ export default function EquipmentManagement({companyId,lang,equipmentSeed,access
  }
 
  return <div className="equipment-module" dir={lang==="ar"?"rtl":"ltr"}>
-  <div className="page-heading"><div><h1>{t.title}</h1><p>{t.sub}</p></div><div className="equipment-heading-actions">{(access?.isAdmin||access?.canCreate)&&<button className="primary-btn" onClick={()=>{setCreateError("");setCreateOpen(true);}}><Plus size={16}/>{lang==="ar"?"إضافة معدة جديدة":lang==="en"?"Add equipment":"Ajouter un équipement"}</button>}<button className="secondary-btn" onClick={()=>void load()} title="Actualiser"><RefreshCw size={15}/></button></div></div>
+  <div className="page-heading"><div><h1>{t.title}</h1><p>{t.sub}</p></div><div className="equipment-heading-actions">{access?.isAdmin&&<button className="primary-btn" onClick={()=>{setCreateError("");setCreateOpen(true);}}><Plus size={16}/>{lang==="ar"?"إضافة معدة جديدة":lang==="en"?"Add equipment":"Ajouter un équipement"}</button>}<button className="secondary-btn" onClick={()=>void load()} title="Actualiser"><RefreshCw size={15}/></button></div></div>
   {error&&<div className="equipment-error">{error}</div>}
   <div className="equipment-layout">
    <aside className="panel equipment-list"><div className="equipment-list-head"><b>{t.all} ({filtered.length})</b><div className="equipment-search"><Search size={15}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t.search}/></div></div>
