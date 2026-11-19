@@ -137,7 +137,7 @@ export default function App() {
   const [orgDepartments,setOrgDepartments]=useState<any[]>([]);
   const [orgEquipment,setOrgEquipment]=useState<any[]>([]);
   const [scopePermissions,setScopePermissions]=useState({canView:false,canCreate:false,canEdit:false,canDelete:false,canApprove:false,canIssue:false,canReceive:false,canTransfer:false,canInventory:false});
-  const [modulePermissions,setModulePermissions]=useState<Record<string,{can_view:boolean}>>({});
+  const [modulePermissions,setModulePermissions]=useState<Record<string,any>>({});
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [movements, setMovements] = useState<any[]>([]);
@@ -254,9 +254,9 @@ export default function App() {
     setIsAdmin(chosenIsAdmin);
     if (chosen) {
       await loadWorkspace(chosen.id);
-      const {data:moduleRows,error:moduleError}=await supabase.from("user_module_permissions").select("module_key,can_view").eq("company_id",chosen.id).eq("user_id",userId);
+      const {data:moduleRows,error:moduleError}=await supabase.from("user_module_permissions").select("module_key,can_view,can_create,can_edit,can_delete,can_approve,can_issue,can_receive,can_transfer,can_inventory").eq("company_id",chosen.id).eq("user_id",userId);
       if(moduleError)throw moduleError;
-      setModulePermissions(Object.fromEntries((moduleRows??[]).map((row:any)=>[row.module_key,{can_view:row.can_view}])));
+      setModulePermissions(Object.fromEntries((moduleRows??[]).map((row:any)=>[row.module_key,row])));
       if (["owner","admin","manager","supervisor"].includes(chosenRole)) {
         const {data: memberRows,error: memberError} = await supabase.rpc("list_company_users",{p_company_id:chosen.id});
         if (memberError) throw memberError;
@@ -446,6 +446,7 @@ export default function App() {
 
   async function refreshTeam(){if(!supabase||!company)return;const [team,invites]=await Promise.all([supabase.rpc("list_company_users",{p_company_id:company.id}),supabase.from("user_invitations").select("id,email,role,expires_at,accepted_at").eq("company_id",company.id).order("created_at",{ascending:false})]);if(team.error)flash("error",team.error.message);else setMembers(team.data??[]);if(invites.error)flash("error",invites.error.message);else setInvitations(invites.data??[]);}
 
+  const accessFor = (key:string) => {const p=modulePermissions[key]||{};return {canView:p.can_view??scopePermissions.canView,canCreate:p.can_create??scopePermissions.canCreate,canEdit:p.can_edit??scopePermissions.canEdit,canDelete:p.can_delete??scopePermissions.canDelete,canApprove:p.can_approve??scopePermissions.canApprove,canIssue:p.can_issue??scopePermissions.canIssue,canReceive:p.can_receive??scopePermissions.canReceive,canTransfer:p.can_transfer??scopePermissions.canTransfer,canInventory:p.can_inventory??scopePermissions.canInventory,isAdmin};};
   const canManageUsers = ["owner","admin","manager","supervisor"].includes(currentRole);
   const visibleNav = nav.filter(item=>{if(item.id==="users")return canManageUsers;if(isAdmin)return true;if(item.id==="settings"||item.id==="organization")return false;if(currentRole==="sales")return ["dashboard","products","categories","customers","sales","returns","payments"].includes(item.id);if(item.id==="dashboard")return true;if(modulePermissions[item.id])return modulePermissions[item.id].can_view;return scopePermissions.canView||Object.values(scopePermissions).some(Boolean) ? ["spareParts","requests","stock","transfers","inventory","warehouses","locations","reports","equipment"].includes(item.id) : false;});
   const title = t[page];
@@ -494,9 +495,9 @@ export default function App() {
         
         {page==="sales"&&<section className="panel"><div className="panel-head"><div><h3>{t.sales}</h3><p>{sales.length} facture(s) · sortie de stock automatique</p></div><button className="primary-btn" disabled={currentRole==="viewer"} onClick={()=>{setForm({});setDocumentLines([{product_id:"",quantity:"",unit_price:"",discount:"0"}]);setModal("sale")}}><Plus size={16}/>Nouvelle vente</button></div>{sales.length?<div className="table-wrap"><table><thead><tr><th>N° facture</th><th>{t.customers}</th><th>Date</th><th>Statut</th><th>Total</th><th>Document</th></tr></thead><tbody>{sales.map(x=><tr key={x.id}><td><b>{x.invoice_number}</b></td><td>{x.customers?.name||"—"}</td><td>{new Date(x.sale_date).toLocaleDateString()}</td><td><span className="status-pill positive">{x.status}</span></td><td>{money(Number(x.total))}</td><td><button className="ops-icon-btn" title="Imprimer la facture" onClick={()=>void printDocument("sale",x.id)}><Printer size={15}/></button></td></tr>)}</tbody></table></div>:<Empty t={t}/>}</section>}
         {page==="equipment"&&<EquipmentManagement companyId={company.id} lang={lang} equipmentSeed={equipmentSeed} onRequestParts={id=>{setRequestEquipmentId(id);setPage("requests");}}/>}
-        {page==="spareParts"&&<SpareParts companyId={company.id} products={products} warehouses={warehouses} suppliers={suppliers} role={currentRole} access={{...scopePermissions,isAdmin}} lang={lang} searchTerm={search} view="parts" onSaved={()=>loadWorkspace(company.id)}/>}
-        {page==="requests"&&<SpareParts companyId={company.id} products={products} warehouses={warehouses} suppliers={suppliers} role={currentRole} access={{...scopePermissions,isAdmin}} lang={lang} searchTerm={search} view="requests" initialEquipmentId={requestEquipmentId} onSaved={()=>loadWorkspace(company.id)}/>}
-        {(page==="categories"||page==="transfers"||page==="inventory"||page==="locations"||page==="lots"||page==="returns"||page==="expenses"||page==="payments"||page==="reports")&&<StockOperations page={page} companyId={company.id} products={products} warehouses={warehouses} suppliers={suppliers} customers={customers} purchases={purchases} sales={sales} role={currentRole} access={{...scopePermissions,isAdmin}} money={money} lang={lang} onSaved={()=>loadWorkspace(company.id)}/>}
+        {page==="spareParts"&&<SpareParts companyId={company.id} products={products} warehouses={warehouses} suppliers={suppliers} role={currentRole} access={accessFor("spareParts")} lang={lang} searchTerm={search} view="parts" onSaved={()=>loadWorkspace(company.id)}/>}
+        {page==="requests"&&<SpareParts companyId={company.id} products={products} warehouses={warehouses} suppliers={suppliers} role={currentRole} access={accessFor("requests")} lang={lang} searchTerm={search} view="requests" initialEquipmentId={requestEquipmentId} onSaved={()=>loadWorkspace(company.id)}/>}
+        {(page==="categories"||page==="transfers"||page==="inventory"||page==="locations"||page==="lots"||page==="returns"||page==="expenses"||page==="payments"||page==="reports")&&<StockOperations page={page} companyId={company.id} products={products} warehouses={warehouses} suppliers={suppliers} customers={customers} purchases={purchases} sales={sales} role={currentRole} access={accessFor(page)} money={money} lang={lang} onSaved={()=>loadWorkspace(company.id)}/>}
         </ModuleErrorBoundary>
       </div>
       <footer className="app-footer"><span>© {new Date().getFullYear()} Gestion Stock Pro</span><span><ShieldCheck size={14}/> {lang==="ar"?"البيانات محمية بسياسات RLS":lang==="en"?"Data protected by RLS":"Données protégées par RLS"}</span></footer>
