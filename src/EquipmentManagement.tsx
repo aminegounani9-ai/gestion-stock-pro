@@ -21,9 +21,9 @@ export default function EquipmentManagement({companyId,lang,equipmentSeed,access
    supabase.from("org_equipment").select("id,equipment_tag,name,manufacturer,model,serial_number,location,notes,site_id,unit_id,service_id,department_id,status,created_at").eq("company_id",companyId).eq("is_active",true).order("name"),
    supabase.from("products").select("id,sku,name,unit,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
    supabase.from("org_sites").select("id,code,name").eq("company_id",companyId),
-   supabase.from("org_units").select("id,code,name").eq("company_id",companyId),
-   supabase.from("org_services").select("id,code,name").eq("company_id",companyId),
-   supabase.from("org_departments").select("id,code,name").eq("company_id",companyId)
+   supabase.from("org_units").select("id,code,name,site_id").eq("company_id",companyId),
+   supabase.from("org_services").select("id,code,name,site_id,unit_id").eq("company_id",companyId),
+   supabase.from("org_departments").select("id,code,name,site_id,unit_id,service_id").eq("company_id",companyId)
   ]);
   const loadError=[eq,pr,sites,units,services,departments].find(x=>x.error)?.error;
   if(loadError){setError(loadError.message||t.error);return;}
