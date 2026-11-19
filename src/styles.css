@@ -2054,3 +2054,5 @@ form,label,fieldset { min-width:0; }
 
 .pm-calendar-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}.pm-calendar-views{display:flex;gap:3px;padding:3px;border:1px solid #e3e9f1;border-radius:9px;background:#f6f8fb}.pm-calendar-views button{border:0;border-radius:7px;padding:6px 9px;background:transparent;color:#75849a;font-size:9px;font-weight:800;cursor:pointer}.pm-calendar-views button.active{background:#fff;color:#315fc4;box-shadow:0 1px 5px #243c5b18}.pm-calendar-grid.view-day{grid-template-columns:minmax(0,1fr)}.pm-calendar-grid.view-day .pm-calendar-day{min-height:145px}.pm-calendar-grid.view-week .pm-calendar-day{min-height:115px}
 @media(max-width:760px){.pm-calendar-tools{width:100%;justify-content:space-between;gap:7px}.pm-calendar-views button{padding:7px 8px}.pm-calendar-grid.view-week{grid-template-columns:repeat(7,minmax(72px,1fr));overflow-x:auto}.pm-calendar-grid.view-day .pm-calendar-day{min-height:120px}}
+
+.pms-small-delete{border:0;border-radius:6px;padding:5px 8px;background:#fff1ef;color:#bd5550;font-size:8px;font-weight:800;cursor:pointer}
