@@ -1719,3 +1719,11 @@ html,body,#root{width:100%;min-height:100%;overflow-x:hidden}
 .pm-donut{animation:pmDonutIn .8s cubic-bezier(.2,.8,.2,1) both}
 .pm-project-item,.pm-task-row{animation:gspSurfaceIn .35s ease both}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+
+/* Shared delete-action and standard modal animation across modules */
+.danger-action{color:#c2414b!important;border-color:#f2d5d8!important;background:#fff8f8!important}
+.danger-action:hover{background:#ffe9eb!important;transform:translateY(-1px)}
+.modal-backdrop{backdrop-filter:blur(8px);animation:gspSurfaceIn .2s ease both}
+.modal-card{animation:gspModalIn .28s cubic-bezier(.2,.8,.2,1) both}
+.simple-row,.table-wrap tbody tr{transition:background .2s ease,transform .2s ease}
+.simple-row:hover,.table-wrap tbody tr:hover{background:#f7faff}
