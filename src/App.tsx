@@ -273,6 +273,15 @@ export default function App() {
     } catch (error) { console.warn("Notification sound unavailable:", error); }
   },[soundEnabled]);
 
+  useEffect(()=>{
+    if(!("serviceWorker" in navigator))return;
+    const onWorkerMessage=(event:MessageEvent)=>{
+      if(event.data?.type==="APP_NOTIFICATION_PUSH")playNotificationSound();
+    };
+    navigator.serviceWorker.addEventListener("message",onWorkerMessage);
+    return()=>navigator.serviceWorker.removeEventListener("message",onWorkerMessage);
+  },[playNotificationSound]);
+
   const loadNotifications = useCallback(async () => {
     if(!supabase||!company||!session?.user?.id)return;
     const {data,error}=await supabase.from("notifications").select("id,title,message,notification_type,entity_type,entity_id,is_read,created_at").eq("company_id",company.id).eq("recipient_user_id",session.user.id).order("created_at",{ascending:false}).limit(30);
