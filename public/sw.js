@@ -1,4 +1,4 @@
-const CACHE_NAME = "gestion-stock-pro-shell-v3";
+const CACHE_NAME = "gestion-stock-pro-shell-v4";
 const APP_SHELL = ["/", "/icon.svg", "/icon-192.svg", "/icon-512.svg", "/sophal-mark.svg", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
