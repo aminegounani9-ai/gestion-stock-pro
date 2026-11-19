@@ -69,7 +69,7 @@ export default function SparePartsDashboard({companyId,currency,lang,onNavigate}
   {label:t.requests,value:fmt(metrics.openRequests.length),note:t.requestNote,icon:ClipboardList,tone:"teal",go:()=>onNavigate("requests")},
   {label:t.repairs,value:fmt(metrics.openRepairs.length),note:t.repairNote,icon:Wrench,tone:"slate",go:()=>onNavigate("spareParts")}
  ];
- return <div className="sp-dashboard">
+ return <div className="sp-dashboard" dir={lang==="ar"?"rtl":"ltr"}>
   <section className="sp-hero"><div><span className="sp-eyebrow">{t.eyebrow}</span><h2>{t.title}</h2><p>{t.subtitle}</p><small className="sp-live-note"><span/> {t.lastUpdate}</small></div><button className="sp-refresh" onClick={()=>void load()} disabled={loading}><RefreshCw size={15} className={loading?"sp-spin":""}/>{t.refresh}</button><div className="sp-hero-mark"><Boxes size={90}/></div></section>
   {error&&<div className="sp-error"><AlertTriangle size={16}/>{error}</div>}
   {loading&&details.length===0?<div className="sp-loading">{t.loading}</div>:<>
