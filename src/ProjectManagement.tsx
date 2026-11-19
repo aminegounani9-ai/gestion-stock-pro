@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Activity, AlertTriangle, Bell, CalendarDays, CheckCircle2, Clock3, FolderKanban, Plus, Search, Target, Users, Wallet, X, Pencil } from "lucide-react";
+import { Activity, AlertTriangle, Bell, CalendarDays, CheckCircle2, Clock3, FolderKanban, Plus, Search, Target, Users, Wallet, X, Pencil, Volume2, VolumeX } from "lucide-react";
 import { supabase } from "./lib/supabase";
 
 type Lang = "fr"|"en"|"ar";
@@ -18,10 +18,11 @@ export default function ProjectManagement({companyId,currentUserId,currentRole,m
  const t=words[lang], rtl=lang==="ar";
  const [projects,setProjects]=useState<Project[]>([]),[tasks,setTasks]=useState<Task[]>([]),[notifications,setNotifications]=useState<any[]>([]);
  const [selected,setSelected]=useState<string>(""),[tab,setTab]=useState<"overview"|"tasks"|"notifications">("overview");
- const [query,setQuery]=useState(""),[statusFilter,setStatusFilter]=useState("all"),[showProjectForm,setShowProjectForm]=useState(false),[showTaskForm,setShowTaskForm]=useState(false),[editingProjectId,setEditingProjectId]=useState<string|null>(null),[busy,setBusy]=useState(false);
+ const [query,setQuery]=useState(""),[statusFilter,setStatusFilter]=useState("all"),[showProjectForm,setShowProjectForm]=useState(false),[showTaskForm,setShowTaskForm]=useState(false),[editingProjectId,setEditingProjectId]=useState<string|null>(null),[busy,setBusy]=useState(false),[projectSoundEnabled,setProjectSoundEnabled]=useState(()=>localStorage.getItem("gsp_project_sound")!=="off");
  const [projectForm,setProjectForm]=useState<Record<string,string>>({project_code:"",name:"",project_type:"internal",priority:"medium",status:"planned",description:"",objectives:"",scope:"",sponsor:"",client_name:"",site:"",department:"",project_manager_id:currentUserId,responsible_user_id:"",start_date:new Date().toISOString().slice(0,10),target_end_date:"",budget:"0",actual_cost:"0",risk_level:"medium",success_criteria:"",notes:""});
  const [taskForm,setTaskForm]=useState<Record<string,string>>({title:"",description:"",status:"todo",priority:"medium",assigned_to:"",start_date:new Date().toISOString().slice(0,10),due_date:"",estimated_hours:"0",actual_hours:"0",progress:"0"});
  const canManage=["owner","admin","director","manager"].includes(currentRole);
+ const playProjectSound=useCallback(()=>{if(!projectSoundEnabled||typeof window==="undefined")return;try{const AC=(window as any).AudioContext||(window as any).webkitAudioContext;if(!AC)return;const ctx=new AC(),now=ctx.currentTime;[660,830,990].forEach((hz,i)=>{const osc=ctx.createOscillator(),gain=ctx.createGain();osc.frequency.value=hz;osc.type="sine";gain.gain.setValueAtTime(.0001,now+i*.12);gain.gain.exponentialRampToValueAtTime(.10,now+i*.12+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+i*.12+.17);osc.connect(gain);gain.connect(ctx.destination);osc.start(now+i*.12);osc.stop(now+i*.12+.19);});window.setTimeout(()=>void ctx.close(),800);}catch(e){console.warn("Project sound unavailable",e);}},[projectSoundEnabled]);
  const canEdit=canManage||currentRole==="project_responsible";
  const money=(v:number)=>new Intl.NumberFormat(lang==="en"?"en-US":lang==="ar"?"ar-DZ":"fr-DZ",{style:"currency",currency:currency||"DZD",maximumFractionDigits:0}).format(v||0);
  const load=useCallback(async()=>{
@@ -38,11 +39,11 @@ export default function ProjectManagement({companyId,currentUserId,currentRole,m
  useEffect(()=>{void load();const client=supabase;if(!client)return;const channel=client.channel("project-live-"+companyId+"-"+currentUserId)
   .on("postgres_changes",{event:"*",schema:"public",table:"projects",filter:"company_id=eq."+companyId},()=>void load())
   .on("postgres_changes",{event:"*",schema:"public",table:"project_tasks",filter:"company_id=eq."+companyId},()=>void load())
-  .on("postgres_changes",{event:"INSERT",schema:"public",table:"notifications",filter:"recipient_user_id=eq."+currentUserId},(payload:any)=>{if(["project_update","project_task"].includes(payload.new?.notification_type))void load();})
+  .on("postgres_changes",{event:"INSERT",schema:"public",table:"notifications",filter:"recipient_user_id=eq."+currentUserId},(payload:any)=>{if(["project_update","project_task"].includes(payload.new?.notification_type)){playProjectSound();void load();}})
   .subscribe();
   const timer=window.setInterval(()=>void load(),60000);
   return()=>{window.clearInterval(timer);void client.removeChannel(channel);};
- },[load,companyId,currentUserId]);
+ },[load,companyId,currentUserId,playProjectSound]);
  const selectedProject=projects.find(p=>p.id===selected)||projects[0]||null;
  useEffect(()=>{if(!selected&&projects.length)setSelected(projects[0].id);},[projects,selected]);
  const projectTasks=useMemo(()=>tasks.filter(x=>x.project_id===selectedProject?.id),[tasks,selectedProject?.id]);
@@ -61,7 +62,8 @@ export default function ProjectManagement({companyId,currentUserId,currentRole,m
  async function saveProject(e:React.FormEvent){
   e.preventDefault();if(!supabase||(!canManage&&!editingProjectId))return;setBusy(true);
   try{
-   const payload={...projectForm,company_id:companyId,project_code:projectForm.project_code.trim(),name:projectForm.name.trim(),budget:Number(projectForm.budget||0),actual_cost:Number(projectForm.actual_cost||0),project_manager_id:projectForm.project_manager_id||null,responsible_user_id:projectForm.responsible_user_id||null,start_date:projectForm.start_date||null,target_end_date:projectForm.target_end_date||null,updated_at:new Date().toISOString()};
+   const dateOrNull=(value:string)=>{const v=String(value??"").trim();return /^\d{4}-\d{2}-\d{2}$/.test(v)?v:null;};
+   const payload={company_id:companyId,project_code:projectForm.project_code.trim(),name:projectForm.name.trim(),project_type:projectForm.project_type||"internal",priority:projectForm.priority||"medium",status:projectForm.status||"planned",description:projectForm.description||null,objectives:projectForm.objectives||null,scope:projectForm.scope||null,site:projectForm.site||null,department:projectForm.department||null,project_manager_id:projectForm.project_manager_id||null,responsible_user_id:projectForm.responsible_user_id||null,start_date:dateOrNull(projectForm.start_date),target_end_date:dateOrNull(projectForm.target_end_date),budget:Number(projectForm.budget||0),actual_cost:Number(projectForm.actual_cost||0),risk_level:projectForm.risk_level||"medium",success_criteria:projectForm.success_criteria||null,notes:projectForm.notes||null,updated_at:new Date().toISOString()};
    let data:any,error:any;
    if(editingProjectId){const result=await supabase.from("projects").update(payload).eq("id",editingProjectId).eq("company_id",companyId).select().single();data=result.data;error=result.error;}
    else{const result=await supabase.from("projects").insert({...payload,created_by:currentUserId}).select().single();data=result.data;error=result.error;}
