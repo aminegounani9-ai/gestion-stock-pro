@@ -61,13 +61,14 @@ export default function ProjectManagement({companyId,currentUserId,currentRole,m
  const radarAxes=[{key:"todo",label:t.todo},{key:"in_progress",label:t.inProgress},{key:"blocked",label:t.blocked},{key:"review",label:t.review},{key:"done",label:t.taskDone}];
  const radarPoints=radarAxes.map((a,i)=>{const angle=-Math.PI/2+i*2*Math.PI/radarAxes.length;const value=taskCount.find(x=>x.key===a.key)?.count||0;const radius=14+(value/Math.max(1,tasks.length))*54;return{x:80+Math.cos(angle)*radius,y:76+Math.sin(angle)*radius,value};});
  const radarPolygon=radarPoints.map(x=>x.x+","+x.y).join(" ");
+
+ const labelStatus=(s:string)=>({planned:t.plannedStatus,in_progress:t.inProgress,on_hold:t.onHold,completed:t.done,cancelled:t.cancelled,todo:t.todo,blocked:t.blocked,review:t.review,done:t.taskDone}[s]||s);
+ const labelPriority=(s:string)=>({low:t.low,medium:t.medium,high:t.high,critical:t.critical}[s]||s);
  const budgetUsedPct=totalBudget?Math.min(100,Math.round(totalCost/totalBudget*100)):0;
  const riskKeys=["low","medium","high","critical"];
  const riskCount=riskKeys.map(key=>({key,label:labelPriority(key),count:projects.filter(x=>(x.risk_level||"medium")===key).length,color:({low:"#2da77b",medium:"#d6a04d",high:"#e17c43",critical:"#d94f5c"} as Record<string,string>)[key]}));
  const workload=members.map(m=>({id:m.user_id,label:m.email||m.full_name||m.user_id,count:tasks.filter(x=>x.assigned_to===m.user_id&&!["done","cancelled"].includes(x.status)).length})).filter(x=>x.count>0).sort((a,b)=>b.count-a.count).slice(0,6);
 
- const labelStatus=(s:string)=>({planned:t.plannedStatus,in_progress:t.inProgress,on_hold:t.onHold,completed:t.done,cancelled:t.cancelled,todo:t.todo,blocked:t.blocked,review:t.review,done:t.taskDone}[s]||s);
- const labelPriority=(s:string)=>({low:t.low,medium:t.medium,high:t.high,critical:t.critical}[s]||s);
  const roleLabel=(id:string)=>members.find(m=>m.user_id===id)?.email||"—";
  async function log(projectId:string,message:string,taskId?:string){await supabase?.from("project_activity").insert({company_id:companyId,project_id:projectId,task_id:taskId||null,actor_user_id:currentUserId,activity_type:"update",message});}
  async function saveProject(e:React.FormEvent){
