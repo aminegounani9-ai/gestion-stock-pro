@@ -941,3 +941,37 @@ html,body,#root{width:100%;min-height:100%;overflow-x:hidden}
 @media(min-width:761px){.top-actions>.mobile-logout{display:none!important}}
 
 .equipment-dossier-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0 16px}.equipment-qr img{width:64px!important;height:64px!important;object-fit:contain;image-rendering:pixelated}.equipment-qr{gap:5px}.equipment-qr small{font-size:10px}@media(max-width:760px){.equipment-dossier-actions{display:grid;grid-template-columns:1fr 1fr}.equipment-dossier-actions button{justify-content:center}}
+
+
+/* Global interface standardization — all application modules */
+:root{--ui-font:'DM Sans',sans-serif;--ui-font-heading:'Manrope',sans-serif;--ui-text:#263247;--ui-muted:#748198;--ui-border:#e1e6ef;--ui-border-soft:#edf0f5;--ui-surface:#fff;--ui-primary:#3157c8;--ui-radius:9px;--ui-control-height:38px}
+.app-shell{font-family:var(--ui-font);color:var(--ui-text);font-size:13px}
+.app-shell button,.app-shell input,.app-shell select,.app-shell textarea{font-family:var(--ui-font);font-size:12px}
+.app-shell button:not(.nav-item):not(.link-btn):not(.icon-btn){min-height:var(--ui-control-height);border-radius:var(--ui-radius)}
+.app-shell input:not([type=checkbox]):not([type=radio]),.app-shell select{min-height:var(--ui-control-height);border:1px solid var(--ui-border);border-radius:var(--ui-radius);padding:0 10px;color:var(--ui-text);background:var(--ui-surface);outline:none;transition:border-color .16s,box-shadow .16s}
+.app-shell textarea{border:1px solid var(--ui-border);border-radius:var(--ui-radius);padding:9px 10px;color:var(--ui-text);background:var(--ui-surface);outline:none;resize:vertical}
+.app-shell input:focus,.app-shell select:focus,.app-shell textarea:focus{border-color:#7892dc!important;box-shadow:0 0 0 3px #3157c814!important}
+.app-shell input::placeholder,.app-shell textarea::placeholder{color:#a0a9b8}
+.app-shell button{transition:background-color .16s,border-color .16s,color .16s,box-shadow .16s,transform .16s}
+.app-shell button:disabled{opacity:.55;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+.app-shell .primary-btn{min-height:38px;padding:0 14px;background:var(--ui-primary);border:1px solid var(--ui-primary);border-radius:9px;font-size:11px;font-weight:700}
+.app-shell .secondary-btn,.app-shell .ops-icon-btn,.app-shell .ops-add-line{min-height:36px;border:1px solid var(--ui-border);border-radius:9px;font-size:11px;font-weight:600}
+.app-shell .panel,.app-shell .stat-card,.app-shell .modal-card{border-color:var(--ui-border-soft);border-radius:12px}
+.app-shell .panel{box-shadow:0 2px 10px #1d315006}
+.app-shell .panel-head h3,.app-shell .page-heading h1,.app-shell .modal-head h2{font-family:var(--ui-font-heading);letter-spacing:-.25px}
+.app-shell .page-heading h1{font-size:24px}
+.app-shell .panel-head h3{font-size:14px}
+.app-shell .form-grid label,.app-shell .ops-fields label,.app-shell .ops-period label{font-size:11px;line-height:1.4;color:#59677e;gap:6px}
+.app-shell .table-wrap{border-radius:9px}
+.app-shell table{border-collapse:separate;border-spacing:0;white-space:nowrap}
+.app-shell table th{height:38px;padding:10px 11px;background:#f7f8fb;color:#758198;border-bottom:1px solid var(--ui-border);font-size:9px;font-weight:700;letter-spacing:.55px}
+.app-shell table td{padding:10px 11px;border-bottom:1px solid #edf0f4;color:#536078;font-size:11px;line-height:1.45;vertical-align:middle}
+.app-shell table tbody tr{transition:background-color .12s}
+.app-shell table tbody tr:hover{background:#f8faff}
+.app-shell table tbody tr:last-child td{border-bottom:0}
+.app-shell table td b{font-size:11px}
+.app-shell .status-pill{min-height:23px;padding:4px 8px;font-size:9px;font-weight:700}
+.app-shell .qr-part{min-width:0;min-height:0;padding:4px 6px;border-radius:7px;gap:2px}
+.app-shell .qr-part img{width:42px;height:42px;object-fit:contain;image-rendering:pixelated}
+.app-shell .qr-part small{font-size:8px}
+@media(max-width:760px){.app-shell .page-heading h1{font-size:21px}.app-shell table th{padding:9px 8px}.app-shell table td{padding:9px 8px;font-size:10px}.app-shell .qr-part img{width:40px;height:40px}}
