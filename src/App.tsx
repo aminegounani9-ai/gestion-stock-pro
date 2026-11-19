@@ -129,7 +129,8 @@ export default function App() {
   const [company, setCompany] = useState<Company|null>(null);
   const [settingsForm,setSettingsForm] = useState<Record<string,string>>({});
   const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);\n  const [productCategoryFilter,setProductCategoryFilter]=useState("all");
+  const [categories, setCategories] = useState<any[]>([]);
+  const [productCategoryFilter,setProductCategoryFilter]=useState("all");
   const [warehouses, setWarehouses] = useState<any[]>([]);
   const [orgSites,setOrgSites]=useState<any[]>([]);
   const [orgUnits,setOrgUnits]=useState<any[]>([]);
