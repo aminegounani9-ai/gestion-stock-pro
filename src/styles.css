@@ -1993,7 +1993,7 @@ form,label,fieldset { min-width:0; }
   font-family:inherit!important; font-size:13px!important; font-weight:600!important; line-height:1.2!important; cursor:pointer!important;
 }
 .form-collapse-toggle:hover { background:#e9eff7!important; border-color:#b9c9dc!important; }
-.form-is-collapsed > :not(.modal-head):not(header):not(.panel-head) { display:none!important; }
+.form-is-collapsed > :not(.modal-head):not(header):not(.panel-head):not(.panel) { display:none!important; }
 .form-is-collapsed > .panel > :not(.panel-head) { display:none!important; }
 .form-is-collapsed { padding-bottom:0!important; }
 .form-is-collapsed > .modal-head,
