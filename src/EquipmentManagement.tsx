@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import type { FormEvent } from "react";
 import { supabase } from "./lib/supabase";
 import { Search, Wrench, Package, History, Plus, X, Printer, RefreshCw, ClipboardList, FileDown } from "lucide-react";
 
@@ -74,7 +75,7 @@ export default function EquipmentManagement({companyId,lang,equipmentSeed,access
  const consumed=history.reduce((n:number,r:any)=>n+(r.spare_part_request_items||[]).reduce((s:number,i:any)=>s+Number(i.issued_quantity||0),0),0);
  const qrUrl=current?.equipment_tag||selected;
  const qrImage="https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=1&ecc=M&data="+encodeURIComponent(qrUrl);
- async function createEquipment(event:React.FormEvent<HTMLFormElement>){
+ async function createEquipment(event:FormEvent<HTMLFormElement>){
   event.preventDefault();if(!supabase)return;
   const tag=newEquipment.equipment_tag.trim();const name=newEquipment.name.trim();
   if(!tag||!name||!newEquipment.site_id){setCreateError(lang==="ar"?"الرمز والاسم والموقع حقول إجبارية.":lang==="en"?"Equipment tag, name and site are required.":"Le tag, le nom et le site sont obligatoires.");return;}
