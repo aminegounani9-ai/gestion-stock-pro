@@ -24,7 +24,7 @@ type AppNotification = { id:string; title:string; message:string; notification_t
 
 const copy = {
   fr: {
-    dashboard:"Tableau de bord", requests:"Demande de pièces", organization:"Organisation & affectations", locations:"Emplacements de stockage", lots:"Lots & péremption", spareParts:"Pièces détachées", equipment:"Équipements", products:"Articles", categories:"Catégories", stock:"Mouvements de stock", warehouses:"Entrepôts", transfers:"Transferts", inventory:"Inventaires", returns:"Retours", expenses:"Dépenses", payments:"Paiements", reports:"Rapports", users:"Utilisateurs", settings:"Paramètres",
+    dashboard:"Tableau de bord", requests:"Demande de pièces", organization:"Organisation & affectations", locations:"Emplacements de stockage", lots:"Lots & péremption", spareParts:"Pièces de rechange", equipment:"Équipements", products:"Articles", categories:"Catégories", stock:"Mouvements de stock", warehouses:"Entrepôts", transfers:"Transferts", inventory:"Inventaires", returns:"Retours", expenses:"Dépenses", payments:"Paiements", reports:"Rapports", users:"Utilisateurs", settings:"Paramètres",
     suppliers:"Fournisseurs", customers:"Clients", purchases:"Achats", sales:"Ventes",
     search:"Rechercher un article, un code...", welcome:"Vue d'ensemble", subtitle:"Suivez votre activité et votre stock en temps réel.",
     items:"Articles actifs", suppliersCount:"Fournisseurs", warehousesCount:"Entrepôts", movements:"Mouvements", movementSearch:"Rechercher une opération...", exportMovements:"Exporter CSV",
