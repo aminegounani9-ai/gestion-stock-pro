@@ -16,16 +16,10 @@
   "theme_color": "#172554",
   "icons": [
     {
-      "src": "https://unop-dz.org/images/logos/sophal.png",
-      "sizes": "any",
-      "type": "image/png",
+      "src": "/sophal-icon.jpg",
+      "sizes": "384x512",
+      "type": "image/jpeg",
       "purpose": "any"
-    },
-    {
-      "src": "https://unop-dz.org/images/logos/sophal.png",
-      "sizes": "any",
-      "type": "image/png",
-      "purpose": "maskable"
     }
   ]
 }
