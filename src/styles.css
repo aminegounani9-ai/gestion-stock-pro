@@ -940,4 +940,4 @@ html,body,#root{width:100%;min-height:100%;overflow-x:hidden}
 /* Logout shortcut is reserved for compact mobile navigation. */
 @media(min-width:761px){.top-actions>.mobile-logout{display:none!important}}
 
-.equipment-dossier-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0 16px}.equipment-qr img{width:76px!important;height:76px!important;object-fit:contain;image-rendering:pixelated}.equipment-qr{gap:5px}.equipment-qr small{font-size:10px}@media(max-width:760px){.equipment-dossier-actions{display:grid;grid-template-columns:1fr 1fr}.equipment-dossier-actions button{justify-content:center}}
+.equipment-dossier-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0 16px}.equipment-qr img{width:64px!important;height:64px!important;object-fit:contain;image-rendering:pixelated}.equipment-qr{gap:5px}.equipment-qr small{font-size:10px}@media(max-width:760px){.equipment-dossier-actions{display:grid;grid-template-columns:1fr 1fr}.equipment-dossier-actions button{justify-content:center}}
