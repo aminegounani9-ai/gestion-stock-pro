@@ -98,12 +98,16 @@ const nav: { id: Page; icon: typeof LayoutDashboard; group: string }[] = [
   { id:"dashboard", icon:LayoutDashboard, group:"workspace" },
   { id:"spareParts", icon:Wrench, group:"workspace" },
   { id:"requests", icon:ClipboardCheck, group:"workspace" },
+  { id:"equipment", icon:Cog, group:"workspace" },
   { id:"stock", icon:Activity, group:"workspace" },
   { id:"warehouses", icon:Warehouse, group:"workspace" },
   { id:"locations", icon:Boxes, group:"workspace" },
   { id:"transfers", icon:ArrowLeftRight, group:"workspace" },
   { id:"inventory", icon:ClipboardCheck, group:"workspace" },
-  { id:"reports", icon:BarChart3, group:"workspace" }
+  { id:"reports", icon:BarChart3, group:"workspace" },
+  { id:"users", icon:Users, group:"administration" },
+  { id:"organization", icon:Building2, group:"administration" },
+  { id:"settings", icon:Settings, group:"administration" }
 ];
 
 export default function App() {
