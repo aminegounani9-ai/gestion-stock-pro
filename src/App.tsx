@@ -17,7 +17,7 @@ import ModuleErrorBoundary from "./ModuleErrorBoundary";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 import type { Company, Product } from "./lib/supabase";
 
-type Page = "dashboard" | "requests" | "products" | "categories" | "stock" | "warehouses" | "suppliers" | "customers" | "purchases" | "sales" | "transfers" | "inventory" | "locations" | "lots" | "spareParts" | "returns" | "expenses" | "payments" | "reports" | "users" | "settings" | "organization" | "equipment";
+type Page = "dashboard" | "requests" | "products" | "categories" | "stock" | "warehouses" | "suppliers" | "transfers" | "inventory" | "locations" | "lots" | "spareParts" | "reports" | "users" | "settings" | "organization" | "equipment";
 type Lang = "fr" | "en" | "ar";
 type Notice = { type: "success" | "error"; text: string } | null;
 type AppNotification = { id:string; title:string; message:string; notification_type:string; entity_type:string|null; entity_id:string|null; is_read:boolean; created_at:string };
@@ -95,29 +95,23 @@ const copy = {
 type Labels = { [K in keyof typeof copy.fr]: string };
 
 const nav: { id: Page; icon: typeof LayoutDashboard; group: string }[] = [
-  { id:"dashboard", icon:LayoutDashboard, group:"main" },
-  { id:"products", icon:Package, group:"main" },
-  { id:"categories", icon:Boxes, group:"main" },
-  { id:"spareParts", icon:Wrench, group:"main" },
-  { id:"equipment", icon:Wrench, group:"main" },
-  { id:"requests", icon:ClipboardCheck, group:"main" },
-  { id:"stock", icon:Activity, group:"main" },
-  { id:"warehouses", icon:Warehouse, group:"main" },
-  { id:"locations", icon:Boxes, group:"main" },
-  { id:"transfers", icon:ArrowLeftRight, group:"main" },
-  { id:"inventory", icon:ClipboardCheck, group:"main" },
-  { id:"lots", icon:Boxes, group:"main" },
-  { id:"suppliers", icon:Truck, group:"operations" },
-  { id:"customers", icon:Users, group:"operations" },
-  { id:"purchases", icon:Package, group:"operations" },
-  { id:"sales", icon:Activity, group:"operations" },
-  { id:"returns", icon:ArrowLeftRight, group:"operations" },
-  { id:"expenses", icon:Activity, group:"operations" },
-  { id:"payments", icon:ClipboardCheck, group:"operations" },
-  { id:"reports", icon:BarChart3, group:"operations" },
-  { id:"organization", icon:Building2, group:"admin" },
-  { id:"users", icon:UserCog, group:"admin" },
-  { id:"settings", icon:Settings, group:"admin" },
+  { id:"dashboard", icon:LayoutDashboard, group:"workspace" },
+  { id:"products", icon:Package, group:"workspace" },
+  { id:"categories", icon:Boxes, group:"workspace" },
+  { id:"spareParts", icon:Wrench, group:"workspace" },
+  { id:"equipment", icon:Wrench, group:"workspace" },
+  { id:"requests", icon:ClipboardCheck, group:"workspace" },
+  { id:"stock", icon:Activity, group:"workspace" },
+  { id:"warehouses", icon:Warehouse, group:"workspace" },
+  { id:"locations", icon:Boxes, group:"workspace" },
+  { id:"transfers", icon:ArrowLeftRight, group:"workspace" },
+  { id:"inventory", icon:ClipboardCheck, group:"workspace" },
+  { id:"lots", icon:Boxes, group:"workspace" },
+  { id:"suppliers", icon:Truck, group:"workspace" },
+  { id:"reports", icon:BarChart3, group:"workspace" },
+  { id:"organization", icon:Building2, group:"administration" },
+  { id:"users", icon:UserCog, group:"administration" },
+  { id:"settings", icon:Settings, group:"administration" },
 ];
 
 export default function App() {
@@ -155,6 +149,7 @@ export default function App() {
   const [sales, setSales] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
   const [invitations,setInvitations]=useState<any[]>([]);
+  const [myScopeAssignments,setMyScopeAssignments]=useState<any[]>([]);
   const [companyRoles, setCompanyRoles] = useState<Record<string,string>>({});
   const [currentRole, setCurrentRole] = useState("viewer");
   const [isAdmin, setIsAdmin] = useState(false);
@@ -224,9 +219,10 @@ export default function App() {
     const orgError=[os,ou,ov,od,oe].find(x=>x.error)?.error;if(orgError)throw orgError;
     setOrgSites(os.data??[]);setOrgUnits(ou.data??[]);setOrgServices(ov.data??[]);setOrgDepartments(od.data??[]);setOrgEquipment((oe.data??[]).map(x=>({...x,is_active:true})));
     const {data:{user:scopeUser}}=await supabase.auth.getUser();
-    const scopeResult=scopeUser?await supabase.from("user_scope_assignments").select("can_view,can_create,can_edit,can_delete,can_approve,can_issue,can_receive,can_transfer,can_inventory").eq("company_id",companyId).eq("user_id",scopeUser.id):{data:[],error:null};
+    const scopeResult=scopeUser?await supabase.from("user_scope_assignments").select("scope_type,scope_id,job_title,can_view,can_create,can_edit,can_delete,can_approve,can_issue,can_receive,can_transfer,can_inventory").eq("company_id",companyId).eq("user_id",scopeUser.id):{data:[],error:null};
     if(scopeResult.error)throw scopeResult.error;
     const userScopes=scopeResult.data??[];
+    setMyScopeAssignments(userScopes);
     setScopePermissions({canView:userScopes.some(x=>x.can_view),canCreate:userScopes.some(x=>x.can_create),canEdit:userScopes.some(x=>x.can_edit),canDelete:userScopes.some(x=>x.can_delete),canApprove:userScopes.some(x=>x.can_approve),canIssue:userScopes.some(x=>x.can_issue),canReceive:userScopes.some(x=>x.can_receive),canTransfer:userScopes.some(x=>x.can_transfer),canInventory:userScopes.some(x=>x.can_inventory)});
     setProducts((p.data ?? []) as Product[]);
     setWarehouses(w.data ?? []);
@@ -458,7 +454,7 @@ export default function App() {
 
   const accessFor = (key:string) => {const p=modulePermissions[key]||{};return {canView:p.can_view??scopePermissions.canView,canCreate:p.can_create??scopePermissions.canCreate,canEdit:p.can_edit??scopePermissions.canEdit,canDelete:p.can_delete??scopePermissions.canDelete,canApprove:p.can_approve??scopePermissions.canApprove,canIssue:p.can_issue??scopePermissions.canIssue,canReceive:p.can_receive??scopePermissions.canReceive,canTransfer:p.can_transfer??scopePermissions.canTransfer,canInventory:p.can_inventory??scopePermissions.canInventory,isAdmin};};
   const canManageUsers = ["owner","admin","manager","supervisor"].includes(currentRole);
-  const visibleNav = nav.filter(item=>{if(item.id==="users")return canManageUsers;if(isAdmin)return true;if(item.id==="settings"||item.id==="organization")return false;if(currentRole==="sales")return ["dashboard","products","categories","customers","sales","returns","payments"].includes(item.id);if(item.id==="dashboard")return true;if(modulePermissions[item.id])return modulePermissions[item.id].can_view;return scopePermissions.canView||Object.values(scopePermissions).some(Boolean) ? ["spareParts","requests","stock","transfers","inventory","warehouses","locations","reports","equipment"].includes(item.id) : false;});
+  const visibleNav = nav.filter(item=>{if(item.id==="users")return canManageUsers;if(isAdmin)return true;if(item.id==="settings"||item.id==="organization")return false;if(item.id==="dashboard")return true;if(modulePermissions[item.id])return modulePermissions[item.id].can_view;return scopePermissions.canView||Object.values(scopePermissions).some(Boolean) ? ["spareParts","requests","stock","transfers","inventory","warehouses","locations","reports","equipment","products","categories","suppliers"].includes(item.id) : false;});
   const title = t[page];
   const money = (value:number) => new Intl.NumberFormat(lang==="en"?"en-US":lang==="ar"?"ar-DZ":"fr-DZ",{style:"currency",currency:company?.currency_code||"DZD",maximumFractionDigits:0}).format(value||0);
   const documentGross=documentLines.reduce((sum,line)=>sum+Math.max(0,Number(line.quantity||0))*Math.max(0,Number(line.unit_price||0)),0);
@@ -481,7 +477,7 @@ export default function App() {
     <aside className="sidebar">
       <div className="brand"><span className="brand-mark sophal-brand-mark"><img className="sophal-brand-image" src="/sophal-mark.svg" alt="SOPHAL" /></span><div><b>Gestion Stock</b><small>PRO MANAGEMENT</small></div></div>
       <div className="workspace-switch"><span className="workspace-icon"><Building2 size={17}/></span><div><small>{t.chooseCompany}</small><select className="workspace-select" value={company.id} onChange={async e=>{const selected=companies.find(c=>c.id===e.target.value);if(selected){const role=companyRoles[selected.id]||"viewer";setCompany(selected);setSettingsForm({name:selected.name,legal_name:selected.legal_name||"",tax_number:selected.tax_number||"",phone:selected.phone||"",email:selected.email||"",address:selected.address||"",city:selected.city||"",country:selected.country||"Algeria",currency_code:selected.currency_code||"DZD"});setCurrentRole(role);const admin=["owner","admin"].includes(role);const canManage=["owner","admin","manager","supervisor"].includes(role);setIsAdmin(admin);await loadWorkspace(selected.id);const moduleRows=await supabase?.from("user_module_permissions").select("module_key,can_view").eq("company_id",selected.id).eq("user_id",session.user.id);if(moduleRows?.error)flash("error",moduleRows.error.message);else setModulePermissions(Object.fromEntries((moduleRows?.data??[]).map((row:any)=>[row.module_key,{can_view:row.can_view}])));if(canManage){const result=await supabase?.rpc("list_company_users",{p_company_id:selected.id});if(result?.error)flash("error",result.error.message);else setMembers(result?.data??[]);const invites=await supabase?.from("user_invitations").select("id,email,role,expires_at,accepted_at").eq("company_id",selected.id).order("created_at",{ascending:false});if(invites?.error)flash("error",invites.error.message);else setInvitations(invites?.data??[])}else{setMembers([]);setInvitations([])}}}}>{companies.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></div><ChevronDown size={15}/></div>
-      <nav className="sidebar-navigation">{(["main","operations","admin"] as const).map(group=>{const items=visibleNav.filter(item=>item.group===group);if(!items.length)return null;const groupLabel=group==="main"?(lang==="ar"?"العمليات اليومية":lang==="en"?"WORKSPACE":"ESPACE DE TRAVAIL"):group==="operations"?(lang==="ar"?"التقارير والتحليل":lang==="en"?"INSIGHTS":"PILOTAGE"):(lang==="ar"?"الإدارة":lang==="en"?"ADMINISTRATION":"ADMINISTRATION");return <div className="nav-group" key={group}><div className="nav-group-title">{groupLabel}</div>{items.map(item=>{const Icon=item.icon;const label=t[item.id];return <button key={item.id} type="button" title={label} aria-label={label} aria-current={page===item.id?"page":undefined} className={"nav-item "+(page===item.id?"active":"")} onClick={()=>setPage(item.id)}><Icon size={18}/><span>{label}</span>{item.id==="stock"&&<i className="nav-dot"/>}</button>})}</div>})}</nav>
+      <nav className="sidebar-navigation">{(["workspace","administration"] as const).map(group=>{const items=visibleNav.filter(item=>item.group===group);if(!items.length)return null;const groupLabel=group==="workspace"?(lang==="ar"?"مساحة العمل":lang==="en"?"WORKSPACE":"ESPACE DE TRAVAIL"):(lang==="ar"?"إدارة النظام":lang==="en"?"ADMINISTRATION":"ADMINISTRATION");return <div className="nav-group" key={group}><div className="nav-group-title">{groupLabel}</div>{items.map(item=>{const Icon=item.icon;const label=t[item.id];return <button key={item.id} type="button" title={label} aria-label={label} aria-current={page===item.id?"page":undefined} className={"nav-item "+(page===item.id?"active":"")} onClick={()=>setPage(item.id)}><Icon size={18}/><span>{label}</span>{item.id==="stock"&&<i className="nav-dot"/>}</button>})}</div>})}</nav>
       <div className="sidebar-bottom"><div className="help-card"><CircleHelp size={18}/><b>Besoin d'aide ?</b><span>Votre gestion, simplifiée.</span></div><button className="nav-item" onClick={()=>setLang(lang==="fr"?"en":lang==="en"?"ar":"fr")}><Languages size={18}/><span>{t.language}: {lang.toUpperCase()}</span></button><button className="nav-item" onClick={signOut}><LogOut size={18}/><span>{t.logout}</span></button><div className="user-mini"><div className="avatar">{session.user.email?.slice(0,1).toUpperCase()}</div><div><b>{session.user.email?.split("@")[0]}</b><small>{session.user.email}</small></div><Settings size={16}/></div></div>
     </aside>
     <main className="main-area">
@@ -499,7 +495,7 @@ export default function App() {
         {page==="stock"&&<section className="panel"><div className="panel-head"><div><h3>{t.stock}</h3><p>{filteredMovements.length} / {movements.length} {t.movements.toLowerCase()}</p></div><div className="table-search"><Search size={15}/><input aria-label={t.movementSearch} placeholder={t.movementSearch} value={movementSearch} onChange={e=>setMovementSearch(e.target.value)}/><button type="button" className="secondary-btn" onClick={exportMovements} disabled={!filteredMovements.length}>{t.exportMovements}</button></div></div>{filteredMovements.length?<div className="table-wrap"><table><thead><tr><th>{t.name}</th><th>{t.movementType}</th><th>{t.quantity}</th><th>{t.warehouse}</th><th>Date</th></tr></thead><tbody>{filteredMovements.map((m:any)=><tr key={m.id}><td><b>{m.products?.name||"—"}</b><small className="cell-sub">{m.products?.sku}</small></td><td><span className="status-pill">{m.movement_type}</span></td><td>{m.quantity}</td><td>{m.warehouses?.name||"—"}</td><td>{new Date(m.occurred_at).toLocaleDateString()}</td></tr>)}</tbody></table></div>:<Empty t={t}/>}</section>}
         {page==="purchases"&&<section className="panel"><div className="panel-head"><div><h3>{t.purchases}</h3><p>{purchases.length} commande(s) · réception automatique en stock</p></div><button className="primary-btn" disabled={currentRole==="viewer"} onClick={()=>{setForm({});setDocumentLines([{product_id:"",quantity:"",unit_price:"",discount:"0"}]);setModal("purchase")}}><Plus size={16}/>Nouvel achat</button></div>{purchases.length?<div className="table-wrap"><table><thead><tr><th>N° CA</th><th>{t.suppliers}</th><th>Date</th><th>Statut</th><th>Total</th><th>Document</th></tr></thead><tbody>{purchases.map(x=><tr key={x.id}><td><b>{x.order_number}</b></td><td>{x.suppliers?.name||"—"}</td><td>{new Date(x.order_date).toLocaleDateString()}</td><td><span className="status-pill positive">{x.status}</span></td><td>{money(Number(x.subtotal))}</td><td><button className="ops-icon-btn" title="Imprimer le bon" onClick={()=>void printDocument("purchase",x.id)}><Printer size={15}/></button></td></tr>)}</tbody></table></div>:<Empty t={t}/>}</section>}
         {page==="settings"&&isAdmin&&<section className="panel"><div className="panel-head"><div><h3>{lang==="ar"?"إعدادات الشركة":lang==="en"?"Company settings":"Paramètres de l'entreprise"}</h3><p>{lang==="ar"?"المعلومات القانونية وبيانات الاتصال المستخدمة في الوثائق المطبوعة":lang==="en"?"Legal details and contact information used on printed documents":"Informations légales et coordonnées utilisées sur les documents imprimés"}</p></div></div><form className="form-grid" onSubmit={saveCompanySettings}><label>{lang==="ar"?"الاسم التجاري":lang==="en"?"Company name":"Nom commercial"}<input value={settingsForm.name||""} onChange={e=>setSettingsForm({...settingsForm,name:e.target.value})} required/></label><label>{lang==="ar"?"الاسم القانوني":lang==="en"?"Legal name":"Raison sociale"}<input value={settingsForm.legal_name||""} onChange={e=>setSettingsForm({...settingsForm,legal_name:e.target.value})}/></label><label>{lang==="ar"?"الرقم الجبائي":lang==="en"?"Tax ID":"NIF / Identifiant fiscal"}<input value={settingsForm.tax_number||""} onChange={e=>setSettingsForm({...settingsForm,tax_number:e.target.value})}/></label><label>{lang==="ar"?"الهاتف":lang==="en"?"Phone":"Téléphone"}<input value={settingsForm.phone||""} onChange={e=>setSettingsForm({...settingsForm,phone:e.target.value})}/></label><label>{lang==="ar"?"البريد الإلكتروني":lang==="en"?"Email":"E-mail"}<input type="email" value={settingsForm.email||""} onChange={e=>setSettingsForm({...settingsForm,email:e.target.value})}/></label><label>{lang==="ar"?"المدينة":lang==="en"?"City":"Ville"}<input value={settingsForm.city||""} onChange={e=>setSettingsForm({...settingsForm,city:e.target.value})}/></label><label className="span-2">{lang==="ar"?"العنوان":lang==="en"?"Address":"Adresse"}<input value={settingsForm.address||""} onChange={e=>setSettingsForm({...settingsForm,address:e.target.value})}/></label><label>{lang==="ar"?"البلد":lang==="en"?"Country":"Pays"}<input value={settingsForm.country||"Algeria"} onChange={e=>setSettingsForm({...settingsForm,country:e.target.value})}/></label><label>{lang==="ar"?"العملة":lang==="en"?"Currency":"Devise"}<select value={settingsForm.currency_code||"DZD"} onChange={e=>setSettingsForm({...settingsForm,currency_code:e.target.value})}><option value="DZD">DZD · Dinar algérien</option><option value="EUR">EUR · Euro</option><option value="USD">USD · Dollar américain</option></select></label><div className="span-2 modal-actions"><button className="primary-btn" disabled={busy}>{busy?t.loading:t.save}</button></div></form></section>}
-        {page==="users"&&canManageUsers&&<UserManagement companyId={company.id} currentUserId={session.user.id} currentRole={currentRole} members={members} invitations={invitations} onRefresh={()=>void refreshTeam()} onNotice={flash} lang={lang}/>}
+        {page==="users"&&canManageUsers&&<UserManagement companyId={company.id} currentUserId={session.user.id} currentRole={currentRole} members={members} myScopes={myScopeAssignments} sites={orgSites} units={orgUnits} services={orgServices} departments={orgDepartments} warehouses={warehouses} equipment={orgEquipment} onRefresh={()=>void refreshTeam()} onNotice={flash} lang={lang}/>}
         {page==="organization"&&isAdmin&&<OrganizationManagement companyId={company.id} members={members} currentUserId={session.user.id} onNotice={flash} lang={lang}/>}
         
         {page==="sales"&&<section className="panel"><div className="panel-head"><div><h3>{t.sales}</h3><p>{sales.length} facture(s) · sortie de stock automatique</p></div><button className="primary-btn" disabled={currentRole==="viewer"} onClick={()=>{setForm({});setDocumentLines([{product_id:"",quantity:"",unit_price:"",discount:"0"}]);setModal("sale")}}><Plus size={16}/>Nouvelle vente</button></div>{sales.length?<div className="table-wrap"><table><thead><tr><th>N° facture</th><th>{t.customers}</th><th>Date</th><th>Statut</th><th>Total</th><th>Document</th></tr></thead><tbody>{sales.map(x=><tr key={x.id}><td><b>{x.invoice_number}</b></td><td>{x.customers?.name||"—"}</td><td>{new Date(x.sale_date).toLocaleDateString()}</td><td><span className="status-pill positive">{x.status}</span></td><td>{money(Number(x.total))}</td><td><button className="ops-icon-btn" title="Imprimer la facture" onClick={()=>void printDocument("sale",x.id)}><Printer size={15}/></button></td></tr>)}</tbody></table></div>:<Empty t={t}/>}</section>}
