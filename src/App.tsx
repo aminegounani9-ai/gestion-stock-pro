@@ -124,6 +124,8 @@ export default function App() {
   const [notificationsOpen,setNotificationsOpen]=useState(false);
   const [soundEnabled,setSoundEnabled]=useState(()=>localStorage.getItem("gsp_notification_sound")!=="off");
   const [desktopNotificationsEnabled,setDesktopNotificationsEnabled]=useState(()=>localStorage.getItem("gsp_desktop_notifications")!=="off");
+  const [pushEnabled,setPushEnabled]=useState(false);
+  const [pushBusy,setPushBusy]=useState(false);
   const seenNotificationIdsRef=useRef<Set<string>|null>(null);
   const [authMode, setAuthMode] = useState<"login"|"signup">("login");
   const [email, setEmail] = useState("");
@@ -168,6 +170,65 @@ export default function App() {
 
   useEffect(()=>{localStorage.setItem("gsp_notification_sound",soundEnabled?"on":"off");},[soundEnabled]);
   useEffect(()=>{localStorage.setItem("gsp_desktop_notifications",desktopNotificationsEnabled?"on":"off");},[desktopNotificationsEnabled]);
+
+  useEffect(()=>{
+    let active=true;
+    async function checkPushSubscription(){
+      if(!supabase||!company?.id||!session?.user?.id){if(active)setPushEnabled(false);return;}
+      const {data,error}=await supabase.from("push_subscriptions").select("id").eq("company_id",company.id).eq("user_id",session.user.id).limit(1);
+      if(active)setPushEnabled(!error&&Boolean(data?.length));
+    }
+    void checkPushSubscription();
+    return()=>{active=false;};
+  },[company?.id,session?.user?.id]);
+
+  async function enablePushNotifications(){
+    if(!supabase||!company?.id||!session?.user?.id)return;
+    if(!("serviceWorker" in navigator)||!("PushManager" in window)||!("Notification" in window)){
+      flash("error",lang==="ar"?"هذا المتصفح لا يدعم الإشعارات في الخلفية. ثبّت التطبيق وافتحه في Chrome.":"Ce navigateur ne prend pas en charge le Push. Installez l'application et ouvrez-la dans Chrome.");
+      return;
+    }
+    setPushBusy(true);
+    try{
+      const permission=await Notification.requestPermission();
+      if(permission!=="granted")throw new Error(lang==="ar"?"يجب السماح بالإشعارات":"Autorisation des notifications refusée");
+      const registration=await navigator.serviceWorker.ready;
+      const applicationServerKey=Uint8Array.from(atob("BC7tugOq3iY4skPRwl24BEUYJlSxcjcYqu5XdanKtG3A6sF5Ifzp07mqebvyUkxfw8fyuQ9Lv_8UYSbFM2vvOkE".replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0));
+      let subscription=await registration.pushManager.getSubscription();
+      if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey});
+      const json=subscription.toJSON();
+      if(!json.endpoint||!json.keys?.p256dh||!json.keys?.auth)throw new Error("Invalid push subscription");
+      const {error}=await supabase.from("push_subscriptions").upsert({
+        company_id:company.id,user_id:session.user.id,endpoint:json.endpoint,
+        p256dh:json.keys.p256dh,auth:json.keys.auth,user_agent:navigator.userAgent,updated_at:new Date().toISOString()
+      },{onConflict:"company_id,endpoint"});
+      if(error)throw error;
+      setPushEnabled(true);
+      setDesktopNotificationsEnabled(true);
+      flash("success",lang==="ar"?"تم تفعيل الإشعارات حتى عند إغلاق التطبيق":"Notifications en arrière-plan activées avec succès");
+    }catch(error:any){
+      console.error("Push subscription failed:",error);
+      flash("error",error?.message||"Impossible d'activer les notifications Push");
+    }finally{setPushBusy(false);}
+  }
+
+  async function disablePushNotifications(){
+    if(!supabase||!company?.id||!session?.user?.id)return;
+    setPushBusy(true);
+    try{
+      const registration=await navigator.serviceWorker.ready;
+      const subscription=await registration.pushManager.getSubscription();
+      if(subscription){
+        const endpoint=subscription.endpoint;
+        await subscription.unsubscribe();
+        const {error}=await supabase.from("push_subscriptions").delete().eq("company_id",company.id).eq("user_id",session.user.id).eq("endpoint",endpoint);
+        if(error)throw error;
+      }
+      setPushEnabled(false);
+      flash("success",lang==="ar"?"تم إيقاف إشعارات الخلفية":"Notifications en arrière-plan désactivées");
+    }catch(error:any){flash("error",error?.message||"Impossible de désactiver les notifications");}
+    finally{setPushBusy(false);}
+  }
 
   async function enableDesktopNotifications(){
     if(!("Notification" in window)){flash("error",lang==="ar"?"هذا المتصفح لا يدعم إشعارات النظام":"Ce navigateur ne prend pas en charge les notifications système");return;}
@@ -555,7 +616,7 @@ export default function App() {
         {page==="customers"&&<SimpleDirectory title={t.customers} rows={customers} icon="customer" empty={t.empty} onEdit={["owner","admin","manager","sales"].includes(currentRole)?r=>editRecord("customer",r):undefined}/>}
         {page==="stock"&&<section className="panel"><div className="panel-head"><div><h3>{t.stock}</h3><p>{filteredMovements.length} / {movements.length} {t.movements.toLowerCase()}</p></div><div className="table-search"><Search size={15}/><input aria-label={t.movementSearch} placeholder={t.movementSearch} value={movementSearch} onChange={e=>setMovementSearch(e.target.value)}/><button type="button" className="secondary-btn" onClick={exportMovements} disabled={!filteredMovements.length}>{t.exportMovements}</button></div></div>{filteredMovements.length?<div className="table-wrap"><table><thead><tr><th>{t.name}</th><th>{t.movementType}</th><th>{t.quantity}</th><th>{t.warehouse}</th><th>Date</th></tr></thead><tbody>{filteredMovements.map((m:any)=><tr key={m.id}><td><b>{m.products?.name||"—"}</b><small className="cell-sub">{m.products?.sku}</small></td><td><span className="status-pill">{m.movement_type}</span></td><td>{m.quantity}</td><td>{m.warehouses?.name||"—"}</td><td>{new Date(m.occurred_at).toLocaleDateString()}</td></tr>)}</tbody></table></div>:<Empty t={t}/>}</section>}
         {page==="purchases"&&<section className="panel"><div className="panel-head"><div><h3>{t.purchases}</h3><p>{purchases.length} commande(s) · réception automatique en stock</p></div><button className="primary-btn" disabled={currentRole==="viewer"} onClick={()=>{setForm({});setDocumentLines([{product_id:"",quantity:"",unit_price:"",discount:"0"}]);setModal("purchase")}}><Plus size={16}/>Nouvel achat</button></div>{purchases.length?<div className="table-wrap"><table><thead><tr><th>N° CA</th><th>{t.suppliers}</th><th>Date</th><th>Statut</th><th>Total</th><th>Document</th></tr></thead><tbody>{purchases.map(x=><tr key={x.id}><td><b>{x.order_number}</b></td><td>{x.suppliers?.name||"—"}</td><td>{new Date(x.order_date).toLocaleDateString()}</td><td><span className="status-pill positive">{x.status}</span></td><td>{money(Number(x.subtotal))}</td><td><button className="ops-icon-btn" title="Imprimer le bon" onClick={()=>void printDocument("purchase",x.id)}><Printer size={15}/></button></td></tr>)}</tbody></table></div>:<Empty t={t}/>}</section>}
-        {page==="settings"&&<section className="panel notification-preferences"><div className="panel-head"><div><h3>{lang==="ar"?"إعدادات التنبيهات":lang==="en"?"Notification preferences":"Préférences des notifications"}</h3><p>{lang==="ar"?"اختر كيف تريد استقبال تنبيهات المخزون والطلبات":"Choisissez comment recevoir les alertes de stock et les demandes."}</p></div><Bell size={20}/></div><div className="form-grid"><label className="notification-setting-row"><span><b>{lang==="ar"?"صوت التنبيه":lang==="en"?"Notification sound":"Son des notifications"}</b><small>{lang==="ar"?"تشغيل صوت عند وصول تنبيه جديد أثناء فتح التطبيق":"Jouer un son lorsqu'une nouvelle notification arrive dans l'application."}</small></span><input type="checkbox" checked={soundEnabled} onChange={e=>setSoundEnabled(e.target.checked)}/></label><label className="notification-setting-row"><span><b>{lang==="ar"?"إشعارات النظام":lang==="en"?"System notifications":"Notifications système"}</b><small>{lang==="ar"?"إظهار إشعار المتصفح عند وصول تنبيه والتطبيق مفتوح":"Afficher une notification du navigateur lorsque l'application est ouverte."}</small></span><input type="checkbox" checked={desktopNotificationsEnabled&&("Notification" in window)&&Notification.permission==="granted"} onChange={e=>{if(e.target.checked)void enableDesktopNotifications();else setDesktopNotificationsEnabled(false)}}/></label><div className="span-2 modal-actions"><button type="button" className="secondary-btn" onClick={playNotificationSound}>{lang==="ar"?"تجربة الصوت":lang==="en"?"Test sound":"Tester le son"}</button>{!("Notification" in window)||Notification.permission!=="granted"?<button type="button" className="primary-btn" onClick={()=>void enableDesktopNotifications()}>{lang==="ar"?"السماح بالإشعارات":lang==="en"?"Allow notifications":"Autoriser les notifications"}</button>:<span className="status-pill positive">{lang==="ar"?"الإشعارات مفعلة":lang==="en"?"Notifications enabled":"Notifications autorisées"}</span>}</div></div></section>}
+        {page==="settings"&&<section className="panel notification-preferences"><div className="panel-head"><div><h3>{lang==="ar"?"إعدادات التنبيهات":lang==="en"?"Notification preferences":"Préférences des notifications"}</h3><p>{lang==="ar"?"اختر كيف تريد استقبال تنبيهات المخزون والطلبات":"Choisissez comment recevoir les alertes de stock et les demandes."}</p></div><Bell size={20}/></div><div className="form-grid"><label className="notification-setting-row"><span><b>{lang==="ar"?"صوت التنبيه":lang==="en"?"Notification sound":"Son des notifications"}</b><small>{lang==="ar"?"تشغيل صوت عند وصول تنبيه جديد أثناء فتح التطبيق":"Jouer un son lorsqu'une nouvelle notification arrive dans l'application."}</small></span><input type="checkbox" checked={soundEnabled} onChange={e=>setSoundEnabled(e.target.checked)}/></label><label className="notification-setting-row"><span><b>{lang==="ar"?"إشعارات النظام":lang==="en"?"System notifications":"Notifications système"}</b><small>{lang==="ar"?"إظهار إشعار المتصفح عند وصول تنبيه والتطبيق مفتوح":"Afficher une notification du navigateur lorsque l'application est ouverte."}</small></span><input type="checkbox" checked={desktopNotificationsEnabled&&("Notification" in window)&&Notification.permission==="granted"} onChange={e=>{if(e.target.checked)void enableDesktopNotifications();else setDesktopNotificationsEnabled(false)}}/></label><div className="span-2 modal-actions"><button type="button" className="secondary-btn" onClick={playNotificationSound}>{lang==="ar"?"تجربة الصوت":lang==="en"?"Test sound":"Tester le son"}</button>{!("Notification" in window)||Notification.permission!=="granted"?<button type="button" className="primary-btn" onClick={()=>void enableDesktopNotifications()}>{lang==="ar"?"السماح بإشعارات المتصفح":lang==="en"?"Allow browser notifications":"Autoriser les notifications navigateur"}</button>:<span className="status-pill positive">{lang==="ar"?"إذن الإشعارات ممنوح":lang==="en"?"Browser permission granted":"Autorisation accordée"}</span>}<button type="button" className={pushEnabled?"secondary-btn":"primary-btn"} disabled={pushBusy||!company||!session} onClick={()=>void(pushEnabled?disablePushNotifications():enablePushNotifications())}>{pushBusy?(lang==="ar"?"جارٍ التفعيل...":"Activation..."):pushEnabled?(lang==="ar"?"إيقاف إشعارات الخلفية":lang==="en"?"Disable background push":"Désactiver le Push arrière-plan"):(lang==="ar"?"تفعيل حتى والتطبيق مغلق":lang==="en"?"Enable when app is closed":"Activer même application fermée")}</button><p className="span-2 notification-push-help">{lang==="ar"?"ثبت التطبيق على الهاتف واسمح بالإشعارات. ستصلك التنبيهات حتى عندما يكون التطبيق مغلقاً، إذا كان الجهاز متصلاً بالإنترنت.":lang==="en"?"Install the app and allow notifications. Push alerts can arrive while the app is closed when your device is online.":"Installez l'application et autorisez les notifications. Les alertes Push peuvent arriver même lorsque l'application est fermée, si l'appareil est connecté à Internet."}</p></div></div></section>}
         {page==="settings"&&isAdmin&&<section className="panel"><div className="panel-head"><div><h3>{lang==="ar"?"إعدادات الشركة":lang==="en"?"Company settings":"Paramètres de l'entreprise"}</h3><p>{lang==="ar"?"المعلومات القانونية وبيانات الاتصال المستخدمة في الوثائق المطبوعة":lang==="en"?"Legal details and contact information used on printed documents":"Informations légales et coordonnées utilisées sur les documents imprimés"}</p></div></div><form className="form-grid" onSubmit={saveCompanySettings}><label>{lang==="ar"?"الاسم التجاري":lang==="en"?"Company name":"Nom commercial"}<input value={settingsForm.name||""} onChange={e=>setSettingsForm({...settingsForm,name:e.target.value})} required/></label><label>{lang==="ar"?"الاسم القانوني":lang==="en"?"Legal name":"Raison sociale"}<input value={settingsForm.legal_name||""} onChange={e=>setSettingsForm({...settingsForm,legal_name:e.target.value})}/></label><label>{lang==="ar"?"الرقم الجبائي":lang==="en"?"Tax ID":"NIF / Identifiant fiscal"}<input value={settingsForm.tax_number||""} onChange={e=>setSettingsForm({...settingsForm,tax_number:e.target.value})}/></label><label>{lang==="ar"?"الهاتف":lang==="en"?"Phone":"Téléphone"}<input value={settingsForm.phone||""} onChange={e=>setSettingsForm({...settingsForm,phone:e.target.value})}/></label><label>{lang==="ar"?"البريد الإلكتروني":lang==="en"?"Email":"E-mail"}<input type="email" value={settingsForm.email||""} onChange={e=>setSettingsForm({...settingsForm,email:e.target.value})}/></label><label>{lang==="ar"?"المدينة":lang==="en"?"City":"Ville"}<input value={settingsForm.city||""} onChange={e=>setSettingsForm({...settingsForm,city:e.target.value})}/></label><label className="span-2">{lang==="ar"?"العنوان":lang==="en"?"Address":"Adresse"}<input value={settingsForm.address||""} onChange={e=>setSettingsForm({...settingsForm,address:e.target.value})}/></label><label>{lang==="ar"?"البلد":lang==="en"?"Country":"Pays"}<input value={settingsForm.country||"Algeria"} onChange={e=>setSettingsForm({...settingsForm,country:e.target.value})}/></label><label>{lang==="ar"?"العملة":lang==="en"?"Currency":"Devise"}<select value={settingsForm.currency_code||"DZD"} onChange={e=>setSettingsForm({...settingsForm,currency_code:e.target.value})}><option value="DZD">DZD · Dinar algérien</option><option value="EUR">EUR · Euro</option><option value="USD">USD · Dollar américain</option></select></label><div className="span-2 modal-actions"><button className="primary-btn" disabled={busy}>{busy?t.loading:t.save}</button></div></form></section>}
         {page==="users"&&canManageUsers&&<UserManagement companyId={company.id} currentUserId={session.user.id} currentRole={currentRole} members={members} myScopes={myScopeAssignments} sites={orgSites} units={orgUnits} services={orgServices} departments={orgDepartments} warehouses={warehouses} equipment={orgEquipment} onRefresh={()=>void refreshTeam()} onNotice={flash} lang={lang}/>}
         {page==="organization"&&isAdmin&&<OrganizationManagement companyId={company.id} members={members} currentUserId={session.user.id} onNotice={flash} lang={lang}/>}
