@@ -241,7 +241,7 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,ro
   {false&&<div className="ops-two-col">
    <div className="panel ops-panel"><div className="panel-head"><h3>Compatibilité équipements</h3><span>{compat.length}</span></div>
     {canWrite&&<form onSubmit={addCompatibility}><div className="ops-fields">
-     <label>Pièce<select required value={compatForm.product_id||""} onChange={e=>setCompatForm({...compatForm,product_id:e.target.value})}><option value="">—</option>{details.map(d=><option key={d.product_id} value={d.product_id}>{d.products?.sku} · {d.products?.name}</option>)}</select></label>
+     <label>Pièce<select required value={compatForm.product_id||""} onChange={e=>setCompatForm({...compatForm,product_id:e.target.value})}><option value="">—</option>{details.map(d=><option key={d.product_id} value={d.product_id}>{d.products?.sku} · {d.products?.name} · {categoryName(d.products?.category_id)}</option>)}</select></label>
      <label>Repère équipement<input value={compatForm.equipment_tag||""} onChange={e=>setCompatForm({...compatForm,equipment_tag:e.target.value})}/></label>
      <label>Nom équipement<input value={compatForm.equipment_name||""} onChange={e=>setCompatForm({...compatForm,equipment_name:e.target.value})}/></label>
      <label>Famille<input value={compatForm.equipment_family||""} onChange={e=>setCompatForm({...compatForm,equipment_family:e.target.value})}/></label>
@@ -255,7 +255,7 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,ro
    </div>
    <div className="panel ops-panel"><div className="panel-head"><h3>Comparatif fournisseurs</h3><span>{quotes.length}</span></div>
     {canWrite&&<form onSubmit={addQuote}><div className="ops-fields">
-     <label>Pièce<select required value={quoteForm.product_id||""} onChange={e=>setQuoteForm({...quoteForm,product_id:e.target.value})}><option value="">—</option>{details.map(d=><option key={d.product_id} value={d.product_id}>{d.products?.sku} · {d.products?.name}</option>)}</select></label>
+     <label>Pièce<select required value={quoteForm.product_id||""} onChange={e=>setQuoteForm({...quoteForm,product_id:e.target.value})}><option value="">—</option>{details.map(d=><option key={d.product_id} value={d.product_id}>{d.products?.sku} · {d.products?.name} · {categoryName(d.products?.category_id)}</option>)}</select></label>
      <label>Fournisseur<select required value={quoteForm.supplier_id||""} onChange={e=>setQuoteForm({...quoteForm,supplier_id:e.target.value})}><option value="">—</option>{suppliers.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
      <label>Référence fournisseur<input value={quoteForm.supplier_part_number||""} onChange={e=>setQuoteForm({...quoteForm,supplier_part_number:e.target.value})}/></label>
      <label>Prix unitaire<input required type="number" min="0" step="0.01" value={quoteForm.unit_price||""} onChange={e=>setQuoteForm({...quoteForm,unit_price:e.target.value})}/></label>
@@ -271,7 +271,7 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,ro
   </div>}
   {false&&<div className="panel ops-panel"><div className="panel-head"><h3>Suivi des réparations</h3><span>{repairs.length}</span></div>
    {canWrite&&<form onSubmit={addRepair}><div className="ops-fields">
-    <label>Pièce<select required value={repairForm.product_id||""} onChange={e=>setRepairForm({...repairForm,product_id:e.target.value})}><option value="">—</option>{details.map(d=><option key={d.product_id} value={d.product_id}>{d.products?.sku} · {d.products?.name}</option>)}</select></label>
+    <label>Pièce<select required value={repairForm.product_id||""} onChange={e=>setRepairForm({...repairForm,product_id:e.target.value})}><option value="">—</option>{details.map(d=><option key={d.product_id} value={d.product_id}>{d.products?.sku} · {d.products?.name} · {categoryName(d.products?.category_id)}</option>)}</select></label>
     <label>N° série / actif<input value={repairForm.serial_or_asset_number||""} onChange={e=>setRepairForm({...repairForm,serial_or_asset_number:e.target.value})}/></label>
     <label>Repère équipement<input value={repairForm.equipment_tag||""} onChange={e=>setRepairForm({...repairForm,equipment_tag:e.target.value})}/></label>
     <label>Prestataire<input value={repairForm.repair_vendor||""} onChange={e=>setRepairForm({...repairForm,repair_vendor:e.target.value})}/></label>
@@ -287,7 +287,7 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,ro
 
   {false&&<div className="panel ops-panel"><div className="panel-head"><div><h3>Traçabilité des numéros de série</h3><p>Suivi unitaire des articles sérialisés par entrepôt</p></div><span>{serials.length}</span></div>
    {canReceive&&<form onSubmit={addSerial}><div className="ops-fields">
-    <label>Pièce / article<select required value={serialForm.product_id||""} onChange={e=>setSerialForm({...serialForm,product_id:e.target.value})}><option value="">—</option>{details.map(d=><option key={d.product_id} value={d.product_id}>{d.products?.sku} · {d.products?.name}</option>)}</select></label>
+    <label>Pièce / article<select required value={serialForm.product_id||""} onChange={e=>setSerialForm({...serialForm,product_id:e.target.value})}><option value="">—</option>{details.map(d=><option key={d.product_id} value={d.product_id}>{d.products?.sku} · {d.products?.name} · {categoryName(d.products?.category_id)}</option>)}</select></label>
     <label>Entrepôt<select required value={serialForm.warehouse_id||""} onChange={e=>setSerialForm({...serialForm,warehouse_id:e.target.value})}><option value="">—</option>{warehouses.map(w=><option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
     <label className="ops-wide">Numéro(s) de série<textarea required rows={3} placeholder="Un numéro par ligne (ou séparé par virgule)" value={serialForm.serial_number||""} onChange={e=>setSerialForm({...serialForm,serial_number:e.target.value})}/></label>
     <label className="ops-wide">Notes<input value={serialForm.notes||""} onChange={e=>setSerialForm({...serialForm,notes:e.target.value})}/></label>
