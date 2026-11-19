@@ -798,3 +798,11 @@ html,body,#root{width:100%;min-height:100%;overflow-x:hidden}
 .equipment-module .form-grid{grid-template-columns:1fr}
 }
 @media(max-width:390px){.topbar{padding-left:10px;padding-right:10px}.mobile-brand b{font-size:11px}.install-trigger span{display:none}.equipment-kpis{grid-template-columns:1fr 1fr!important}}
+
+@media(max-width:760px){
+ .equipment-module .table-wrap table{min-width:900px}
+ .equipment-module .table-wrap th,.equipment-module .table-wrap td{white-space:normal;vertical-align:top}
+ .equipment-module .table-wrap td:nth-child(5){min-width:180px;max-width:260px;white-space:normal;line-height:1.5}
+ .equipment-module .table-wrap td:nth-child(4){min-width:120px}
+}
+.equipment-module .table-wrap td div+div{margin-top:4px;padding-top:4px;border-top:1px dashed #e5eaf1}
