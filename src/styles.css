@@ -879,3 +879,10 @@ html,body,#root{width:100%;min-height:100%;overflow-x:hidden}
  .equipment-module .form-grid{grid-template-columns:1fr}
 }
 @media(max-width:390px){.equipment-kpis{gap:5px}.equipment-kpi{padding:9px!important}.equipment-kpi span{font-size:8px}}
+
+.ops-load-error{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin:0 0 16px;padding:13px 15px;border:1px solid #f0c8c8;border-radius:10px;background:#fff5f4;color:#923b3b;font-size:11px}
+.ops-load-error b{font-size:12px}.ops-load-error span{flex:1;min-width:180px;overflow-wrap:anywhere;color:#8b5555}
+.brand-mark.sophal-brand-mark{width:44px;height:44px;flex:0 0 44px;padding:2px;background:#fff!important;border:1px solid #e5eaf1;box-shadow:0 2px 8px rgba(22,38,72,.08);overflow:hidden}
+.mobile-brand .brand-mark.sophal-brand-mark{width:34px;height:34px;flex-basis:34px}
+.sophal-brand-image{width:100%!important;height:100%!important;display:block!important;object-fit:contain!important;object-position:center!important;background:#fff!important}
+@media(max-width:760px){.brand .brand-mark.sophal-brand-mark{width:40px;height:40px;flex-basis:40px}.ops-load-error{align-items:flex-start;flex-direction:column}}
