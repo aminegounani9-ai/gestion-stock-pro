@@ -39,7 +39,7 @@ Deno.serve(async (req: Request) => {
     if (!companyId || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length < 8 || !fullName || !scopeId) {
       return respond({ error: "Données invalides : vérifiez le nom, l'e-mail, le mot de passe et l'affectation." }, 400);
     }
-    const allowedRoles = ["admin", "manager", "supervisor", "warehouse", "technician", "viewer", "staff"];
+    const allowedRoles = ["admin", "director", "manager", "supervisor", "project_responsible", "warehouse", "technician", "viewer", "staff"];
     const allowedScopes: Record<string, string> = {
       site: "org_sites", unit: "org_units", service: "org_services",
       department: "org_departments", warehouse: "warehouses", equipment: "org_equipment",
@@ -50,14 +50,14 @@ Deno.serve(async (req: Request) => {
       .select("role,is_active").eq("company_id", companyId).eq("user_id", caller.id).maybeSingle();
     if (membershipError) throw membershipError;
     if (!membership?.is_active) return respond({ error: "Vous n'avez pas accès à cette entreprise." }, 403);
-    const isAdmin = ["owner", "admin"].includes(membership.role);
+    const isAdmin = ["owner", "admin", "director"].includes(membership.role);
     const { data: scope, error: scopeError } = await adminClient.from(allowedScopes[scopeType])
       .select("*").eq("id", scopeId).eq("company_id", companyId).eq("is_active", true).maybeSingle();
     if (scopeError) throw scopeError;
     if (!scope) return respond({ error: "L'affectation sélectionnée n'existe pas ou n'est pas active." }, 400);
 
     if (!isAdmin) {
-      const permitted = membership.role === "manager" ? ["warehouse", "technician", "viewer", "staff"]
+      const permitted = membership.role === "manager" ? ["project_responsible", "warehouse", "technician", "viewer", "staff"]
         : membership.role === "supervisor" ? ["technician", "viewer", "staff"] : [];
       if (!permitted.includes(role)) return respond({ error: "Votre rôle ne permet pas de créer ce type de compte." }, 403);
       const { data: scopes, error: scopesError } = await adminClient.from("user_scope_assignments")
