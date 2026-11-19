@@ -38,6 +38,22 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
   const q=await supabase.from(ds.table).select(ds.id==="spare_parts"?"*, spare_part_details(*)":"*").eq("company_id",companyId).limit(10000);
   if(q.error)throw q.error;
   let rows:any[]=q.data??[];
+  if(ds.id==="purchases"){
+   const z=await supabase.from("purchase_orders").select("*, suppliers(name), purchase_order_items(quantity,unit_cost,products(sku))").eq("company_id",companyId).limit(10000);if(z.error)throw z.error;
+   rows=(z.data||[]).flatMap((d:any)=>(d.purchase_order_items||[]).map((it:any)=>({order_number:d.order_number,supplier_name:d.suppliers?.name||"",warehouse_id:d.warehouse_id,product_sku:it.products?.sku||"",quantity:it.quantity,unit_cost:it.unit_cost,note:d.notes})));
+  }else if(ds.id==="sales"){
+   const z=await supabase.from("sales").select("*, customers(name), sale_items(quantity,unit_price,discount,products(sku))").eq("company_id",companyId).limit(10000);if(z.error)throw z.error;
+   rows=(z.data||[]).flatMap((d:any)=>(d.sale_items||[]).map((it:any)=>({invoice_number:d.invoice_number,customer_name:d.customers?.name||"",warehouse_id:d.warehouse_id,product_sku:it.products?.sku||"",quantity:it.quantity,unit_price:it.unit_price,discount:it.discount,invoice_discount:d.discount,note:d.notes})));
+  }else if(ds.id==="transfers"){
+   const z=await supabase.from("stock_transfers").select("*, source:warehouses!stock_transfers_source_warehouse_id_fkey(code), destination:warehouses!stock_transfers_destination_warehouse_id_fkey(code), stock_transfer_items(quantity,unit_cost,products(sku))").eq("company_id",companyId).limit(10000);if(z.error)throw z.error;
+   rows=(z.data||[]).flatMap((d:any)=>(d.stock_transfer_items||[]).map((it:any)=>({number:d.transfer_number,source_warehouse_code:d.source?.code||"",destination_warehouse_code:d.destination?.code||"",product_sku:it.products?.sku||"",quantity:it.quantity,unit_cost:it.unit_cost,note:d.notes})));
+  }else if(ds.id==="inventory"){
+   const z=await supabase.from("inventory_counts").select("*, warehouses(code), inventory_count_items(counted_quantity,products(sku))").eq("company_id",companyId).limit(10000);if(z.error)throw z.error;
+   rows=(z.data||[]).flatMap((d:any)=>(d.inventory_count_items||[]).map((it:any)=>({number:d.count_number,warehouse_code:d.warehouses?.code||"",product_sku:it.products?.sku||"",counted_quantity:it.counted_quantity,note:d.notes})));
+  }else if(ds.id==="returns"){
+   const z=await supabase.from("stock_returns").select("*, warehouses(code), customers(name), suppliers(name), stock_return_items(quantity,unit_price,products(sku))").eq("company_id",companyId).limit(10000);if(z.error)throw z.error;
+   rows=(z.data||[]).flatMap((d:any)=>(d.stock_return_items||[]).map((it:any)=>({number:d.return_number,return_type:d.return_type,warehouse_code:d.warehouses?.code||"",partner_name:d.return_type==="supplier"?d.suppliers?.name||"":d.customers?.name||"",product_sku:it.products?.sku||"",quantity:it.quantity,unit_price:it.unit_price,reason:d.reason,note:d.notes})));
+  }
   if(ds.id==="spare_parts")rows=rows.map((r:any)=>{const d=Array.isArray(r.spare_part_details)?r.spare_part_details[0]:(r.spare_part_details||{});return {...r,...d};});
   const refTables=["org_sites","org_units","org_services","org_departments","org_equipment","warehouses","storage_locations","product_categories","products","suppliers","sales","purchase_orders"];
   const refs:any={};
@@ -50,7 +66,7 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
    out.service_code=out.service_code||byId("org_services",r.service_id,"code");
    out.department_code=out.department_code||byId("org_departments",r.department_id,"code");
    out.equipment_tag=out.equipment_tag||byId("org_equipment",r.equipment_id,"equipment_tag");
-   out.warehouse_code=out.warehouse_code||byId("warehouses",r.warehouse_id,"code");
+   out.warehouse_code=out.warehouse_code||byId("warehouses",r.warehouse_id,"code");\n   out.source_warehouse_code=out.source_warehouse_code||byId("warehouses",r.source_warehouse_id,"code");\n   out.destination_warehouse_code=out.destination_warehouse_code||byId("warehouses",r.destination_warehouse_id,"code");
    out.location_code=out.location_code||byId("storage_locations",r.storage_location_id||r.location_id,"code");
    out.parent_code=out.parent_code||byId("storage_locations",r.parent_id,"code");
    out.category_name=out.category_name||byId("product_categories",r.category_id,"name");
@@ -138,7 +154,7 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
  setMessage(t.done+": "+ok+"/"+rows.length);setErrors(problems);await onDone();
  }catch(e:any){setMessage(e.message||"Import impossible")}finally{setBusy(false);if(fileRef.current)fileRef.current.value=""}}
  return <div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}><section className="modal-card excel-modal" dir={rtl?"rtl":"ltr"}><div className="modal-head"><div><span className="eyebrow">GESTION STOCK PRO</span><h2><FileSpreadsheet size={20}/> {t.title}</h2><p>{t.intro}</p></div><button className="icon-btn" onClick={onClose}><X size={18}/></button></div>
- <label className="excel-label">{t.dataset}<select value={selected} onChange={e=>{setSelected(e.target.value);setMessage("");setErrors([])}}>{["Organisation","Magasin","Tiers","Catalogue","Finance"].map(g=><optgroup key={g} label={g}>{datasets.filter(d=>d.group===g).map(d=><option key={d.id} value={d.id}>{d.label}</option>)}</optgroup>)}</select></label>
+ <label className="excel-label">{t.dataset}<select value={selected} onChange={e=>{setSelected(e.target.value);setMessage("");setErrors([])}}>{["Organisation","Magasin","Tiers","Catalogue","Achats / Ventes","Finance"].map(g=><optgroup key={g} label={g}>{datasets.filter(d=>d.group===g).map(d=><option key={d.id} value={d.id}>{d.label}</option>)}</optgroup>)}</select></label>
  <div className="excel-fields"><b>Colonnes du fichier</b><div>{ds.fields.map(f=><span key={f.key} className={f.required?"required":""}>{f.key}{f.required?" *":""}</span>)}</div></div>
  <p className="excel-note">{t.note}<br/><small>{t.required}: {ds.fields.filter(f=>f.required).map(f=>f.key).join(", ")||"—"}</small></p>
  <div className="excel-actions"><button className="secondary-btn" onClick={()=>makeFile([],"Modele_"+filename(ds.id)+".xlsx")} disabled={busy}><Download size={16}/>{t.template}</button><button className="secondary-btn" onClick={()=>void exportData()} disabled={busy}><Download size={16}/>{t.export}</button><button className="primary-btn" onClick={()=>fileRef.current?.click()} disabled={busy||!canImport}><Upload size={16}/>{t.import}</button><input ref={fileRef} type="file" accept=".xlsx,.xls" hidden onChange={e=>{const f=e.target.files?.[0];if(f)void importFile(f)}}/></div>
