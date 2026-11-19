@@ -12,11 +12,11 @@ type Detail = Record<string, any>;
 export default function SpareParts({companyId,products,warehouses,suppliers,role,access,lang,searchTerm,onSaved,view="parts"}:Props){
  const t=text[lang]; const canCreate=access?(access.isAdmin||access.canCreate):["owner","admin","manager","warehouse"].includes(role); const canEdit=access?(access.isAdmin||access.canEdit):["owner","admin","manager","warehouse"].includes(role); const canWrite=canCreate||canEdit; const canIssue=access?(access.isAdmin||access.canIssue):["owner","admin","manager","warehouse"].includes(role); const canReserve=access?(access.isAdmin||access.canCreate):["owner","admin","manager","warehouse"].includes(role); const canReceive=access?(access.isAdmin||access.canReceive):["owner","admin","manager","warehouse"].includes(role); const canRequest=["owner","admin","manager","warehouse","technician","staff"].includes(role)||(access?.isAdmin||access?.canCreate);
  const [details,setDetails]=useState<Detail[]>([]); const [reservations,setReservations]=useState<any[]>([]); const [balances,setBalances]=useState<any[]>([]); const [compat,setCompat]=useState<any[]>([]); const [quotes,setQuotes]=useState<any[]>([]); const [repairs,setRepairs]=useState<any[]>([]); const [serials,setSerials]=useState<any[]>([]); const [serialForm,setSerialForm]=useState<Detail>({status:"in_stock"}); const [compatForm,setCompatForm]=useState<Detail>({quantity_per_equipment:1}); const [quoteForm,setQuoteForm]=useState<Detail>({currency:"DZD",minimum_order_quantity:1}); const [repairForm,setRepairForm]=useState<Detail>({status:"sent",currency:"DZD"});
- const [loading,setLoading]=useState(true); const [saving,setSaving]=useState(false); const [search,setSearch]=useState(""); const [editing,setEditing]=useState<string|null>(null);
+ const [loading,setLoading]=useState(true); const [loadError,setLoadError]=useState(""); const [saving,setSaving]=useState(false); const [search,setSearch]=useState(""); const [editing,setEditing]=useState<string|null>(null);
  const [form,setForm]=useState<Detail>({part_type:"consumable",criticality:"medium",safety_stock:"0",is_repairable:false});
  const [issue,setIssue]=useState<Detail>({}); const [reserve,setReserve]=useState<Detail>({}); const [requests,setRequests]=useState<any[]>([]); const [notifications,setNotifications]=useState<any[]>([]); const [requestForm,setRequestForm]=useState<Detail>({priority:"normal"}); const [requestLines,setRequestLines]=useState<Detail[]>([{product_id:"",warehouse_id:"",quantity:"1",notes:""}]); const [issueQuantities,setIssueQuantities]=useState<Record<string,string>>({}); const [currentUserId,setCurrentUserId]=useState(""); const [requestUsers,setRequestUsers]=useState<any[]>([]); const [requestScopes,setRequestScopes]=useState<any[]>([]); const [orgSites,setOrgSites]=useState<any[]>([]); const [orgUnits,setOrgUnits]=useState<any[]>([]); const [orgServices,setOrgServices]=useState<any[]>([]); const [orgDepartments,setOrgDepartments]=useState<any[]>([]); const [orgEquipment,setOrgEquipment]=useState<any[]>([]); const [storageLocations,setStorageLocations]=useState<any[]>([]);
  const load=useCallback(async()=>{
-  setLoading(true);
+  setLoading(true);setLoadError("");
   const [d,r,b,co,qu,re,sn]=await Promise.all([
    supabase!.from("spare_part_details").select("*, products(id,sku,name,unit,min_stock,purchase_price), suppliers(name)").eq("company_id",companyId).order("created_at",{ascending:false}),
    supabase!.from("spare_part_reservations").select("*, products(name,sku), warehouses(name)").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100),
@@ -29,7 +29,7 @@ export default function SpareParts({companyId,products,warehouses,suppliers,role
   const err=[d,r,b,co,qu,re,sn].find(x=>x.error); if(err) throw err.error;
   setDetails(d.data||[]);setReservations(r.data||[]);setBalances(b.data||[]);setCompat(co.data||[]);setQuotes(qu.data||[]);setRepairs(re.data||[]);setSerials(sn.data||[]);
   const [rq,user,users,sites,units,services,depts,equipment,locations]=await Promise.all([
-   supabase!.from("spare_part_requests").select("*, spare_part_request_items!spare_part_request_items_company_request_fk(*, products:products!spare_part_request_items_company_product_fk(name,sku), warehouses(name))").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100),
+   supabase!.from("spare_part_requests").select("*").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100),
    supabase!.auth.getUser(),supabase!.rpc("list_spare_part_requesters",{p_company_id:companyId}),
    supabase!.from("org_sites").select("id,code,name").eq("company_id",companyId).eq("is_active",true).order("name"),
    supabase!.from("org_units").select("id,code,name,site_id").eq("company_id",companyId).eq("is_active",true).order("name"),
@@ -38,7 +38,18 @@ export default function SpareParts({companyId,products,warehouses,suppliers,role
    supabase!.from("org_equipment").select("id,equipment_tag,name,site_id,unit_id,service_id,department_id,manufacturer,model,status").eq("company_id",companyId).eq("is_active",true).order("name"),
    supabase!.from("storage_locations").select("id,code,name,warehouse_id").eq("company_id",companyId).eq("is_active",true).order("code")
   ]);
-  if(rq.error)throw rq.error;setRequests(rq.data||[]);if(users.error)throw users.error;setRequestUsers(users.data||[]);
+  if(rq.error)throw rq.error;
+  const requestRows=rq.data||[];
+  const requestIds=requestRows.map((x:any)=>x.id);
+  const requestItemResult=requestIds.length?await supabase!.from("spare_part_request_items").select("*").eq("company_id",companyId).in("request_id",requestIds):{data:[],error:null};
+  if(requestItemResult.error)throw requestItemResult.error;
+  const requestItemRows=requestItemResult.data||[];
+  const requestProductIds=[...new Set(requestItemRows.map((x:any)=>x.product_id).filter(Boolean))];
+  const requestProductResult=requestProductIds.length?await supabase!.from("products").select("id,name,sku,unit").eq("company_id",companyId).in("id",requestProductIds):{data:[],error:null};
+  if(requestProductResult.error)throw requestProductResult.error;
+  const requestProductMap=new Map((requestProductResult.data||[]).map((x:any)=>[x.id,x]));
+  setRequests(requestRows.map((request:any)=>({...request,spare_part_request_items:requestItemRows.filter((item:any)=>item.request_id===request.id).map((item:any)=>({...item,products:requestProductMap.get(item.product_id)||null,warehouses:warehouses.find((w:any)=>w.id===item.warehouse_id)||null}))})));
+  if(users.error)throw users.error;setRequestUsers(users.data||[]);
   for(const res of [sites,units,services,depts,equipment,locations])if(res.error)throw res.error;
   setOrgSites(sites.data||[]);setOrgUnits(units.data||[]);setOrgServices(services.data||[]);setOrgDepartments(depts.data||[]);setOrgEquipment(equipment.data||[]);setStorageLocations(locations.data||[]);
   if(user.data.user){const signedInUserId=user.data.user.id;const [nf,sc]=await Promise.all([
@@ -47,7 +58,7 @@ export default function SpareParts({companyId,products,warehouses,suppliers,role
   ]);if(nf.error)throw nf.error;if(sc.error)throw sc.error;setNotifications(nf.data||[]);setRequestScopes(sc.data||[]);setCurrentUserId(signedInUserId);setRequestForm((v:any)=>({...v,requester_id:v.requester_id||signedInUserId}));}else setNotifications([]);
   setLoading(false);
  },[companyId]);
- useEffect(()=>{void load().catch(()=>setLoading(false));},[load]);
+ useEffect(()=>{void load().catch((error:any)=>{setLoading(false);setLoadError(error?.message||"Impossible de charger les données du module.");});},[load]);
  useEffect(()=>{if(searchTerm)setSearch(searchTerm);},[searchTerm]);
  useEffect(()=>{let active=true;const refresh=async()=>{const {data}=await supabase!.auth.getUser();if(!data.user)return;const {data:items,error}=await supabase!.from("notifications").select("*").eq("company_id",companyId).eq("recipient_user_id",data.user.id).order("created_at",{ascending:false}).limit(30);if(active&&!error)setNotifications(items||[]);};const timer=window.setInterval(()=>void refresh(),30000);return()=>{active=false;window.clearInterval(timer)};},[companyId]);
  const rows=useMemo(()=>details.filter(x=>[x.products?.sku,x.products?.name,x.part_number,x.manufacturer,x.equipment_tag,x.equipment_model].join(" ").toLowerCase().includes(search.toLowerCase())),[details,search]);
@@ -122,6 +133,7 @@ async function markNotificationRead(id:string){const {error}=await supabase!.fro
  const abcWords=lang==="ar"?{title:"تصنيف ABC للمخزون",desc:"تحليل حسب قيمة المخزون الحالية (الكمية × سعر الشراء)، وليس الاستهلاك السنوي.",method:"الحدود: A حتى 80% · B حتى 95% · C الباقي",value:"القيمة الإجمالية",parts:"قطع",qty:"الكمية",unitValue:"قيمة المخزون",share:"النسبة التراكمية",empty:"لا توجد قيمة مخزون كافية للتصنيف."}:lang==="en"?{title:"ABC inventory classification",desc:"Classification by current inventory value (on-hand quantity × purchase cost), not annual consumption.",method:"Thresholds: A up to 80% · B up to 95% · C remainder",value:"Total inventory value",parts:"Parts",qty:"On hand",unitValue:"Stock value",share:"Cumulative share",empty:"No valued stock available for classification."}:{title:"Classification ABC du stock",desc:"Classement selon la valeur actuelle du stock (quantité disponible × prix d'achat), et non la consommation annuelle.",method:"Seuils : A jusqu'à 80 % · B jusqu'à 95 % · C le solde",value:"Valeur totale du stock",parts:"Pièces",qty:"Qté disponible",unitValue:"Valeur du stock",share:"Part cumulée",empty:"Aucune valeur de stock disponible pour le classement."};
 
  return <section className="ops-section">
+  {loadError&&<div className="ops-load-error" role="alert"><b>{lang==="ar"?"تعذر تحميل بيانات الوحدة":lang==="en"?"Module data could not be loaded":"Erreur de chargement du module"}</b><span>{loadError}</span><button type="button" className="secondary-btn" onClick={()=>void load().catch((error:any)=>setLoadError(error?.message||"Erreur de chargement"))}>{lang==="ar"?"إعادة المحاولة":lang==="en"?"Retry":"Réessayer"}</button></div>}
   {view==="parts"&&<>
   <div className="ops-kpis"><div className="ops-kpi"><Boxes/><span>{t.parts}</span><b>{details.length}</b></div><div className="ops-kpi"><AlertTriangle/><span>{t.critical}</span><b>{criticalCount}</b></div><div className="ops-kpi"><PackagePlus/><span>{t.low}</span><b>{lowCount}</b></div><div className="ops-kpi"><Boxes/><span>Emplacements</span><b>{storageLocations.length}</b></div></div>
   <div className="panel ops-panel abc-panel"><div className="panel-head"><div><h3>{abcWords.title}</h3><p>{abcWords.desc}</p><small className="abc-method">{abcWords.method}</small></div><span className="abc-total"><small>{abcWords.value}</small><b>{new Intl.NumberFormat(lang==="ar"?"ar-DZ":lang==="en"?"en-US":"fr-DZ",{style:"currency",currency:"DZD",maximumFractionDigits:0}).format(abcTotal)}</b></span></div>
