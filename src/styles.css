@@ -566,22 +566,34 @@ tbody tr:last-child td{border-bottom:0}
 }
 
 
-/* Final workspace polish: stable desktop shell, accessible mobile navigation */
+/* Final workspace polish: fixed desktop sidebar with an independently scrollable content area */
 @media (min-width: 761px) {
   html, body, #root { min-height: 100%; height: 100%; }
   body { overflow: hidden; background: #f3f5f9; }
-  .app-shell { height: 100vh; min-height: 0; overflow: hidden; }
+  .app-shell { display: block; height: 100vh; min-height: 0; overflow: hidden; }
   .sidebar {
-    position: sticky; top: 0; height: 100vh; min-height: 100vh;
-    overflow-y: auto; overscroll-behavior: contain;
+    position: fixed; top: 0; bottom: 0; left: 0; right: auto;
+    width: 258px; height: 100vh; min-height: 100vh;
+    overflow-y: auto; overscroll-behavior: contain; z-index: 30;
     scrollbar-width: thin; scrollbar-color: #34466d transparent;
   }
-  .main-area { height: 100vh; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  [dir="rtl"] .sidebar { left: auto; right: 0; }
+  .main-area {
+    margin-left: 258px; margin-right: 0;
+    width: calc(100% - 258px); height: 100vh; min-height: 0;
+    overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain;
+  }
+  [dir="rtl"] .main-area { margin-left: 0; margin-right: 258px; }
   .topbar {
     position: sticky; top: 0; z-index: 12;
     background: rgba(255,255,255,.94); backdrop-filter: blur(14px);
   }
   .page-content { padding-top: 30px; }
+}
+@media (min-width: 761px) and (max-width: 1100px) {
+  .sidebar { width: 220px; }
+  .main-area { margin-left: 220px; width: calc(100% - 220px); }
+  [dir="rtl"] .main-area { margin-left: 0; margin-right: 220px; }
 }
 :root {
   --navy: #14213d;
