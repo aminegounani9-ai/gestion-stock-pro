@@ -40,6 +40,7 @@ export interface Product {
   unit: string;
   purchase_price: number;
   min_stock: number;
+  category_id?: string | null;
   is_active: boolean;
   created_at: string;
 }
