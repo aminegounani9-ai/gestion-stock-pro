@@ -1250,3 +1250,8 @@ html,body,#root{width:100%;min-height:100%;overflow-x:hidden}
 .notification-setting-row span { display:flex; flex-direction:column; gap:5px; }
 .notification-setting-row small { color:var(--muted, #737373); font-size:12px; line-height:1.5; }
 .notification-setting-row input[type="checkbox"] { width:19px; height:19px; flex:0 0 auto; accent-color:var(--primary, #2563eb); }
+
+.notification-push-help { margin: 2px 0 0; color: var(--muted, #737373); font-size: 12px; line-height: 1.6; }
+.notification-preferences .modal-actions { display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
+.notification-preferences .modal-actions .notification-push-help { flex-basis:100%; }
+.notification-preferences button:disabled { opacity:.6; cursor:wait; }
