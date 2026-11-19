@@ -98,7 +98,7 @@ const nav: { id: Page; icon: typeof LayoutDashboard; group: string }[] = [
   { id:"dashboard", icon:LayoutDashboard, group:"workspace" },
   { id:"spareParts", icon:Wrench, group:"workspace" },
   { id:"requests", icon:ClipboardCheck, group:"workspace" },
-  { id:"equipment", icon:Cog, group:"workspace" },
+  { id:"equipment", icon:ScanBarcode, group:"workspace" },
   { id:"stock", icon:Activity, group:"workspace" },
   { id:"warehouses", icon:Warehouse, group:"workspace" },
   { id:"locations", icon:Boxes, group:"workspace" },
