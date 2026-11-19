@@ -4,7 +4,7 @@ import { BrowserMultiFormatReader } from "@zxing/browser";
 import {
   Activity, Bell, Boxes, Building2, CheckCheck, ChevronDown, CircleHelp, FileSpreadsheet, Download,
   LayoutDashboard, LogOut, Package, Plus, Search, Settings,
-  Truck, Users, Warehouse, X, Languages, ShieldCheck, UserCog, ArrowLeftRight, ClipboardCheck, BarChart3, Printer, ScanBarcode, Wrench
+  Truck, Users, Warehouse, X, Languages, ShieldCheck, ArrowLeftRight, ClipboardCheck, BarChart3, Printer, ScanBarcode, Wrench
 } from "lucide-react";
 import StockOperations from "./StockOperations";
 import SpareParts from "./SpareParts";
