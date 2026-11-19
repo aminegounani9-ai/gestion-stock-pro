@@ -1990,7 +1990,7 @@ form,label,fieldset { min-width:0; }
   flex:0 0 auto!important; min-height:36px!important; padding:8px 13px!important;
   margin-inline-start:auto!important; border:1px solid #d7dfeb!important;
   border-radius:9px!important; background:#f3f6fa!important; color:#33445d!important;
-  font:600 13px/1.2 inherit!important; cursor:pointer!important;
+  font-family:inherit!important; font-size:13px!important; font-weight:600!important; line-height:1.2!important; cursor:pointer!important;
 }
 .form-collapse-toggle:hover { background:#e9eff7!important; border-color:#b9c9dc!important; }
 .form-is-collapsed > :not(.modal-head):not(header):not(.panel-head) { display:none!important; }
