@@ -1597,3 +1597,54 @@ html,body,#root{width:100%;min-height:100%;overflow-x:hidden}
  .equipment-label-actions{grid-template-columns:minmax(0,1fr)}
  .equipment-label-actions button:last-child{grid-column:auto}
 }
+
+
+/* Premium mobile topbar: compact brand, colorful actions and notification bell */
+.icon-btn{
+  display:inline-grid;place-items:center;width:40px;height:40px;flex:0 0 40px;
+  border:1px solid #e4eaf5;border-radius:13px;
+  background:linear-gradient(145deg,#f8faff,#edf3ff);color:#365db5;
+  box-shadow:0 3px 10px #24477d10;transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
+  cursor:pointer
+}
+.icon-btn:hover{transform:translateY(-2px);background:linear-gradient(145deg,#edf3ff,#e3ecff);box-shadow:0 6px 15px #24477d1c}
+.icon-btn:active{transform:scale(.96)}
+.notification-trigger{position:relative;overflow:visible;border:1px solid #cbd9f7;background:linear-gradient(145deg,#edf4ff,#dfeaff);color:#315bc0;box-shadow:0 4px 13px #315bc026}
+.notification-trigger svg{stroke-width:2.25;filter:drop-shadow(0 2px 2px #315bc022);transition:transform .2s ease}
+.notification-trigger:hover svg,.notification-trigger.is-open svg{transform:rotate(-12deg) scale(1.08)}
+.notification-trigger.is-open{background:linear-gradient(145deg,#dce9ff,#cbdcff);border-color:#a9c1f2;box-shadow:0 0 0 4px #4778d51a,0 6px 16px #315bc02b}
+.notification-badge{right:-5px;top:-5px;min-width:19px;height:19px;border:2px solid #fff;background:linear-gradient(135deg,#ff6474,#e53d57);box-shadow:0 3px 8px #e34f5960;font-size:9px}
+.top-avatar{display:grid;place-items:center;border:2px solid #fff;border-radius:12px;background:linear-gradient(145deg,#365fc5,#6e8fe0);color:#fff;font-size:13px;font-weight:850;box-shadow:0 3px 10px #3157c832}
+.mobile-logout{background:linear-gradient(145deg,#fff1f0,#ffe5e3);border-color:#f8d5d2;color:#c84d4b}
+.notification-popover{border-radius:17px;box-shadow:0 24px 65px #172b4d30}
+.notification-item-icon{background:linear-gradient(145deg,#edf4ff,#dfeaff);color:#3d65bf}
+@media(max-width:760px){
+  .topbar{height:68px;min-height:68px;padding:0 12px;gap:8px;position:sticky;top:0;z-index:40;background:#ffffffed;backdrop-filter:blur(16px);border-bottom:1px solid #e7edf6;box-shadow:0 5px 18px #20375b0b}
+  .mobile-brand{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
+  .mobile-brand .brand-mark{width:34px;height:34px;flex:0 0 34px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(145deg,#e9f0ff,#dbe7ff);box-shadow:0 3px 9px #3157c81c}
+  .mobile-brand .sophal-brand-image{width:25px;height:25px;object-fit:contain}
+  .mobile-brand>b{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#1e3152;font-size:12px;font-weight:850;letter-spacing:-.2px}
+  .breadcrumbs{display:none}
+  .top-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex:0 0 auto}
+  .top-actions>.install-trigger,.top-actions>.language-trigger,.top-actions>button[title="Import / Export Excel"],.top-actions>.scanner-trigger{display:none!important}
+  .top-actions>.global-search{display:none!important}
+  .top-actions>.icon-btn{display:inline-grid!important}
+  .notification-wrap{display:flex;align-items:center}
+  .notification-trigger{width:42px;height:42px;flex-basis:42px;border-radius:14px}
+  .mobile-logout{width:38px;height:38px;flex-basis:38px;border-radius:12px}
+  .top-avatar{width:36px;height:36px;flex:0 0 36px;border-radius:12px}
+  .notification-dismiss{inset:68px 0 0}
+  .notification-popover{position:fixed;top:74px;right:10px;left:auto;width:min(390px,calc(100vw - 20px));max-height:min(68dvh,520px);border-radius:17px}
+  [dir="rtl"] .notification-popover{right:10px;left:auto}
+  .notification-popover-head{padding:14px}
+  .notification-item{padding:12px}
+}
+@media(max-width:390px){
+  .topbar{padding:0 9px;gap:5px}
+  .mobile-brand{gap:6px}
+  .mobile-brand>b{font-size:11px;max-width:145px}
+  .top-actions{gap:5px}
+  .notification-trigger{width:40px;height:40px;flex-basis:40px}
+  .mobile-logout{width:36px;height:36px;flex-basis:36px}
+  .top-avatar{width:34px;height:34px;flex-basis:34px}
+}
