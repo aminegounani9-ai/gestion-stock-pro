@@ -17,8 +17,11 @@ export default function UserManagement({companyId,currentUserId,currentRole,memb
  const roles=admin?["admin","manager","supervisor","warehouse","technician","viewer","staff"]:currentRole==="manager"?["warehouse","technician","viewer","staff"]:["technician","viewer","staff"];
  const selected=members.find(m=>m.user_id===selectedId);const filtered=useMemo(()=>members.filter(m=>[m.email,m.role].some((x:any)=>String(x||"").toLowerCase().includes(search.toLowerCase()))),[members,search]);
  const sourceByType:Record<string,any[]>={site:sites,unit:units,service:services,department:departments,warehouse:warehouses,equipment};
- const scopeTypes=admin?Object.keys(scopeLabels):Array.from(new Set(myScopes.map(s=>s.scope_type)));
- const scopeOptions=admin?(sourceByType[scopeType]||[]):myScopes.filter(s=>s.scope_type===scopeType).map(s=>({id:s.scope_id,name:scopeName(s.scope_type,s.scope_id),code:""}));
+ const parentScopeIds=(type:"site"|"unit")=>myScopes.filter(s=>s.scope_type===type&&s.can_view).map(s=>s.scope_id);
+ const allowedUnitIds=admin?units.map(x=>x.id):units.filter(x=>parentScopeIds("unit").includes(x.id)||parentScopeIds("site").includes(x.site_id)).map(x=>x.id);
+ const allowedSiteIds=admin?sites.map(x=>x.id):sites.filter(x=>parentScopeIds("site").includes(x.id)).map(x=>x.id);
+ const scopeTypes=admin?Object.keys(scopeLabels):Array.from(new Set([...myScopes.map(s=>s.scope_type),...(allowedUnitIds.length?["service","department"]:[])]));
+ const scopeOptions=admin?(sourceByType[scopeType]||[]):scopeType==="service"?services.filter(x=>myScopes.some(s=>s.scope_type==="service"&&s.scope_id===x.id)||allowedUnitIds.includes(x.unit_id)||allowedSiteIds.includes(x.site_id)):scopeType==="department"?departments.filter(x=>myScopes.some(s=>s.scope_type==="department"&&s.scope_id===x.id)||allowedUnitIds.includes(x.unit_id)||allowedSiteIds.includes(x.site_id)):myScopes.filter(s=>s.scope_type===scopeType&&s.can_view).map(s=>({id:s.scope_id,name:scopeName(s.scope_type,s.scope_id),code:""}));
  function scopeName(type:string,id:string){const item=(sourceByType[type]||[]).find(x=>x.id===id);return item?((item.code?item.code+" · ":"")+item.name):id;}
  useEffect(()=>{if(!selectedId&&members.length)setSelectedId((members.find(m=>m.user_id!==currentUserId)||members[0]).user_id);},[members,selectedId,currentUserId]);
  useEffect(()=>{if(!scopeTypes.includes(scopeType)&&scopeTypes.length){setScopeType(scopeTypes[0]);setScopeId("");}},[scopeType,scopeTypes.join("|")]);
