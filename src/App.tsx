@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import type { FormEvent } from "react";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import {
-  Activity, Bell, Boxes, Building2, CheckCheck, ChevronDown, CircleHelp, FileSpreadsheet, Download,
+  Activity, Boxes, Building2, ChevronDown, CircleHelp, FileSpreadsheet, Download,
   LayoutDashboard, LogOut, Package, Plus, Search, Settings,
   Truck, Users, Warehouse, X, Languages, ShieldCheck, UserCog, ArrowLeftRight, ClipboardCheck, BarChart3, Printer, ScanBarcode, Wrench
 } from "lucide-react";
@@ -19,7 +19,6 @@ import type { Company, Product } from "./lib/supabase";
 type Page = "dashboard" | "requests" | "products" | "categories" | "stock" | "warehouses" | "suppliers" | "customers" | "purchases" | "sales" | "transfers" | "inventory" | "locations" | "lots" | "spareParts" | "returns" | "expenses" | "payments" | "reports" | "users" | "settings" | "organization" | "equipment";
 type Lang = "fr" | "en" | "ar";
 type Notice = { type: "success" | "error"; text: string } | null;
-type AppNotification = { id:string; title:string; message:string; notification_type:string; entity_type:string|null; entity_id:string|null; is_read:boolean; created_at:string };
 
 const copy = {
   fr: {
@@ -118,8 +117,6 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
-  const [notifications,setNotifications]=useState<AppNotification[]>([]);
-  const [notificationsOpen,setNotificationsOpen]=useState(false);
   const [authMode, setAuthMode] = useState<"login"|"signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -228,13 +225,6 @@ export default function App() {
     setSales(sa.data ?? []);
   }, []);
 
-  const loadNotifications = useCallback(async () => {
-    if(!supabase||!company||!session?.user?.id)return;
-    const {data,error}=await supabase.from("notifications").select("id,title,message,notification_type,entity_type,entity_id,is_read,created_at").eq("company_id",company.id).eq("recipient_user_id",session.user.id).order("created_at",{ascending:false}).limit(30);
-    if(error){console.warn("Notifications unavailable:",error.message);return;}
-    setNotifications((data??[]) as AppNotification[]);
-  },[company?.id,session?.user?.id]);
-
   const loadCompanies = useCallback(async (userId: string) => {
     if (!supabase) return;
     const {data: memberships,error} = await supabase.from("company_members").select("company_id,role").eq("user_id",userId).eq("is_active",true);
@@ -281,20 +271,6 @@ export default function App() {
     });
     return () => subscription.unsubscribe();
   }, [loadCompanies]);
-
-  useEffect(()=>{if(!company||!session?.user?.id)return;void loadNotifications();const timer=window.setInterval(()=>void loadNotifications(),30000);return()=>window.clearInterval(timer)},[company?.id,session?.user?.id,loadNotifications]);
-
-  async function markNotificationRead(item:AppNotification){
-    if(!supabase||!session?.user?.id)return;
-    if(!item.is_read){const {error}=await supabase.from("notifications").update({is_read:true}).eq("id",item.id).eq("recipient_user_id",session.user.id);if(error){flash("error",error.message);return;}setNotifications(list=>list.map(n=>n.id===item.id?{...n,is_read:true}:n));}
-    if(item.entity_type==="spare_part_request")setPage("requests");setNotificationsOpen(false);
-  }
-  async function markAllNotificationsRead(){
-    if(!supabase||!company||!session?.user?.id)return;
-    const unread=notifications.filter(n=>!n.is_read);if(!unread.length)return;
-    const {error}=await supabase.from("notifications").update({is_read:true}).eq("company_id",company.id).eq("recipient_user_id",session.user.id).eq("is_read",false);
-    if(error){flash("error",error.message);return;}setNotifications(list=>list.map(n=>({...n,is_read:true})));
-  }
 
   const filteredProducts = useMemo(() => products.filter(p =>
     [p.name,p.sku,p.barcode ?? ""].some(v => v.toLowerCase().includes(search.toLowerCase()))
@@ -501,7 +477,7 @@ export default function App() {
       <div className="sidebar-bottom"><div className="help-card"><CircleHelp size={18}/><b>Besoin d'aide ?</b><span>Votre gestion, simplifiée.</span></div><button className="nav-item" onClick={()=>setLang(lang==="fr"?"en":lang==="en"?"ar":"fr")}><Languages size={18}/><span>{t.language}: {lang.toUpperCase()}</span></button><button className="nav-item" onClick={signOut}><LogOut size={18}/><span>{t.logout}</span></button><div className="user-mini"><div className="avatar">{session.user.email?.slice(0,1).toUpperCase()}</div><div><b>{session.user.email?.split("@")[0]}</b><small>{session.user.email}</small></div><Settings size={16}/></div></div>
     </aside>
     <main className="main-area">
-      <header className="topbar"><div className="mobile-brand"><span className="brand-mark sophal-brand-mark"><img className="sophal-brand-image" src="/sophal-mark.svg" alt="SOPHAL" /></span><b>Gestion Stock Pro</b></div><div className="breadcrumbs">{lang==="ar"?"مساحة العمل":lang==="en"?"Workspace":"Espace de travail"} <span>/</span> <b>{title}</b></div><div className="top-actions"><div className="global-search"><Search size={16}/><input placeholder={t.search} value={search} onChange={e=>setSearch(e.target.value)}/><kbd>⌘ K</kbd></div><button type="button" className="icon-btn install-trigger" title={lang==="ar"?"تثبيت التطبيق":lang==="en"?"Install app":"Installer l’application"} aria-label={lang==="ar"?"تثبيت التطبيق":lang==="en"?"Install app":"Installer l’application"} onClick={()=>void installApp()}><Download size={17}/><span>{lang==="ar"?"تثبيت":lang==="en"?"Install":"Installer"}</span></button><button type="button" className="icon-btn language-trigger" title={lang==="ar"?"تغيير اللغة":lang==="en"?"Change language":"Changer la langue"} aria-label={lang==="ar"?"تغيير اللغة":lang==="en"?"Change language":"Changer la langue"} onClick={()=>setLang(v=>v==="fr"?"en":v==="en"?"ar":"fr")}><Languages size={17}/><span>{lang.toUpperCase()}</span></button><button className="icon-btn" title="Import / Export Excel" aria-label="Import / Export Excel" onClick={()=>setImportExportOpen(true)}><FileSpreadsheet size={18}/></button><button type="button" className="icon-btn scanner-trigger" title={lang==="ar"?"مسح الباركود":lang==="en"?"Scan barcode":"Scanner code-barres"} aria-label={lang==="ar"?"مسح الباركود":lang==="en"?"Scan barcode":"Scanner code-barres"} onClick={()=>setScannerOpen(true)}><ScanBarcode size={18}/><span>{lang==="ar"?"مسح":lang==="en"?"Scan":"Scanner"}</span></button><div className="notification-wrap"><button className={"icon-btn notification-trigger "+(notificationsOpen?"is-open":"")} title={lang==="ar"?"الإشعارات":lang==="en"?"Notifications":"Notifications"} aria-label={lang==="ar"?"الإشعارات":lang==="en"?"Notifications":"Notifications"} aria-expanded={notificationsOpen} onClick={()=>setNotificationsOpen(v=>!v)}><Bell size={18}/>{notifications.some(n=>!n.is_read)&&<i className="notification-badge">{notifications.filter(n=>!n.is_read).length>99?"99+":notifications.filter(n=>!n.is_read).length}</i>}</button>{notificationsOpen&&<><button className="notification-dismiss" aria-label="Close notifications" onClick={()=>setNotificationsOpen(false)}/><section className="notification-popover"><div className="notification-popover-head"><div><b>{lang==="ar"?"الإشعارات":lang==="en"?"Notifications":"Notifications"}</b><small>{notifications.filter(n=>!n.is_read).length} {lang==="ar"?"غير مقروء":lang==="en"?"unread":"non lues"}</small></div><button type="button" onClick={()=>void markAllNotificationsRead()} disabled={!notifications.some(n=>!n.is_read)}><CheckCheck size={14}/>{lang==="ar"?"قراءة الكل":lang==="en"?"Mark all read":"Tout lire"}</button></div><div className="notification-list">{notifications.length?notifications.map(item=><button type="button" key={item.id} className={"notification-item "+(!item.is_read?"unread":"")} onClick={()=>void markNotificationRead(item)}><span className="notification-item-icon"><Bell size={15}/></span><span className="notification-item-copy"><b>{item.title}</b><small>{item.message}</small><time>{new Date(item.created_at).toLocaleString(lang==="ar"?"ar-DZ":lang==="en"?"en-US":"fr-FR",{dateStyle:"short",timeStyle:"short"})}</time></span>{!item.is_read&&<i className="notification-unread-dot"/>}</button>):<div className="notification-empty"><Bell size={22}/><b>{lang==="ar"?"لا توجد إشعارات":lang==="en"?"You’re all caught up":"Aucune notification"}</b><small>{lang==="ar"?"ستظهر هنا آخر التحديثات":lang==="en"?"New updates will appear here":"Les nouvelles activités apparaîtront ici"}</small></div>}</div></section></>}</div><button className="icon-btn mobile-logout" type="button" title={t.logout} aria-label={t.logout} onClick={signOut}><LogOut size={18}/></button><div className="top-avatar">{session.user.email?.slice(0,1).toUpperCase()}</div></div></header>
+      <header className="topbar"><div className="mobile-brand"><span className="brand-mark sophal-brand-mark"><img className="sophal-brand-image" src="/sophal-mark.svg" alt="SOPHAL" /></span><b>Gestion Stock Pro</b></div><div className="breadcrumbs">{lang==="ar"?"مساحة العمل":lang==="en"?"Workspace":"Espace de travail"} <span>/</span> <b>{title}</b></div><div className="top-actions"><div className="global-search"><Search size={16}/><input placeholder={t.search} value={search} onChange={e=>setSearch(e.target.value)}/><kbd>⌘ K</kbd></div><button type="button" className="icon-btn install-trigger" title={lang==="ar"?"تثبيت التطبيق":lang==="en"?"Install app":"Installer l’application"} aria-label={lang==="ar"?"تثبيت التطبيق":lang==="en"?"Install app":"Installer l’application"} onClick={()=>void installApp()}><Download size={17}/><span>{lang==="ar"?"تثبيت":lang==="en"?"Install":"Installer"}</span></button><button type="button" className="icon-btn language-trigger" title={lang==="ar"?"تغيير اللغة":lang==="en"?"Change language":"Changer la langue"} aria-label={lang==="ar"?"تغيير اللغة":lang==="en"?"Change language":"Changer la langue"} onClick={()=>setLang(v=>v==="fr"?"en":v==="en"?"ar":"fr")}><Languages size={17}/><span>{lang.toUpperCase()}</span></button><button className="icon-btn" title="Import / Export Excel" aria-label="Import / Export Excel" onClick={()=>setImportExportOpen(true)}><FileSpreadsheet size={18}/></button><button type="button" className="icon-btn scanner-trigger" title={lang==="ar"?"مسح الباركود":lang==="en"?"Scan barcode":"Scanner code-barres"} aria-label={lang==="ar"?"مسح الباركود":lang==="en"?"Scan barcode":"Scanner code-barres"} onClick={()=>setScannerOpen(true)}><ScanBarcode size={18}/><span>{lang==="ar"?"مسح":lang==="en"?"Scan":"Scanner"}</span></button><button className="icon-btn mobile-logout" type="button" title={t.logout} aria-label={t.logout} onClick={signOut}><LogOut size={18}/></button><div className="top-avatar">{session.user.email?.slice(0,1).toUpperCase()}</div></div></header>
       <div className="page-content">
         <div className="page-heading"><div><span className="eyebrow">{company.name.toUpperCase()} · {new Date().toLocaleDateString(lang==="ar"?"ar-DZ":lang==="en"?"en-US":"fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</span><h1>{page==="dashboard"?t.welcome:title}</h1><p>{page==="requests"?(lang==="ar"?"إنشاء ومتابعة طلبات قطع الغيار قبل صرفها من المخزن":lang==="en"?"Create and track spare-part requests before warehouse issue":"Créer et suivre les demandes de pièces avant leur délivrance par le magasin"):page==="spareParts"?(lang==="ar"?"المرجع التقني والتوافق مع المعدات والمخزون":lang==="en"?"Technical catalogue, equipment compatibility and stock":"Référentiel technique, compatibilité équipements et disponibilité du stock"):t.subtitle}</p></div>{page==="products"&&["owner","admin","manager"].includes(currentRole)&&<button className="primary-btn" onClick={()=>{setEditingId(null);setForm({unit:"piece"});setModal("product")}}><Plus size={17}/>{t.addProduct}</button>}{page==="warehouses"&&["owner","admin","manager"].includes(currentRole)&&<button className="primary-btn" onClick={()=>{setEditingId(null);setForm({});setModal("warehouse")}}><Plus size={17}/>{t.addWarehouse}</button>}{page==="suppliers"&&["owner","admin","manager","warehouse"].includes(currentRole)&&<button className="primary-btn" onClick={()=>{setEditingId(null);setForm({});setModal("supplier")}}><Plus size={17}/>{t.addSupplier}</button>}{page==="customers"&&["owner","admin","manager","sales"].includes(currentRole)&&<button className="primary-btn" onClick={()=>{setEditingId(null);setForm({});setModal("customer")}}><Plus size={17}/>{t.addCustomer}</button>}{page==="stock"&&["owner","admin","manager","warehouse"].includes(currentRole)&&<button className="primary-btn" onClick={()=>setModal("movement")}><Plus size={17}/>{t.addMovement}</button>}</div>
 
