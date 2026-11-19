@@ -10,7 +10,7 @@ const datasets:Dataset[]=[
 {id:"units",label:"Unités",table:"org_units",unique:"company_id,site_id,code",group:"Organisation",fields:[{key:"code",required:true},{key:"name",required:true},{key:"site_code",required:true}]},
 {id:"services",label:"Services",table:"org_services",unique:"company_id,site_id,code",group:"Organisation",fields:[{key:"code",required:true},{key:"name",required:true},{key:"site_code",required:true},{key:"unit_code"}]},
 {id:"departments",label:"Départements",table:"org_departments",unique:"company_id,site_id,code",group:"Organisation",fields:[{key:"code",required:true},{key:"name",required:true},{key:"site_code",required:true},{key:"unit_code"},{key:"service_code"}]},
-{id:"equipment",label:"Équipements",table:"org_equipment",unique:"company_id,equipment_tag",group:"Organisation",fields:[{key:"equipment_tag",required:true},{key:"name",required:true},{key:"site_code",required:true},{key:"unit_code"},{key:"service_code"},{key:"department_code"},{key:"manufacturer"},{key:"model"},{key:"serial_number"},{key:"location"}]},
+{id:"equipment",label:"Équipements",table:"org_equipment",unique:"company_id,equipment_tag",group:"Organisation",fields:[{key:"equipment_tag",required:true},{key:"name",required:true},{key:"site_code",required:true},{key:"unit_code"},{key:"service_code"},{key:"manufacturer"},{key:"model"},{key:"serial_number"},{key:"location"}]},
 {id:"warehouses",label:"Entrepôts",table:"warehouses",unique:"company_id,code",group:"Magasin",fields:[{key:"code",required:true},{key:"name",required:true},{key:"address"},{key:"site_code"},{key:"unit_code"},{key:"service_code"},{key:"department_code"},{key:"equipment_tag"}]},
 {id:"locations",label:"Emplacements",table:"storage_locations",unique:"company_id,code,warehouse_id",group:"Magasin",fields:[{key:"warehouse_code",required:true},{key:"parent_code"},{key:"code",required:true},{key:"name",required:true},{key:"location_type"},{key:"capacity"},{key:"capacity_unit"},{key:"note"}]},
 {id:"lots",label:"Lots & péremption",table:"stock_lots",unique:"",group:"Magasin",fields:[{key:"product_sku",required:true},{key:"warehouse_code",required:true},{key:"location_code"},{key:"lot",required:true},{key:"quantity",required:true},{key:"unit_cost"},{key:"manufacture"},{key:"expiry"},{key:"supplier_name"},{key:"note"}]},
@@ -78,6 +78,7 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
    if(ds.id==="payments"){out.type=r.transaction_type;out.document_number=r.transaction_type==="customer_receipt"?byId("sales",r.sale_id,"invoice_number"):byId("purchase_orders",r.purchase_order_id,"order_number");out.date=r.transaction_date;out.method=r.payment_method;out.note=r.notes;}
    if(ds.id==="lots"){out.lot=r.lot_number;out.quantity=r.quantity_on_hand;out.manufacture=r.manufacture_date;out.expiry=r.expiry_date;out.note=r.notes;}
    if(ds.id==="movements"){out.quantity=r.quantity;out.note=r.note;}
+   if(ds.id==="locations")out.note=r.notes;
    return out;
   });
   makeFile(rows,"Export_"+filename(ds.id)+".xlsx");setMessage(t.downloaded);
