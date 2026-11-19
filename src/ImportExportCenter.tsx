@@ -66,7 +66,9 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
    out.service_code=out.service_code||byId("org_services",r.service_id,"code");
    out.department_code=out.department_code||byId("org_departments",r.department_id,"code");
    out.equipment_tag=out.equipment_tag||byId("org_equipment",r.equipment_id,"equipment_tag");
-   out.warehouse_code=out.warehouse_code||byId("warehouses",r.warehouse_id,"code");\n   out.source_warehouse_code=out.source_warehouse_code||byId("warehouses",r.source_warehouse_id,"code");\n   out.destination_warehouse_code=out.destination_warehouse_code||byId("warehouses",r.destination_warehouse_id,"code");
+   out.warehouse_code=out.warehouse_code||byId("warehouses",r.warehouse_id,"code");
+   out.source_warehouse_code=out.source_warehouse_code||byId("warehouses",r.source_warehouse_id,"code");
+   out.destination_warehouse_code=out.destination_warehouse_code||byId("warehouses",r.destination_warehouse_id,"code");
    out.location_code=out.location_code||byId("storage_locations",r.storage_location_id||r.location_id,"code");
    out.parent_code=out.parent_code||byId("storage_locations",r.parent_id,"code");
    out.category_name=out.category_name||byId("product_categories",r.category_id,"name");
