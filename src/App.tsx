@@ -347,7 +347,7 @@ export default function App() {
 
   const loadNotifications = useCallback(async () => {
     if(!supabase||!company||!session?.user?.id)return;
-    const {data,error}=await supabase.from("notifications").select("id,title,message,notification_type,entity_type,entity_id,is_read,created_at").eq("company_id",company.id).eq("recipient_user_id",session.user.id).order("created_at",{ascending:false}).limit(30);
+    const {data,error}=await supabase.from("notifications").select("id,title,message,notification_type,entity_type,entity_id,is_read,created_at").eq("company_id",company.id).eq("recipient_user_id",session.user.id).neq("notification_type","project_update").neq("notification_type","project_task").order("created_at",{ascending:false}).limit(30);
     if(error){console.warn("Notifications unavailable:",error.message);return;}
     const rows=(data??[]) as AppNotification[];
     const previous=seenNotificationIdsRef.current;
