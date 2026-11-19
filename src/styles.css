@@ -1956,6 +1956,7 @@ form,label,fieldset { min-width:0; }
 /* Unified in-page form system: forms belong to their module page, not floating dialogs. */
 .modal-backdrop:has(> form.modal-card),
 .modal-backdrop:has(> .modal-card form):not(.scanner-backdrop),
+.modal-backdrop:has(> .modal-card .form-grid):not(.scanner-backdrop),
 .org-form-backdrop:has(> form.org-form),
 .pm-modal-backdrop:has(.pm-modal form),
 .sp-modal-backdrop:has(.sp-modal-shell form) {
@@ -1968,6 +1969,7 @@ form,label,fieldset { min-width:0; }
 }
 .modal-backdrop:has(> form.modal-card) > .modal-card,
 .modal-backdrop:has(> .modal-card form) > .modal-card,
+.modal-backdrop:has(> .modal-card .form-grid) > .modal-card,
 .org-form-backdrop:has(> form.org-form) > .org-form,
 .pm-modal-backdrop:has(.pm-modal form) > .pm-modal,
 .sp-modal-backdrop:has(.sp-modal-shell form) > .sp-modal-shell {
