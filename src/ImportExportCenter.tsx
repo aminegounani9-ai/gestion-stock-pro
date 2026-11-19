@@ -29,7 +29,36 @@ const filename=(s:string)=>s.toLowerCase().replace(/[^a-z0-9_-]+/g,"_");
 export default function ImportExportCenter({companyId,lang,canImport,onClose,onDone}:{companyId:string;lang:Lang;canImport:boolean;onClose:()=>void;onDone:()=>Promise<void>}){
  const t=words[lang],rtl=lang==="ar",fileRef=useRef<HTMLInputElement>(null);const [selected,setSelected]=useState("spare_parts"),[busy,setBusy]=useState(false),[message,setMessage]=useState(""),[errors,setErrors]=useState<string[]>([]);const ds=datasets.find(x=>x.id===selected)!;
  function makeFile(rows:any[],name:string){const wb=XLSX.utils.book_new();const data=[ds.fields.map(f=>f.key),...rows.map(r=>ds.fields.map(f=>r[f.key]??""))];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(data),"Data");XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([["Instructions"],[t.note],[ "Module: "+ds.label],["Required: "+ds.fields.filter(f=>f.required).map(f=>f.key).join(", ")]]),"Instructions");XLSX.writeFile(wb,name)}
- async function exportData(){if(!supabase)return;setBusy(true);try{const q=await supabase.from(ds.table).select(ds.id==="spare_parts"?"*, spare_part_details(*)":"*").eq("company_id",companyId).limit(10000);if(q.error)throw q.error;let rows:any[]=q.data??[];if(ds.id==="spare_parts")rows=rows.map((r:any)=>{const d=Array.isArray(r.spare_part_details)?r.spare_part_details[0]:(r.spare_part_details||{});return {...r,...d}});const refTables=["org_sites","org_units","org_services","org_departments","org_equipment","warehouses","storage_locations"];const refs:any={};for(const table of refTables){const z=await supabase.from(table).select("*").eq("company_id",companyId);if(z.error)throw z.error;refs[table]=z.data??[]}const byId=(table:string,id:any,field:string)=>refs[table]?.find((x:any)=>x.id===id)?.[field]||"";rows=rows.map((r:any)=>({...r,site_code:r.site_code||byId("org_sites",r.site_id,"code"),unit_code:r.unit_code||byId("org_units",r.unit_id,"code"),service_code:r.service_code||byId("org_services",r.service_id,"code"),department_code:r.department_code||byId("org_departments",r.department_id,"code"),equipment_tag:r.equipment_tag||byId("org_equipment",r.equipment_id,"equipment_tag"),warehouse_code:r.warehouse_code||byId("warehouses",r.warehouse_id,"code"),location_code:r.location_code||byId("storage_locations",r.storage_location_id,"code")}));makeFile(rows,"Export_"+filename(ds.id)+".xlsx");setMessage(t.downloaded)}catch(e:any){setMessage(e.message)}finally{setBusy(false)}}
+ async function exportData(){if(!supabase)return;setBusy(true);try{
+  const q=await supabase.from(ds.table).select(ds.id==="spare_parts"?"*, spare_part_details(*)":"*").eq("company_id",companyId).limit(10000);
+  if(q.error)throw q.error;
+  let rows:any[]=q.data??[];
+  if(ds.id==="spare_parts")rows=rows.map((r:any)=>{const d=Array.isArray(r.spare_part_details)?r.spare_part_details[0]:(r.spare_part_details||{});return {...r,...d};});
+  const refTables=["org_sites","org_units","org_services","org_departments","org_equipment","warehouses","storage_locations","product_categories","products","suppliers","sales","purchase_orders"];
+  const refs:any={};
+  for(const table of refTables){const z=await supabase.from(table).select("*").eq("company_id",companyId);if(z.error)throw z.error;refs[table]=z.data??[];}
+  const byId=(table:string,id:any,field:string)=>refs[table]?.find((x:any)=>x.id===id)?.[field]||"";
+  rows=rows.map((r:any)=>{
+   const out={...r};
+   out.site_code=out.site_code||byId("org_sites",r.site_id,"code");
+   out.unit_code=out.unit_code||byId("org_units",r.unit_id,"code");
+   out.service_code=out.service_code||byId("org_services",r.service_id,"code");
+   out.department_code=out.department_code||byId("org_departments",r.department_id,"code");
+   out.equipment_tag=out.equipment_tag||byId("org_equipment",r.equipment_id,"equipment_tag");
+   out.warehouse_code=out.warehouse_code||byId("warehouses",r.warehouse_id,"code");
+   out.location_code=out.location_code||byId("storage_locations",r.storage_location_id||r.location_id,"code");
+   out.parent_code=out.parent_code||byId("storage_locations",r.parent_id,"code");
+   out.category_name=out.category_name||byId("product_categories",r.category_id,"name");
+   out.product_sku=out.product_sku||byId("products",r.product_id,"sku");
+   out.supplier_name=out.supplier_name||byId("suppliers",r.supplier_id,"name");
+   if(ds.id==="expenses"){out.number=r.expense_number;out.date=r.expense_date;out.method=r.payment_method;out.note=r.notes;}
+   if(ds.id==="payments"){out.type=r.transaction_type;out.document_number=r.transaction_type==="customer_receipt"?byId("sales",r.sale_id,"invoice_number"):byId("purchase_orders",r.purchase_order_id,"order_number");out.date=r.transaction_date;out.method=r.payment_method;out.note=r.notes;}
+   if(ds.id==="lots"){out.lot=r.lot_number;out.quantity=r.quantity_on_hand;out.manufacture=r.manufacture_date;out.expiry=r.expiry_date;out.note=r.notes;}
+   if(ds.id==="movements"){out.quantity=r.quantity;out.note=r.note;}
+   return out;
+  });
+  makeFile(rows,"Export_"+filename(ds.id)+".xlsx");setMessage(t.downloaded);
+ }catch(e:any){setMessage(e.message)}finally{setBusy(false)}}
  async function importFile(file:File){if(!supabase||!canImport){setMessage(t.noAccess);return}setBusy(true);setMessage("");setErrors([]);const problems:string[]=[];let ok=0;try{
  const wb=XLSX.read(await file.arrayBuffer(),{type:"array"}),sheet=wb.Sheets.Data||wb.Sheets[wb.SheetNames[0]];if(!sheet)throw new Error("Worksheet Data introuvable");const raw=XLSX.utils.sheet_to_json<Record<string,any>>(sheet,{defval:"",raw:false});if(!raw.length)throw new Error("Aucune ligne à importer");const rows=raw.map(r=>Object.fromEntries(Object.entries(r).map(([k,v])=>[String(k).trim().toLowerCase(),v])));
  const get=(r:any,k:string)=>clean(r[k.toLowerCase()]);
