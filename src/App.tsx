@@ -148,9 +148,6 @@ export default function App() {
   const [companyRoles, setCompanyRoles] = useState<Record<string,string>>({});
   const [currentRole, setCurrentRole] = useState("viewer");
   const [isAdmin, setIsAdmin] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState("manager");
-  const [inviteBusy, setInviteBusy] = useState(false);
   const [inviteFlow] = useState(() => new URLSearchParams(window.location.search).get("invite") === "1");
   const [search, setSearch] = useState("");
   const [movementSearch,setMovementSearch]=useState("");
@@ -335,37 +332,6 @@ export default function App() {
       }
     } catch (e:any) { flash("error",e.message); }
     finally { setBusy(false); }
-  }
-
-  async function createInvitation(e: FormEvent) {
-    e.preventDefault();
-    if (!supabase || !company || !session?.user || !isAdmin || !inviteEmail.trim()) return;
-    const normalizedEmail=inviteEmail.trim().toLowerCase();
-    if(members.some(m=>String(m.email||"").toLowerCase()===normalizedEmail)){flash("error","Cet utilisateur est déjà membre de l'entreprise.");return;}
-    setInviteBusy(true);
-    try {
-      const {error} = await supabase.from("user_invitations").upsert({company_id:company.id,email:normalizedEmail,role:inviteRole,invited_by:session.user.id,expires_at:new Date(Date.now()+7*86400000).toISOString(),accepted_at:null},{onConflict:"company_id,email"});
-      if (error) throw error;
-      setInviteEmail("");
-      const {data:inviteRows,error:inviteError}=await supabase.from("user_invitations").select("id,email,role,expires_at,accepted_at").eq("company_id",company.id).order("created_at",{ascending:false});if(inviteError)throw inviteError;setInvitations(inviteRows??[]);
-      flash("success","Invitation créée. Partagez le lien d’activation avec cet utilisateur.");
-    } catch(e:any) { flash("error",e.message); }
-    finally { setInviteBusy(false); }
-  }
-
-  async function revokeInvitation(invitationId:string) {
-    if(!supabase||!company||!isAdmin)return;
-    try{const {error}=await supabase.from("user_invitations").delete().eq("id",invitationId).eq("company_id",company.id);if(error)throw error;setInvitations(list=>list.filter(x=>x.id!==invitationId));flash("success","Invitation révoquée.");}catch(e:any){flash("error",e.message)}
-  }
-
-  async function updateMember(userId:string,patch:{role?:string;is_active?:boolean}) {
-    if(!supabase||!company||!isAdmin)return;
-    if(userId===session?.user?.id){flash("error","Vous ne pouvez pas modifier votre propre rôle ou désactiver votre compte.");return;}
-    try{
-      const {error}=await supabase.from("company_members").update(patch).eq("company_id",company.id).eq("user_id",userId);
-      if(error)throw error;
-      const {data,error:loadError}=await supabase.rpc("list_company_users",{p_company_id:company.id});if(loadError)throw loadError;setMembers(data??[]);flash("success","Utilisateur mis à jour.");
-    }catch(e:any){flash("error",e.message)}
   }
 
   async function createCompany(e: FormEvent) {
