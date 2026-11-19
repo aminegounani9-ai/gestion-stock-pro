@@ -26,7 +26,8 @@ const datasets:Dataset[]=[
 {id:"sales",label:"Ventes / Factures",table:"sales",unique:"",group:"Achats / Ventes",fields:[{key:"invoice_number"},{key:"customer_name"},{key:"warehouse_code",required:true},{key:"product_sku",required:true},{key:"quantity",required:true},{key:"unit_price",required:true},{key:"discount"},{key:"invoice_discount"},{key:"note"}]},
 {id:"transfers",label:"Transferts inter-magasins",table:"stock_transfers",unique:"",group:"Magasin",fields:[{key:"number"},{key:"source_warehouse_code",required:true},{key:"destination_warehouse_code",required:true},{key:"product_sku",required:true},{key:"quantity",required:true},{key:"unit_cost"},{key:"note"}]},
 {id:"inventory",label:"Inventaires",table:"inventory_counts",unique:"",group:"Magasin",fields:[{key:"number"},{key:"warehouse_code",required:true},{key:"product_sku",required:true},{key:"counted_quantity",required:true},{key:"note"}]},
-{id:"returns",label:"Retours clients / fournisseurs",table:"stock_returns",unique:"",group:"Magasin",fields:[{key:"number"},{key:"return_type",required:true},{key:"warehouse_code",required:true},{key:"partner_name"},{key:"product_sku",required:true},{key:"quantity",required:true},{key:"unit_price"},{key:"reason"},{key:"note"}]}
+{id:"returns",label:"Retours clients / fournisseurs",table:"stock_returns",unique:"",group:"Magasin",fields:[{key:"number"},{key:"return_type",required:true},{key:"warehouse_code",required:true},{key:"partner_name"},{key:"product_sku",required:true},{key:"quantity",required:true},{key:"unit_price"},{key:"reason"},{key:"note"}]},
+{id:"requests",label:"Demandes de pièces (DA)",table:"spare_part_requests",unique:"",group:"Demandes",fields:[{key:"request_number",required:true},{key:"requester_email",required:true},{key:"site_code"},{key:"unit_code"},{key:"service_code"},{key:"department_code"},{key:"equipment_tag"},{key:"work_order_reference"},{key:"priority"},{key:"required_date"},{key:"justification"},{key:"product_sku",required:true},{key:"warehouse_code"},{key:"quantity",required:true},{key:"item_notes"}]}
 ];
 const words={fr:{title:"Import / Export Excel",intro:"Téléchargez un modèle avec les en-têtes exacts, remplissez les lignes puis importez le fichier.",dataset:"Module",template:"Télécharger le modèle",export:"Exporter les données",import:"Importer Excel",required:"Champs obligatoires",done:"Lignes traitées",failed:"Lignes rejetées",close:"Fermer",note:"Gardez les noms des colonnes inchangés. Site_Code, Unit_Code et autres codes servent aux rattachements. Les imports mettent à jour les références existantes et ne suppriment aucune donnée.",noAccess:"Vous n'avez pas l'autorisation d'importer.",downloaded:"Fichier téléchargé."},en:{title:"Excel Import / Export",intro:"Download a template with exact column headers, fill it in, then import the workbook.",dataset:"Module",template:"Download template",export:"Export data",import:"Import Excel",required:"Required fields",done:"Rows processed",failed:"Rejected rows",close:"Close",note:"Keep column names unchanged. Site_Code, Unit_Code and similar codes link records. Imports update matching records and never delete data.",noAccess:"You do not have import permission.",downloaded:"File downloaded."},ar:{title:"استيراد / تصدير Excel",intro:"حمّل نموذجاً بعناوين أعمدة جاهزة، املأ البيانات ثم استورد الملف.",dataset:"الوحدة",template:"تحميل النموذج",export:"تصدير البيانات",import:"استيراد Excel",required:"الحقول الإجبارية",done:"الأسطر المعالجة",failed:"الأسطر المرفوضة",close:"إغلاق",note:"لا تغيّر أسماء الأعمدة. تُستخدم الأكواد لربط السجلات. يتم تحديث السجلات المتطابقة دون حذف البيانات.",noAccess:"ليست لديك صلاحية الاستيراد.",downloaded:"تم تحميل الملف."}};
 const clean=(v:any)=>v===undefined||v===null||String(v).trim()===""?null:v;
@@ -38,7 +39,12 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
   const q=await supabase.from(ds.table).select(ds.id==="spare_parts"?"*, spare_part_details(*)":"*").eq("company_id",companyId).limit(10000);
   if(q.error)throw q.error;
   let rows:any[]=q.data??[];
-  if(ds.id==="purchases"){
+  if(ds.id==="requests"){
+   const z=await supabase.from("spare_part_requests").select("*, spare_part_request_items(requested_quantity,warehouse_id,notes,products(sku))").eq("company_id",companyId).limit(10000);if(z.error)throw z.error;
+   const requesterResult=await supabase.rpc("list_spare_part_requesters",{p_company_id:companyId});if(requesterResult.error)throw requesterResult.error;
+   const requesterRows=requesterResult.data||[];
+   rows=(z.data||[]).flatMap((d:any)=>(d.spare_part_request_items||[]).map((it:any)=>({request_number:d.request_number,requester_email:requesterRows.find((u:any)=>u.user_id===d.requested_for_user_id)?.email||d.requested_for||"",site_id:d.site_id,unit_id:d.unit_id,service_id:d.service_id,department_id:d.department_id,equipment_tag:d.equipment_tag,work_order_reference:d.work_order_reference,priority:d.priority,required_date:d.required_date,justification:d.justification,product_sku:it.products?.sku||"",warehouse_id:it.warehouse_id,quantity:it.requested_quantity,item_notes:it.notes})));
+  }else if(ds.id==="purchases"){
    const z=await supabase.from("purchase_orders").select("*, suppliers(name), purchase_order_items(quantity,unit_cost,products(sku))").eq("company_id",companyId).limit(10000);if(z.error)throw z.error;
    rows=(z.data||[]).flatMap((d:any)=>(d.purchase_order_items||[]).map((it:any)=>({order_number:d.order_number,supplier_name:d.suppliers?.name||"",warehouse_id:d.warehouse_id,product_sku:it.products?.sku||"",quantity:it.quantity,unit_cost:it.unit_cost,note:d.notes})));
   }else if(ds.id==="sales"){
@@ -78,6 +84,7 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
    if(ds.id==="payments"){out.type=r.transaction_type;out.document_number=r.transaction_type==="customer_receipt"?byId("sales",r.sale_id,"invoice_number"):byId("purchase_orders",r.purchase_order_id,"order_number");out.date=r.transaction_date;out.method=r.payment_method;out.note=r.notes;}
    if(ds.id==="lots"){out.lot=r.lot_number;out.quantity=r.quantity_on_hand;out.manufacture=r.manufacture_date;out.expiry=r.expiry_date;out.note=r.notes;}
    if(ds.id==="movements"){out.quantity=r.quantity;out.note=r.note;}
+   if(ds.id==="requests"){out.site_code=out.site_code||byId("org_sites",r.site_id,"code");out.unit_code=out.unit_code||byId("org_units",r.unit_id,"code");out.service_code=out.service_code||byId("org_services",r.service_id,"code");out.department_code=out.department_code||byId("org_departments",r.department_id,"code");out.warehouse_code=out.warehouse_code||byId("warehouses",r.warehouse_id,"code");}
    if(ds.id==="locations")out.note=r.notes;
    return out;
   });
@@ -87,8 +94,8 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
  const wb=XLSX.read(await file.arrayBuffer(),{type:"array"}),sheet=wb.Sheets.Data||wb.Sheets[wb.SheetNames[0]];if(!sheet)throw new Error("Worksheet Data introuvable");const raw=XLSX.utils.sheet_to_json<Record<string,any>>(sheet,{defval:"",raw:false});if(!raw.length)throw new Error("Aucune ligne à importer");const rows=raw.map(r=>Object.fromEntries(Object.entries(r).map(([k,v])=>[String(k).trim().toLowerCase(),v])));
  const get=(r:any,k:string)=>clean(r[k.toLowerCase()]);
  const lookup=async(table:string,field:string,val:any,parentField?:string,parentValue?:any)=>{if(!val)return null;let query=supabase!.from(table).select("id").eq("company_id",companyId).eq(field,String(val));if(parentField&&parentValue)query=query.eq(parentField,parentValue);const q=await query.maybeSingle();if(q.error)throw q.error;return q.data?.id||null};
- if(["purchases","sales","transfers","inventory","returns"].includes(ds.id)){
-  const keyField=ds.id==="purchases"?"order_number":ds.id==="sales"?"invoice_number":"number";
+ if(["purchases","sales","transfers","inventory","returns","requests"].includes(ds.id)){
+  const keyField=ds.id==="purchases"?"order_number":ds.id==="sales"?"invoice_number":ds.id==="requests"?"request_number":"number";
   const grouped=new Map<string,any[]>();
   rows.forEach((row:any,index:number)=>{const key=String(get(row,keyField)||"").trim()||"__single_"+index;grouped.set(key,[...(grouped.get(key)||[]),row]);});
   let processed=0,groupIndex=0;
@@ -97,7 +104,21 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
    const productLines=[] as any[];
    for(const row of items){const productId=await lookup("products","sku",get(row,"product_sku"));if(!productId)throw new Error("Article introuvable: "+get(row,"product_sku"));productLines.push({product_id:productId,quantity:Number(get(row,"quantity")??get(row,"counted_quantity")),unit_cost:Number(get(row,"unit_cost")||0),unit_price:Number(get(row,"unit_price")||0),discount:Number(get(row,"discount")||0),counted_quantity:Number(get(row,"counted_quantity"))});}
    const documentNo=docKey.startsWith("__single_")?"":docKey;
-   if(ds.id==="purchases"){
+   if(ds.id==="requests"){
+    const users=await supabase.rpc("list_spare_part_requesters",{p_company_id:companyId});if(users.error)throw users.error;
+    const requester= (users.data||[]).find((u:any)=>String(u.email||"").toLowerCase()===String(get(items[0],"requester_email")||"").toLowerCase()||String(u.display_name||"").toLowerCase()===String(get(items[0],"requester_email")||"").toLowerCase());
+    if(!requester)throw new Error("Demandeur introuvable ou non autorisé: "+get(items[0],"requester_email"));
+    const siteCode=get(items[0],"site_code"),unitCode=get(items[0],"unit_code"),serviceCode=get(items[0],"service_code"),departmentCode=get(items[0],"department_code"),equipmentTag=get(items[0],"equipment_tag");
+    const siteId=siteCode?await lookup("org_sites","code",siteCode):null;
+    const unitId=unitCode?await lookup("org_units","code",unitCode,"site_id",siteId):null;
+    const serviceId=serviceCode?await lookup("org_services","code",serviceCode,"site_id",siteId):null;
+    const departmentId=departmentCode?await lookup("org_departments","code",departmentCode,"site_id",siteId):null;
+    const equipmentId=equipmentTag?await lookup("org_equipment","equipment_tag",equipmentTag):null;
+    const departmentRow=departmentId?await supabase.from("org_departments").select("name").eq("company_id",companyId).eq("id",departmentId).maybeSingle():{data:null,error:null};if(departmentRow.error)throw departmentRow.error;
+    const requestLines=[] as any[];
+    for(const row of items){const productId=await lookup("products","sku",get(row,"product_sku"));if(!productId)throw new Error("Article introuvable: "+get(row,"product_sku"));const warehouseCode=get(row,"warehouse_code"),warehouseId=warehouseCode?await lookup("warehouses","code",warehouseCode):null;requestLines.push({product_id:productId,warehouse_id:warehouseId,quantity:Number(get(row,"quantity")),notes:get(row,"item_notes")});}
+    const result=await supabase.rpc("create_spare_part_issue_request",{p_company_id:companyId,p_request_number:docKey,p_lines:requestLines,p_requested_for:requester.display_name||requester.email,p_requested_for_user_id:requester.user_id,p_department:departmentRow.data?.name||"",p_work_order_reference:get(items[0],"work_order_reference"),p_equipment_tag:equipmentTag,p_priority:get(items[0],"priority")||"normal",p_required_date:get(items[0],"required_date"),p_justification:get(items[0],"justification"),p_site_id:siteId,p_unit_id:unitId,p_service_id:serviceId,p_department_id:departmentId,p_equipment_id:equipmentId});if(result.error)throw result.error;
+   }else if(ds.id==="purchases"){
     const warehouseId=await lookup("warehouses","code",get(items[0],"warehouse_code"));if(!warehouseId)throw new Error("Entrepôt introuvable");
     const supplierId=await lookup("suppliers","name",get(items[0],"supplier_name"));
     const result=await supabase.rpc("receive_purchase_order",{p_company_id:companyId,p_supplier_id:supplierId,p_warehouse_id:warehouseId,p_order_number:documentNo||("CA-IMPORT-"+Date.now()+"-"+groupIndex),p_lines:productLines.map(x=>({product_id:x.product_id,quantity:x.quantity,unit_cost:x.unit_cost})),p_notes:get(items[0],"note")});if(result.error)throw result.error;
@@ -157,7 +178,7 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
  setMessage(t.done+": "+ok+"/"+rows.length);setErrors(problems);await onDone();
  }catch(e:any){setMessage(e.message||"Import impossible")}finally{setBusy(false);if(fileRef.current)fileRef.current.value=""}}
  return <div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}><section className="modal-card excel-modal" dir={rtl?"rtl":"ltr"}><div className="modal-head"><div><span className="eyebrow">GESTION STOCK PRO</span><h2><FileSpreadsheet size={20}/> {t.title}</h2><p>{t.intro}</p></div><button className="icon-btn" onClick={onClose}><X size={18}/></button></div>
- <label className="excel-label">{t.dataset}<select value={selected} onChange={e=>{setSelected(e.target.value);setMessage("");setErrors([])}}>{["Organisation","Magasin","Tiers","Catalogue","Achats / Ventes","Finance"].map(g=><optgroup key={g} label={g}>{datasets.filter(d=>d.group===g).map(d=><option key={d.id} value={d.id}>{d.label}</option>)}</optgroup>)}</select></label>
+ <label className="excel-label">{t.dataset}<select value={selected} onChange={e=>{setSelected(e.target.value);setMessage("");setErrors([])}}>{["Organisation","Magasin","Tiers","Catalogue","Demandes","Achats / Ventes","Finance"].map(g=><optgroup key={g} label={g}>{datasets.filter(d=>d.group===g).map(d=><option key={d.id} value={d.id}>{d.label}</option>)}</optgroup>)}</select></label>
  <div className="excel-fields"><b>Colonnes du fichier</b><div>{ds.fields.map(f=><span key={f.key} className={f.required?"required":""}>{f.key}{f.required?" *":""}</span>)}</div></div>
  <p className="excel-note">{t.note}<br/><small>{t.required}: {ds.fields.filter(f=>f.required).map(f=>f.key).join(", ")||"—"}</small></p>
  <div className="excel-actions"><button className="secondary-btn" onClick={()=>makeFile([],"Modele_"+filename(ds.id)+".xlsx")} disabled={busy}><Download size={16}/>{t.template}</button><button className="secondary-btn" onClick={()=>void exportData()} disabled={busy}><Download size={16}/>{t.export}</button><button className="primary-btn" onClick={()=>fileRef.current?.click()} disabled={busy||!canImport}><Upload size={16}/>{t.import}</button><input ref={fileRef} type="file" accept=".xlsx,.xls" hidden onChange={e=>{const f=e.target.files?.[0];if(f)void importFile(f)}}/></div>
