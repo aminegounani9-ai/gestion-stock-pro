@@ -51,21 +51,25 @@ Deno.serve(async (req: Request) => {
     if (membershipError) throw membershipError;
     if (!membership?.is_active) return respond({ error: "Vous n'avez pas accès à cette entreprise." }, 403);
     const isAdmin = ["owner", "admin"].includes(membership.role);
+    const { data: scope, error: scopeError } = await adminClient.from(allowedScopes[scopeType])
+      .select("*").eq("id", scopeId).eq("company_id", companyId).eq("is_active", true).maybeSingle();
+    if (scopeError) throw scopeError;
+    if (!scope) return respond({ error: "L'affectation sélectionnée n'existe pas ou n'est pas active." }, 400);
+
     if (!isAdmin) {
       const permitted = membership.role === "manager" ? ["warehouse", "technician", "viewer", "staff"]
         : membership.role === "supervisor" ? ["technician", "viewer", "staff"] : [];
       if (!permitted.includes(role)) return respond({ error: "Votre rôle ne permet pas de créer ce type de compte." }, 403);
       const { data: scopes, error: scopesError } = await adminClient.from("user_scope_assignments")
-        .select("id").eq("company_id", companyId).eq("user_id", caller.id)
-        .eq("scope_type", scopeType).eq("scope_id", scopeId).eq("can_view", true);
+        .select("scope_type,scope_id").eq("company_id", companyId).eq("user_id", caller.id).eq("can_view", true);
       if (scopesError) throw scopesError;
-      if (!scopes?.length) return respond({ error: "Vous ne pouvez créer un compte que dans votre périmètre autorisé." }, 403);
+      const direct = (scopes ?? []).some((s: any) => s.scope_type === scopeType && s.scope_id === scopeId);
+      const parentAllowed = (scopes ?? []).some((s: any) =>
+        (s.scope_type === "unit" && ["service","department","equipment","warehouse"].includes(scopeType) && scope.unit_id === s.scope_id) ||
+        (s.scope_type === "site" && scope.site_id === s.scope_id)
+      );
+      if (!direct && !parentAllowed) return respond({ error: "Vous ne pouvez créer un compte que dans votre périmètre autorisé." }, 403);
     }
-
-    const { data: scope, error: scopeError } = await adminClient.from(allowedScopes[scopeType])
-      .select("id").eq("id", scopeId).eq("company_id", companyId).eq("is_active", true).maybeSingle();
-    if (scopeError) throw scopeError;
-    if (!scope) return respond({ error: "L'affectation sélectionnée n'existe pas ou n'est pas active." }, 400);
 
     const { data: created, error: createError } = await adminClient.auth.admin.createUser({
       email, password, email_confirm: true, user_metadata: { full_name: fullName, job_title: jobTitle },
