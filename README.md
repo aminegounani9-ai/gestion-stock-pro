@@ -84,3 +84,14 @@ La branche `main` est reliée au projet Vercel `gestion-stock-pro`. Chaque commi
 ## Données
 
 Aucune donnée de démonstration n'est créée par l'application. Les enregistrements sont créés par les utilisateurs dans leur propre espace d'entreprise.
+
+
+## Déploiement Cloudflare Pages
+
+- Projet Cloudflare Pages : `gestion-stock-pro`
+- Branche de production : `main`
+- Build : `npm run build`
+- Répertoire publié : `dist`
+- URL : `https://gestion-stock-pro.pages.dev`
+
+Le projet utilise le client Supabase avec des valeurs frontend publiques de secours dans `src/lib/supabase.ts`. Ne jamais ajouter de clé `service_role` ou `sb_secret` dans le bundle frontend.
