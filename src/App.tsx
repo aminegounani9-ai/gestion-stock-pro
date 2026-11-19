@@ -664,7 +664,7 @@ function ProductTable({products,categories,money,t,onEdit,onArchive,onDelete}:{p
 function Empty({t}:{t:Labels}) { return <div className="empty-state"><div className="empty-icon"><Package size={24}/></div><b>{t.noProducts}</b><span>{t.noProductsHint}</span></div>; }
 function SimpleDirectory({title,rows,icon,empty,onEdit,onDelete,lang}:{title:string;rows:any[];icon:string;empty:string;lang:Lang;onEdit?:(row:any)=>void;onDelete?:(row:any)=>void}) {
   const Icon=icon==="supplier"?Truck:Users;
-  return <section className="panel"><div className="panel-head"><div><h3>{title}</h3><p>{rows.length} {tr(lang,"enregistrement(s)","record(s)","سجل")}</p></div></div>{rows.length?<div className="simple-list">{rows.map(r=><div className="simple-row" key={r.id}><span className="list-icon"><Icon size={18}/></span><div><b>{r.name}</b><small>{r.phone||r.email||"—"}</small></div><span className="status-pill positive">{tr(lang,"Actif","Active","نشط")}</span>{onEdit&&<button className="ops-icon-btn" onClick={()=>onEdit(r)} title={t.edit}><Settings size={14}/></button>}{onDelete&&<button className="ops-icon-btn danger-action" onClick={()=>onDelete(r)} title={t.delete}><Trash2 size={14}/></button>}</div>)}</div>:<div className="empty-state"><div className="empty-icon"><Icon size={24}/></div><b>{empty}</b></div>}</section>;
+  return <section className="panel"><div className="panel-head"><div><h3>{title}</h3><p>{rows.length} {tr(lang,"enregistrement(s)","record(s)","سجل")}</p></div></div>{rows.length?<div className="simple-list">{rows.map(r=><div className="simple-row" key={r.id}><span className="list-icon"><Icon size={18}/></span><div><b>{r.name}</b><small>{r.phone||r.email||"—"}</small></div><span className="status-pill positive">{tr(lang,"Actif","Active","نشط")}</span>{onEdit&&<button className="ops-icon-btn" onClick={()=>onEdit(r)} title={tr(lang,"Modifier","Edit","تعديل")}><Settings size={14}/></button>}{onDelete&&<button className="ops-icon-btn danger-action" onClick={()=>onDelete(r)} title={tr(lang,"Supprimer","Delete","حذف")}><Trash2 size={14}/></button>}</div>)}</div>:<div className="empty-state"><div className="empty-icon"><Icon size={24}/></div><b>{empty}</b></div>}</section>;
 }
 function BarcodeScanner({onDetected,onClose,lang}:{onDetected:(code:string)=>void|Promise<void>;onClose:()=>void;lang:Lang}) {
   const videoRef=useRef<HTMLVideoElement>(null);
@@ -683,7 +683,7 @@ function BarcodeScanner({onDetected,onClose,lang}:{onDetected:(code:string)=>voi
           if(result&&!stopped){stopped=true;controls?.stop();void callbackRef.current(result.getText());}
         });
       }catch(e:any){
-        setError(e?.name==="NotAllowedError"?"Autorisez l’accès à la caméra pour ce site.":e?.name==="NotFoundError"?"Aucune caméra détectée sur cet appareil.":e?.message||"Impossible d'ouvrir la caméra.");
+        setError(e?.name==="NotAllowedError"?tr(lang,"Autorisez l’accès à la caméra pour ce site.","Allow camera access for this site.","اسمح بالوصول إلى الكاميرا لهذا الموقع."):e?.name==="NotFoundError"?tr(lang,"Aucune caméra détectée sur cet appareil.","No camera detected on this device.","لم يتم العثور على كاميرا في هذا الجهاز."):e?.message||tr(lang,"Impossible d'ouvrir la caméra.","Unable to open the camera.","تعذر فتح الكاميرا."));
       }
     };
     void start();
