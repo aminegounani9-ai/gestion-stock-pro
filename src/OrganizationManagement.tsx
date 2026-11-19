@@ -15,7 +15,7 @@ const words={
 };
 
 
-export default function OrganizationManagement({ companyId, members, currentUserId, onNotice, lang="fr" }: { companyId:string; members:Member[]; currentUserId:string; onNotice:(type:"success"|"error",message:string)=>void; lang?:"fr"|"en"|"ar" }) {
+export default function OrganizationManagement({ companyId, members, currentUserId, onNotice, onRefreshMembers, lang="fr" }: { companyId:string; members:Member[]; currentUserId:string; onNotice:(type:"success"|"error",message:string)=>void; onRefreshMembers?:()=>void|Promise<void>; lang?:"fr"|"en"|"ar" }) {
   const t=words[lang];
   const scopeLabels:Record<ScopeType,string>={site:lang==="ar"?"الموقع":lang==="en"?"Site":"Site",unit:lang==="ar"?"الوحدة":lang==="en"?"Unit":"Unité",service:lang==="ar"?"المصلحة":"Service",department:lang==="ar"?"القسم":lang==="en"?"Department":"Département",equipment:lang==="ar"?"المعدة":lang==="en"?"Equipment":"Équipement",warehouse:lang==="ar"?"المخزن":lang==="en"?"Warehouse":"Entrepôt"};
   const [activeTab,setActiveTab] = useState<"structure"|"assignments">("structure");
