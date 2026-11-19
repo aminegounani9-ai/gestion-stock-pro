@@ -1157,3 +1157,17 @@ html,body,#root{width:100%;min-height:100%;overflow-x:hidden}
     max-width: 64px !important;
   }
 }
+
+
+/* Professional selectable equipment QR labels — isolated to the equipment module. */
+.equipment-qr-tools{display:grid;gap:8px;padding:11px;border:1px solid #e2e8f2;border-radius:11px;background:linear-gradient(135deg,#f8faff,#fff)}
+.equipment-qr-tools>div:first-child{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.equipment-qr-tools>div:first-child>b{font-size:11px;color:#263957}
+.equipment-qr-tools>div:first-child>small{font-size:9px;color:#71809a}
+.equipment-qr-tool-actions{display:flex;gap:6px;flex-wrap:wrap}
+.equipment-qr-tool-actions button{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:32px!important;padding:6px 9px!important;font-size:9px!important}
+.equipment-qr-tool-actions button:disabled{opacity:.45;cursor:not-allowed}
+.equipment-list-row{display:flex;align-items:center;gap:7px;min-width:0}
+.equipment-list-row .equipment-list-item{flex:1;min-width:0}
+.equipment-qr-checkbox{width:17px;height:17px;flex:0 0 17px;accent-color:#3158b5;cursor:pointer}
+@media(max-width:760px){.equipment-qr-tool-actions{display:grid;grid-template-columns:1fr 1fr}.equipment-qr-tool-actions button:last-child{grid-column:1/-1}.equipment-list-row{gap:6px}}
