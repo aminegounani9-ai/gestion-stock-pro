@@ -1,0 +1,5 @@
+alter table public.project_tasks add constraint project_tasks_company_project_id_uniq unique(company_id,project_id,id);
+alter table public.project_raci add constraint project_raci_task_scope_fk foreign key(company_id,project_id,task_id) references public.project_tasks(company_id,project_id,id) on delete cascade;
+alter table public.project_task_comments add constraint project_task_comments_task_scope_fk foreign key(company_id,project_id,task_id) references public.project_tasks(company_id,project_id,id) on delete cascade;
+alter table public.project_task_dependencies add constraint project_task_dependencies_task_scope_fk foreign key(company_id,project_id,task_id) references public.project_tasks(company_id,project_id,id) on delete cascade;
+alter table public.project_task_dependencies add constraint project_task_dependencies_parent_scope_fk foreign key(company_id,project_id,depends_on_task_id) references public.project_tasks(company_id,project_id,id) on delete cascade;
