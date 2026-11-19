@@ -392,7 +392,7 @@ export default function App() {
       const {data:moduleRows,error:moduleError}=await supabase.from("user_module_permissions").select("module_key,can_view,can_create,can_edit,can_delete,can_approve,can_issue,can_receive,can_transfer,can_inventory").eq("company_id",chosen.id).eq("user_id",userId);
       if(moduleError)throw moduleError;
       setModulePermissions(Object.fromEntries((moduleRows??[]).map((row:any)=>[row.module_key,row])));
-      if (["owner","admin","manager","supervisor"].includes(chosenRole)) {
+      if (["owner","admin","director","manager","supervisor"].includes(chosenRole)) {
         const {data: memberRows,error: memberError} = await supabase.rpc("list_company_users",{p_company_id:chosen.id});
         if (memberError) throw memberError;
         setMembers(memberRows ?? []);
