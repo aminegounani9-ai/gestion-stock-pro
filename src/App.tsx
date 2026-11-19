@@ -17,7 +17,7 @@ import ModuleErrorBoundary from "./ModuleErrorBoundary";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 import type { Company, Product } from "./lib/supabase";
 
-type Page = "dashboard" | "requests" | "products" | "categories" | "stock" | "warehouses" | "suppliers" | "transfers" | "inventory" | "locations" | "lots" | "spareParts" | "reports" | "users" | "settings" | "organization" | "equipment";
+type Page = "dashboard" | "requests" | "products" | "categories" | "stock" | "warehouses" | "suppliers" | "customers" | "purchases" | "sales" | "transfers" | "inventory" | "locations" | "lots" | "spareParts" | "returns" | "expenses" | "payments" | "reports" | "users" | "settings" | "organization" | "equipment";
 type Lang = "fr" | "en" | "ar";
 type Notice = { type: "success" | "error"; text: string } | null;
 type AppNotification = { id:string; title:string; message:string; notification_type:string; entity_type:string|null; entity_id:string|null; is_read:boolean; created_at:string };
@@ -148,8 +148,6 @@ export default function App() {
   const [purchases, setPurchases] = useState<any[]>([]);
   const [sales, setSales] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
-  const [invitations,setInvitations]=useState<any[]>([]);
-  const [myScopeAssignments,setMyScopeAssignments]=useState<any[]>([]);
   const [myScopeAssignments,setMyScopeAssignments]=useState<any[]>([]);
   const [companyRoles, setCompanyRoles] = useState<Record<string,string>>({});
   const [currentRole, setCurrentRole] = useState("viewer");
@@ -269,10 +267,7 @@ export default function App() {
         const {data: memberRows,error: memberError} = await supabase.rpc("list_company_users",{p_company_id:chosen.id});
         if (memberError) throw memberError;
         setMembers(memberRows ?? []);
-        const {data: inviteRows,error: inviteError} = await supabase.from("user_invitations").select("id,email,role,expires_at,accepted_at").eq("company_id",chosen.id).order("created_at",{ascending:false});
-        if (inviteError) throw inviteError;
-        setInvitations(inviteRows ?? []);
-      } else { setMembers([]); setInvitations([]); }
+        } else { setMembers([]); }
     }  }, [loadWorkspace]);
 
   useEffect(() => {
@@ -452,7 +447,7 @@ export default function App() {
     setSession(null); setCompany(null); setCompanies([]); setProducts([]); setMembers([]); setCompanyRoles({}); setCurrentRole("viewer"); setIsAdmin(false);
   }
 
-  async function refreshTeam(){if(!supabase||!company)return;const [team,invites]=await Promise.all([supabase.rpc("list_company_users",{p_company_id:company.id}),supabase.from("user_invitations").select("id,email,role,expires_at,accepted_at").eq("company_id",company.id).order("created_at",{ascending:false})]);if(team.error)flash("error",team.error.message);else setMembers(team.data??[]);if(invites.error)flash("error",invites.error.message);else setInvitations(invites.data??[]);}
+  async function refreshTeam(){if(!supabase||!company)return;const team=await supabase.rpc("list_company_users",{p_company_id:company.id});if(team.error)flash("error",team.error.message);else setMembers(team.data??[]);}
 
   const accessFor = (key:string) => {const p=modulePermissions[key]||{};return {canView:p.can_view??scopePermissions.canView,canCreate:p.can_create??scopePermissions.canCreate,canEdit:p.can_edit??scopePermissions.canEdit,canDelete:p.can_delete??scopePermissions.canDelete,canApprove:p.can_approve??scopePermissions.canApprove,canIssue:p.can_issue??scopePermissions.canIssue,canReceive:p.can_receive??scopePermissions.canReceive,canTransfer:p.can_transfer??scopePermissions.canTransfer,canInventory:p.can_inventory??scopePermissions.canInventory,isAdmin};};
   const canManageUsers = ["owner","admin","manager","supervisor"].includes(currentRole);
