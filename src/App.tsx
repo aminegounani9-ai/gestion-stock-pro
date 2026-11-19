@@ -97,6 +97,7 @@ type Labels = { [K in keyof typeof copy.fr]: string };
 const nav: { id: Page; icon: typeof LayoutDashboard; group: string }[] = [
   { id:"dashboard", icon:LayoutDashboard, group:"workspace" },
   { id:"spareParts", icon:Wrench, group:"workspace" },
+  { id:"categories", icon:Boxes, group:"workspace" },
   { id:"requests", icon:ClipboardCheck, group:"workspace" },
   { id:"equipment", icon:ScanBarcode, group:"workspace" },
   { id:"stock", icon:Activity, group:"workspace" },
@@ -190,6 +191,7 @@ export default function App() {
 
   const loadWorkspace = useCallback(async (companyId: string) => {
     if (!supabase) return;
+    setProductCategoryFilter("all");
     const [p,w,s,c,m,b,po,sa] = await Promise.all([
       supabase.from("products").select("*").eq("company_id",companyId).order("created_at",{ascending:false}),
       supabase.from("warehouses").select("*").eq("company_id",companyId).order("created_at"),
