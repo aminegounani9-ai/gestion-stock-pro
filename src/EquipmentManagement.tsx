@@ -28,16 +28,26 @@ export default function EquipmentManagement({companyId,lang,equipmentSeed}:Props
  const loadDetail=async(id:string)=>{
   if(!supabase||!id)return;
   const e=equipment.find(x=>x.id===id);if(!e)return;
-  const [links,req]=await Promise.all([
+  const [links,requests]=await Promise.all([
    supabase.from("spare_part_equipment_compatibility").select("id,product_id,quantity_per_equipment,is_critical,notes").eq("company_id",companyId).eq("equipment_tag",e.equipment_tag),
-   supabase.from("spare_part_requests").select("id,request_number,work_order_reference,status,issued_at,created_at,spare_part_request_items(id,product_id,issued_quantity,products(name,sku,unit))").eq("company_id",companyId).or("equipment_id.eq."+id+",equipment_tag.eq."+e.equipment_tag).order("created_at",{ascending:false}).limit(100)
+   supabase.from("spare_part_requests").select("id,request_number,work_order_reference,status,issued_at,created_at").eq("company_id",companyId).or("equipment_id.eq."+id+",equipment_tag.eq."+e.equipment_tag).order("created_at",{ascending:false}).limit(100)
   ]);
-  if(links.error||req.error){setError(links.error?.message||req.error?.message||t.error);return;}
+  if(links.error||requests.error){setError(links.error?.message||requests.error?.message||t.error);return;}
+  const requestRows=requests.data||[];
+  const requestIds=requestRows.map((r:any)=>r.id);
+  const itemResult=requestIds.length?await supabase.from("spare_part_request_items").select("id,request_id,product_id,issued_quantity").eq("company_id",companyId).in("request_id",requestIds):{data:[],error:null};
+  if(itemResult.error){setError(itemResult.error.message);return;}
+  const itemRows=itemResult.data||[];
+  const productIds=[...new Set(itemRows.map((i:any)=>i.product_id).filter(Boolean))];
+  const productResult=productIds.length?await supabase.from("products").select("id,name,sku,unit").eq("company_id",companyId).in("id",productIds):{data:[],error:null};
+  if(productResult.error){setError(productResult.error.message);return;}
+  const productMap=new Map((productResult.data||[]).map((p:any)=>[p.id,p]));
+  const historyRows=requestRows.map((r:any)=>({...r,spare_part_request_items:itemRows.filter((i:any)=>i.request_id===r.id).map((i:any)=>({...i,products:productMap.get(i.product_id)||null}))}));
   const ids=(links.data||[]).map((x:any)=>x.product_id);
   const stock=ids.length?await supabase.from("stock_balances").select("product_id,quantity_on_hand").eq("company_id",companyId).in("product_id",ids):{data:[],error:null};
   if(stock.error){setError(stock.error.message);return;}
   setParts((links.data||[]).map((x:any)=>({...x,product:products.find(p=>p.id===x.product_id),available:(stock.data||[]).filter((b:any)=>b.product_id===x.product_id).reduce((n:number,b:any)=>n+Number(b.quantity_on_hand||0),0)})));
-  setHistory(req.data||[]);
+  setHistory(historyRows);
  };
  useEffect(()=>{void load();},[companyId]);
  useEffect(()=>{if(selected&&equipment.length)void loadDetail(selected);},[selected,equipment,products]);
