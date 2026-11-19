@@ -96,22 +96,14 @@ type Labels = { [K in keyof typeof copy.fr]: string };
 
 const nav: { id: Page; icon: typeof LayoutDashboard; group: string }[] = [
   { id:"dashboard", icon:LayoutDashboard, group:"workspace" },
-  { id:"products", icon:Package, group:"workspace" },
-  { id:"categories", icon:Boxes, group:"workspace" },
   { id:"spareParts", icon:Wrench, group:"workspace" },
-  { id:"equipment", icon:Wrench, group:"workspace" },
   { id:"requests", icon:ClipboardCheck, group:"workspace" },
   { id:"stock", icon:Activity, group:"workspace" },
   { id:"warehouses", icon:Warehouse, group:"workspace" },
   { id:"locations", icon:Boxes, group:"workspace" },
   { id:"transfers", icon:ArrowLeftRight, group:"workspace" },
   { id:"inventory", icon:ClipboardCheck, group:"workspace" },
-  { id:"lots", icon:Boxes, group:"workspace" },
-  { id:"suppliers", icon:Truck, group:"workspace" },
-  { id:"reports", icon:BarChart3, group:"workspace" },
-  { id:"organization", icon:Building2, group:"administration" },
-  { id:"users", icon:UserCog, group:"administration" },
-  { id:"settings", icon:Settings, group:"administration" },
+  { id:"reports", icon:BarChart3, group:"workspace" }
 ];
 
 export default function App() {
