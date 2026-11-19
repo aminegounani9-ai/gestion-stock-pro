@@ -88,7 +88,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
   }
   const tabs:[ScopeType,string][]=[["site",lang==="ar"?"المواقع":lang==="en"?"Sites":"Sites"],["unit",lang==="ar"?"الوحدات":lang==="en"?"Units":"Unités"],["service",lang==="ar"?"المصالح":lang==="en"?"Services":"Services"],["department",lang==="ar"?"الأقسام":lang==="en"?"Departments":"Départements"],["equipment",lang==="ar"?"المعدات":lang==="en"?"Equipment":"Équipements"]];
   const parentOptions = kind==="unit"||kind==="service"||kind==="department"||kind==="equipment";
-  return <div className="ops-wrap">
+  return <div className="ops-wrap" dir={lang==="ar"?"rtl":"ltr"}>
     <section className="panel">
       <div className="panel-head"><div><h3>{t.title}</h3><p>{t.intro}</p></div><div className="row-actions"><button className="secondary-btn" type="button" onClick={()=>void refresh()}><RefreshCw size={14}/> {t.refresh}</button><button className="primary-btn" type="button" onClick={()=>{setEditingId(null);setForm({});setFormOpen(true);}}><Plus size={15}/>{t.add} {scopeLabels[kind].toLowerCase()}</button></div></div>
       <div className="org-tabs">{tabs.map(([id,label])=><button type="button" key={id} className={kind===id?"active":""} onClick={()=>{setKind(id);setForm({});setEditingId(null)}}>{label} <span>{scopeRows[id].length}</span></button>)}</div>
