@@ -68,6 +68,41 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
  const wb=XLSX.read(await file.arrayBuffer(),{type:"array"}),sheet=wb.Sheets.Data||wb.Sheets[wb.SheetNames[0]];if(!sheet)throw new Error("Worksheet Data introuvable");const raw=XLSX.utils.sheet_to_json<Record<string,any>>(sheet,{defval:"",raw:false});if(!raw.length)throw new Error("Aucune ligne à importer");const rows=raw.map(r=>Object.fromEntries(Object.entries(r).map(([k,v])=>[String(k).trim().toLowerCase(),v])));
  const get=(r:any,k:string)=>clean(r[k.toLowerCase()]);
  const lookup=async(table:string,field:string,val:any,parentField?:string,parentValue?:any)=>{if(!val)return null;let query=supabase!.from(table).select("id").eq("company_id",companyId).eq(field,String(val));if(parentField&&parentValue)query=query.eq(parentField,parentValue);const q=await query.maybeSingle();if(q.error)throw q.error;return q.data?.id||null};
+ if(["purchases","sales","transfers","inventory","returns"].includes(ds.id)){
+  const keyField=ds.id==="purchases"?"order_number":ds.id==="sales"?"invoice_number":"number";
+  const grouped=new Map<string,any[]>();
+  rows.forEach((row:any,index:number)=>{const key=String(get(row,keyField)||"").trim()||"__single_"+index;grouped.set(key,[...(grouped.get(key)||[]),row]);});
+  let processed=0,groupIndex=0;
+  for(const [docKey,items] of grouped){groupIndex++;try{
+   for(const row of items)for(const f of ds.fields)if(f.required&&!get(row,f.key))throw new Error("Colonne obligatoire: "+f.key);
+   const productLines=[] as any[];
+   for(const row of items){const productId=await lookup("products","sku",get(row,"product_sku"));if(!productId)throw new Error("Article introuvable: "+get(row,"product_sku"));productLines.push({product_id:productId,quantity:Number(get(row,"quantity")??get(row,"counted_quantity")),unit_cost:Number(get(row,"unit_cost")||0),unit_price:Number(get(row,"unit_price")||0),discount:Number(get(row,"discount")||0),counted_quantity:Number(get(row,"counted_quantity"))});}
+   const documentNo=docKey.startsWith("__single_")?"":docKey;
+   if(ds.id==="purchases"){
+    const warehouseId=await lookup("warehouses","code",get(items[0],"warehouse_code"));if(!warehouseId)throw new Error("Entrepôt introuvable");
+    const supplierId=await lookup("suppliers","name",get(items[0],"supplier_name"));
+    const result=await supabase.rpc("receive_purchase_order",{p_company_id:companyId,p_supplier_id:supplierId,p_warehouse_id:warehouseId,p_order_number:documentNo||("CA-IMPORT-"+Date.now()+"-"+groupIndex),p_lines:productLines.map(x=>({product_id:x.product_id,quantity:x.quantity,unit_cost:x.unit_cost})),p_notes:get(items[0],"note")});if(result.error)throw result.error;
+   }else if(ds.id==="sales"){
+    const warehouseId=await lookup("warehouses","code",get(items[0],"warehouse_code"));if(!warehouseId)throw new Error("Entrepôt introuvable");
+    const customerId=await lookup("customers","name",get(items[0],"customer_name"));
+    const result=await supabase.rpc("create_stock_sale",{p_company_id:companyId,p_customer_id:customerId,p_warehouse_id:warehouseId,p_invoice_number:documentNo||("VTE-IMPORT-"+Date.now()+"-"+groupIndex),p_lines:productLines.map(x=>({product_id:x.product_id,quantity:x.quantity,unit_price:x.unit_price,discount:x.discount})),p_discount:Number(get(items[0],"invoice_discount")||0),p_notes:get(items[0],"note")});if(result.error)throw result.error;
+   }else if(ds.id==="transfers"){
+    const source=await lookup("warehouses","code",get(items[0],"source_warehouse_code")),dest=await lookup("warehouses","code",get(items[0],"destination_warehouse_code"));if(!source||!dest)throw new Error("Entrepôt source ou destination introuvable");
+    const result=await supabase.rpc("create_stock_transfer",{p_company_id:companyId,p_transfer_number:documentNo||("TRF-IMPORT-"+Date.now()+"-"+groupIndex),p_source_warehouse_id:source,p_destination_warehouse_id:dest,p_lines:productLines.map(x=>({product_id:x.product_id,quantity:x.quantity,unit_cost:x.unit_cost})),p_notes:get(items[0],"note")});if(result.error)throw result.error;
+   }else if(ds.id==="inventory"){
+    const warehouseId=await lookup("warehouses","code",get(items[0],"warehouse_code"));if(!warehouseId)throw new Error("Entrepôt introuvable");
+    const result=await supabase.rpc("create_inventory_count_draft",{p_company_id:companyId,p_count_number:documentNo||("INV-IMPORT-"+Date.now()+"-"+groupIndex),p_warehouse_id:warehouseId,p_lines:productLines.map(x=>({product_id:x.product_id,counted_quantity:x.counted_quantity})),p_notes:get(items[0],"note")});if(result.error)throw result.error;
+   }else{
+    const warehouseId=await lookup("warehouses","code",get(items[0],"warehouse_code"));if(!warehouseId)throw new Error("Entrepôt introuvable");
+    const type=String(get(items[0],"return_type")||"customer"),partner=String(get(items[0],"partner_name")||"");
+    const partnerId=partner?await lookup(type==="supplier"?"suppliers":"customers","name",partner):null;
+    const result=await supabase.rpc("create_stock_return",{p_company_id:companyId,p_return_number:documentNo||("RET-IMPORT-"+Date.now()+"-"+groupIndex),p_return_type:type,p_warehouse_id:warehouseId,p_customer_id:type==="customer"?partnerId:null,p_supplier_id:type==="supplier"?partnerId:null,p_lines:productLines.map(x=>({product_id:x.product_id,quantity:x.quantity,unit_price:x.unit_price})),p_reason:get(items[0],"reason"),p_notes:get(items[0],"note")});if(result.error)throw result.error;
+   }
+   processed+=items.length;
+  }catch(e:any){problems.push("Document "+(docKey.startsWith("__single_")?groupIndex:docKey)+": "+e.message);}
+  }
+  setMessage(t.done+": "+processed+"/"+rows.length);setErrors(problems);await onDone();return;
+ }
  for(let i=0;i<rows.length;i++){const r=rows[i],line=i+2;try{
  for(const f of ds.fields)if(f.required&&!get(r,f.key))throw new Error("Colonne obligatoire: "+f.key);
  const payload:any={company_id:companyId};
