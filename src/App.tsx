@@ -114,38 +114,6 @@ const nav: { id: Page; icon: typeof LayoutDashboard; group: string }[] = [
   { id:"settings", icon:Settings, group:"administration" }
 ];
 
-function FormLayoutEnhancer() {
-  useEffect(() => {
-    const enhance = () => {
-      const headers = document.querySelectorAll<HTMLElement>(
-        ".modal-card > .modal-head, .pm-modal > header, .sp-modal-shell > .panel > .panel-head, .org-form > .modal-head"
-      );
-      headers.forEach((header) => {
-        const card = header.closest<HTMLElement>(".modal-card, .pm-modal, .sp-modal-shell, .org-form");
-        if (!card || card.dataset.formCollapseReady === "true") return;
-        card.dataset.formCollapseReady = "true";
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "form-collapse-toggle";
-        button.textContent = header.closest("[dir=rtl]") !== null ? "تصغير" : "Réduire";
-        button.setAttribute("aria-expanded", "true");
-        button.addEventListener("click", () => {
-          const collapsed = card.classList.toggle("form-is-collapsed");
-          button.textContent = collapsed
-            ? (header.closest("[dir=rtl]") !== null ? "توسيع" : "Agrandir")
-            : (header.closest("[dir=rtl]") !== null ? "تصغير" : "Réduire");
-          button.setAttribute("aria-expanded", String(!collapsed));
-        });
-        header.appendChild(button);
-      });
-    };
-    enhance();
-    const observer = new MutationObserver(enhance);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
-  }, []);
-  return null;
-}
 
 export default function App() {
   const [session, setSession] = useState<any>(null);
@@ -634,7 +602,6 @@ export default function App() {
   if (!company) return <div className="setup-screen" dir={rtl?"rtl":"ltr"}><div className="setup-card"><span className="brand-mark"><Building2/></span><h1>{t.companySetup}</h1><p>{t.noCompany}</p><form onSubmit={createCompany}><label>{t.company}<input value={companyName} onChange={e=>setCompanyName(e.target.value)} required minLength={2}/></label><button className="primary-btn full" disabled={busy}>{busy?t.loading:t.createCompany}</button></form><button className="text-btn" onClick={signOut}>{t.logout}</button></div>{notice&&<div className={"toast "+notice.type}>{notice.text}</div>}</div>;
 
   return <div className="app-shell" dir={rtl?"rtl":"ltr"}>
-    <FormLayoutEnhancer/>
     <aside className="sidebar">
       <div className="brand"><span className="brand-mark sophal-brand-mark"><img className="sophal-brand-image" src="/sophal-mark.svg" alt="SOPHAL" /></span><div><b>Gestion Stock</b><small>PRO MANAGEMENT</small></div></div>
       <div className="workspace-switch"><span className="workspace-icon"><Building2 size={17}/></span><div><small>{t.chooseCompany}</small><select className="workspace-select" value={company.id} onChange={async e=>{const selected=companies.find(c=>c.id===e.target.value);if(selected){const role=companyRoles[selected.id]||"viewer";setCompany(selected);setSettingsForm({name:selected.name,legal_name:selected.legal_name||"",tax_number:selected.tax_number||"",phone:selected.phone||"",email:selected.email||"",address:selected.address||"",city:selected.city||"",country:selected.country||"Algeria",currency_code:selected.currency_code||"DZD"});setCurrentRole(role);const admin=["owner","admin","director"].includes(role);const canManage=["owner","admin","director","manager","supervisor","project_responsible"].includes(role);setIsAdmin(admin);await loadWorkspace(selected.id);const moduleRows=await supabase?.from("user_module_permissions").select("module_key,can_view,can_create,can_edit,can_delete,can_approve,can_issue,can_receive,can_transfer,can_inventory").eq("company_id",selected.id).eq("user_id",session.user.id);if(moduleRows?.error)flash("error",moduleRows.error.message);else setModulePermissions(Object.fromEntries((moduleRows?.data??[]).map((row:any)=>[row.module_key,{can_view:row.can_view,can_create:row.can_create,can_edit:row.can_edit,can_delete:row.can_delete,can_approve:row.can_approve,can_issue:row.can_issue,can_receive:row.can_receive,can_transfer:row.can_transfer,can_inventory:row.can_inventory}])));if(canManage){const result=await supabase?.rpc("list_company_users",{p_company_id:selected.id});if(result?.error)flash("error",result.error.message);else setMembers(result?.data??[]);}else{setMembers([])}}}}>{companies.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></div><ChevronDown size={15}/></div>
