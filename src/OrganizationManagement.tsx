@@ -34,7 +34,8 @@ export default function OrganizationManagement({ companyId, members, currentUser
   const [busy,setBusy] = useState(false);
   const [managementUserId,setManagementUserId] = useState("");
   const [formOpen,setFormOpen]=useState(false);
-  const [assignmentModalOpen,setAssignmentModalOpen]=useState(false);\n  const [managementModalOpen,setManagementModalOpen]=useState(false);
+  const [assignmentModalOpen,setAssignmentModalOpen]=useState(false);
+  const [managementModalOpen,setManagementModalOpen]=useState(false);
   const refresh = useCallback(async () => {
     if(!supabase) return;
     const [a,b,c,d,e,f,g] = await Promise.all([
@@ -83,7 +84,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
     try{
       const {error}=await supabase.from("company_members").update({role:"director"}).eq("company_id",companyId).eq("user_id",managementUserId).neq("role","owner");
       if(error)throw error;
-      setManagementUserId("");
+      setManagementUserId("");setManagementModalOpen(false);
       await onRefreshMembers?.();
       onNotice("success",t.directorAssigned);
     }catch(e:any){onNotice("error",e.message)}finally{setBusy(false)}
