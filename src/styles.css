@@ -3389,3 +3389,18 @@ body{color:#243550;-webkit-font-smoothing:antialiased;text-rendering:optimizeLeg
     transition: none !important;
   }
 }
+
+
+/* Lock every scroll container behind an open desktop dialog. */
+@media (min-width: 761px) {
+  body:has(.modal-backdrop, .pm-modal-backdrop, .pms-modal-backdrop, .sp-modal-backdrop, .org-form-backdrop) {
+    overflow: hidden !important;
+    overscroll-behavior: none !important;
+  }
+  body:has(.modal-backdrop, .pm-modal-backdrop, .pms-modal-backdrop, .sp-modal-backdrop, .org-form-backdrop) .main-area,
+  body:has(.modal-backdrop, .pm-modal-backdrop, .pms-modal-backdrop, .sp-modal-backdrop, .org-form-backdrop) .page-content {
+    overflow: hidden !important;
+    overscroll-behavior: none !important;
+  }
+  .org-management-modal { width: min(620px, calc(100vw - 56px)) !important; }
+}
