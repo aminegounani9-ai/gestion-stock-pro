@@ -2453,3 +2453,154 @@ body{color:#243550;-webkit-font-smoothing:antialiased;text-rendering:optimizeLeg
 @media(prefers-reduced-motion:reduce){
  .pm-wrap .panel,.pms-shell .panel,.pm-project-item,.pm-kpis article{animation:none!important;transition:none!important}
 }
+
+
+/* Desktop form system — consistent layout across every operational module */
+@media (min-width:761px){
+  :root{--form-ink:#263b58;--form-muted:#687b94;--form-border:#dbe4ef;--form-focus:#5279c7;--form-surface:#fbfcff}
+  .modal-backdrop,.org-form-backdrop,.pm-modal-backdrop,.pms-modal-backdrop,.sp-modal-backdrop{
+    padding:clamp(18px,2vw,30px)!important;
+    place-items:center!important;
+  }
+  .modal-backdrop>.modal-card,.org-form-backdrop>.modal-card{
+    width:min(900px,calc(100vw - 330px))!important;
+    max-width:900px!important;max-height:calc(100vh - 52px)!important;
+    padding:26px 30px!important;border:1px solid #dce5f0!important;
+    border-radius:18px!important;box-shadow:0 28px 90px #172c4a2b!important;
+  }
+  .modal-backdrop>.modal-card.equipment-create-modal{
+    width:min(980px,calc(100vw - 330px))!important;max-width:980px!important;
+  }
+  .modal-card>.modal-head,.org-form>.modal-head{
+    gap:18px;padding:0 0 19px!important;margin:0 0 22px!important;
+    border-bottom:1px solid #e9eef5;align-items:center!important;
+  }
+  .modal-head h2,.modal-head h3{font-size:20px!important;line-height:1.3!important;color:#203957!important;letter-spacing:-.25px}
+  .modal-head p{font-size:12px;line-height:1.6;color:#71839a}
+  .form-grid,.ops-fields,.pm-form-grid,.pms-form-grid,.users-create-form{
+    display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    column-gap:20px!important;row-gap:17px!important;align-items:start!important;
+    min-width:0!important;
+  }
+  .form-grid>.span-2,.form-grid>.wide,.ops-fields>.ops-wide,
+  .pm-form-grid>.wide,.pms-form-grid>.pms-wide,
+  .users-create-form>.users-assignment-grid,.users-create-form>.primary-btn{
+    grid-column:1/-1!important;min-width:0!important;
+  }
+  .form-grid label,.ops-fields label,.pm-form-grid label,.pms-form-grid label,
+  .users-create-form>label,.org-management-form>label,.auth-form label{
+    display:flex!important;flex-direction:column!important;align-items:stretch!important;
+    gap:8px!important;min-width:0!important;color:#435a78!important;
+    font-size:12px!important;font-weight:700!important;line-height:1.45!important;
+  }
+  .form-grid input:not([type=checkbox]):not([type=radio]):not([type=file]),
+  .form-grid select,.form-grid textarea,
+  .ops-fields input:not([type=checkbox]):not([type=radio]):not([type=file]),
+  .ops-fields select,.ops-fields textarea,.ops-period input,
+  .ops-line input,.ops-line select,
+  .pm-form-grid input:not([type=checkbox]):not([type=radio]),.pm-form-grid select,.pm-form-grid textarea,
+  .pms-form-grid input:not([type=checkbox]):not([type=radio]),.pms-form-grid select,.pms-form-grid textarea,
+  .pms-inline-form input,.pms-inline-form select,.pms-inline-form textarea,
+  .users-create-form input:not([type=checkbox]):not([type=radio]),.users-create-form select,
+  .org-management-form select,.auth-form input{
+    width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important;
+    min-height:44px!important;height:auto!important;padding:10px 12px!important;
+    border:1px solid var(--form-border)!important;border-radius:10px!important;
+    background:var(--form-surface)!important;color:var(--form-ink)!important;
+    font:500 13px/1.4 "DM Sans","Segoe UI",Arial,sans-serif!important;
+    box-shadow:inset 0 1px 2px #1b355008!important;
+    transition:border-color .18s ease,box-shadow .18s ease,background .18s ease,transform .18s ease!important;
+  }
+  .form-grid textarea,.ops-fields textarea,.pm-form-grid textarea,.pms-form-grid textarea,
+  .pms-inline-form textarea{min-height:96px!important;resize:vertical!important;line-height:1.6!important}
+  .form-grid input:hover,.form-grid select:hover,.form-grid textarea:hover,
+  .ops-fields input:hover,.ops-fields select:hover,.ops-fields textarea:hover,
+  .pm-form-grid input:hover,.pm-form-grid select:hover,.pm-form-grid textarea:hover,
+  .pms-form-grid input:hover,.pms-form-grid select:hover,.pms-form-grid textarea:hover{
+    border-color:#b8c9df!important;background:#fff!important;
+  }
+  .form-grid input:focus,.form-grid select:focus,.form-grid textarea:focus,
+  .ops-fields input:focus,.ops-fields select:focus,.ops-fields textarea:focus,
+  .pm-form-grid input:focus,.pm-form-grid select:focus,.pm-form-grid textarea:focus,
+  .pms-form-grid input:focus,.pms-form-grid select:focus,.pms-form-grid textarea:focus,
+  .users-create-form input:focus,.users-create-form select:focus{
+    outline:0!important;border-color:var(--form-focus)!important;background:#fff!important;
+    box-shadow:0 0 0 3px #5279c71c!important;
+  }
+  .form-grid input::placeholder,.ops-fields input::placeholder,.pm-form-grid input::placeholder,
+  .pms-form-grid input::placeholder,.pms-inline-form textarea::placeholder{color:#9aa8ba}
+  .form-grid input[type=checkbox],.form-grid input[type=radio],
+  .ops-fields input[type=checkbox],.ops-fields input[type=radio],
+  .pm-form-grid input[type=checkbox],.pm-form-grid input[type=radio],
+  .pms-form-grid input[type=checkbox],.pms-form-grid input[type=radio],
+  .users-create-form input[type=checkbox],.users-create-form input[type=radio]{
+    width:17px!important;height:17px!important;min-height:17px!important;accent-color:#426bc0;
+    flex:0 0 auto;box-shadow:none!important;padding:0!important;
+  }
+  .form-grid label:has(input[type=checkbox]),.form-grid label:has(input[type=radio]),
+  .ops-fields label:has(input[type=checkbox]),.pm-form-grid label:has(input[type=checkbox]){
+    flex-direction:row!important;align-items:center!important;gap:10px!important;
+  }
+  .form-grid .check-field,.equipment-check,.org-multi-scope-field{
+    padding:12px 14px;border:1px solid #e3eaf3;border-radius:10px;background:#f8faff;
+  }
+  .modal-card .modal-actions,.modal-card .ops-actions,.pm-modal footer,.pms-modal footer,
+  .org-form .modal-actions{
+    display:flex!important;justify-content:flex-end!important;align-items:center!important;
+    flex-wrap:wrap!important;gap:10px!important;padding-top:19px!important;margin-top:22px!important;
+    border-top:1px solid #e9eef5!important;background:#fff;
+  }
+  .modal-card .modal-actions>button,.modal-card .ops-actions>button,
+  .pm-modal footer>button,.pms-modal footer>button,.org-form .modal-actions>button{
+    min-width:118px;min-height:43px!important;border-radius:10px!important;font-size:12px!important;
+  }
+  .primary-btn{font-weight:750!important;letter-spacing:.05px}
+  .primary-btn:focus-visible,.secondary-btn:focus-visible,.ops-icon-btn:focus-visible,
+  .modal-head button:focus-visible{outline:3px solid #5279c755!important;outline-offset:2px}
+  .modal-card,.pm-modal,.pms-modal,.sp-modal-shell>.panel{
+    box-sizing:border-box!important;overflow-x:hidden!important;
+  }
+  .pm-modal-backdrop>.pm-modal{width:min(1040px,calc(100vw - 340px))!important;max-width:1040px!important;max-height:calc(100vh - 48px)!important}
+  .pm-modal>form,.pms-modal>form{min-height:0!important;overflow-y:auto!important;overscroll-behavior:contain}
+  .pm-modal>header,.pms-modal>header,.sp-modal-shell>.panel>.panel-head{
+    flex:0 0 auto!important;padding:20px 26px!important;
+    border-bottom:1px solid #e8eef6!important;background:linear-gradient(110deg,#f6f9ff,#f2f7fb)!important;
+  }
+  .pm-modal>form,.pms-modal>form{padding:22px 26px!important}
+  .pm-modal footer,.pms-modal footer{position:sticky!important;bottom:0!important;padding:16px 0 2px!important}
+  .pms-modal-backdrop>.pms-modal{width:min(900px,calc(100vw - 340px))!important;max-width:900px!important;max-height:calc(100vh - 48px)!important}
+  .sp-modal-backdrop>.sp-modal-shell{width:min(960px,calc(100vw - 340px))!important;max-width:960px!important;max-height:calc(100vh - 48px)!important}
+  .sp-modal-shell>.panel{display:flex!important;flex-direction:column!important;max-height:inherit!important}
+  .sp-modal-shell>.panel>form{min-height:0!important;overflow-y:auto!important;padding:22px 26px!important}
+  .sp-modal-shell .ops-fields{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:18px!important}
+  .users-create-panel{min-width:0}
+  .users-create-form{gap:15px!important}
+  .users-create-form>label:nth-child(1),.users-create-form>label:nth-child(2),
+  .users-create-form>label:nth-child(3){grid-column:1/-1!important}
+  .org-management-form{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:end!important;gap:16px!important}
+  .org-management-form>button{min-height:44px!important;white-space:nowrap}
+  .pms-inline-form{display:grid!important;grid-template-columns:minmax(180px,1fr) minmax(180px,1fr) auto!important;gap:12px!important;align-items:end!important}
+  .pms-inline-form textarea{grid-column:1/-1!important;min-height:76px!important}
+  .pms-inline-form button{min-height:44px!important}
+  .form-grid,.ops-fields,.pm-form-grid,.pms-form-grid,.users-create-form{animation:formGridEnter .32s ease both}
+  .modal-backdrop,.org-form-backdrop,.pm-modal-backdrop,.pms-modal-backdrop,.sp-modal-backdrop{animation:formBackdropEnter .18s ease both}
+  .modal-card,.pm-modal,.pms-modal,.sp-modal-shell>.panel{animation:formSurfaceEnter .28s cubic-bezier(.2,.8,.2,1) both}
+  .form-grid label,.ops-fields label,.pm-form-grid label,.pms-form-grid label{transition:color .18s ease}
+  .form-grid label:focus-within,.ops-fields label:focus-within,.pm-form-grid label:focus-within,.pms-form-grid label:focus-within{color:#315ca7!important}
+  @keyframes formBackdropEnter{from{opacity:0}to{opacity:1}}
+  @keyframes formSurfaceEnter{from{opacity:0;transform:translateY(10px) scale(.992)}to{opacity:1;transform:translateY(0) scale(1)}}
+  @keyframes formGridEnter{from{opacity:.65;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+}
+@media (min-width:761px) and (max-width:1120px){
+  .modal-backdrop>.modal-card,.org-form-backdrop>.modal-card{width:min(760px,calc(100vw - 270px))!important;padding:22px!important}
+  .pm-modal-backdrop>.pm-modal,.pms-modal-backdrop>.pms-modal,.sp-modal-backdrop>.sp-modal-shell{width:calc(100vw - 270px)!important}
+  .form-grid,.ops-fields,.pm-form-grid,.pms-form-grid,.users-create-form{column-gap:14px!important;row-gap:14px!important}
+  .pms-inline-form{grid-template-columns:1fr 1fr!important}
+  .pms-inline-form button{grid-column:1/-1}
+}
+@media(prefers-reduced-motion:reduce){
+  .modal-backdrop,.org-form-backdrop,.pm-modal-backdrop,.pms-modal-backdrop,.sp-modal-backdrop,
+  .modal-card,.pm-modal,.pms-modal,.sp-modal-shell>.panel,.form-grid,.ops-fields,.pm-form-grid,.pms-form-grid,.users-create-form{
+    animation:none!important;transition:none!important;
+  }
+}
