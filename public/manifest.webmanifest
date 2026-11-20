@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "Direct Stock & Project Management",
-  "short_name": "Direct Stock",
+  "name": "Stock & Project Management",
+  "short_name": "Stock & Project",
   "description": "Gestion professionnelle des stocks, équipements, pièces détachées et projets.",
   "lang": "fr",
   "start_url": "/",
