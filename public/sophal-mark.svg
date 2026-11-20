@@ -1,10 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-labelledby="title">
-  <title id="title">SOPHAL</title>
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3157c8"/><stop offset="1" stop-color="#172554"/></linearGradient>
-  </defs>
-  <rect width="256" height="256" rx="52" fill="url(#bg)"/>
-  <path d="M48 103 128 58l80 45v94a10 10 0 0 1-10 10H58a10 10 0 0 1-10-10z" fill="none" stroke="#fff" stroke-width="12" stroke-linejoin="round"/>
-  <path d="M48 103h160M128 60v147M77 132h29v30H77zM150 132h29v30h-29z" fill="none" stroke="#fff" stroke-width="10" stroke-linejoin="round"/>
-  <path d="M95 207v-27h66v27" fill="none" stroke="#9db7ff" stroke-width="10" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+<title id="title">SOPHAL - Stock &amp; Project Management</title>
+<defs>
+ <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#174f91"/><stop offset="1" stop-color="#10386c"/></linearGradient>
+ <linearGradient id="blue" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#42b6e5"/><stop offset="1" stop-color="#218fc8"/></linearGradient>
+ <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="9" stdDeviation="10" flood-color="#12365b" flood-opacity=".22"/></filter>
+</defs>
+<rect x="8" y="8" width="496" height="496" rx="86" fill="#f7f9fc"/>
+<g fill="none" stroke="#1b527e" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity=".9">
+ <path d="M34 174h115v93H34zM67 142h81v32H67zM45 194h28m-28 28h28m-28 28h28"/>
+ <path d="M355 52v110h119M374 90h62m-62 30h86m-86 30h48"/>
+ <path d="M42 352h116v110H42zM59 380l12 12 22-26m-34 55 12 12 22-26m-34 55 12 12 22-26"/>
+ <path d="M383 365h91v96h-91zM400 384h14m12 0h14m12 0h14M400 407h14m12 0h14m12 0h14M400 430h14m12 0h14m12 0h14"/>
+ <path d="M198 470c-15-24-13-49 8-66m25 62 16-29 17 29m74-340 32-28 30 8 30-26"/>
+</g>
+<g fill="#2fa5d8" opacity=".95"><rect x="181" y="55" width="10" height="65" rx="4"/><rect x="200" y="55" width="10" height="65" rx="4"/><rect x="219" y="55" width="10" height="65" rx="4"/><rect x="238" y="55" width="10" height="65" rx="4"/><rect x="257" y="55" width="10" height="65" rx="4"/></g>
+<g filter="url(#shadow)">
+ <rect x="72" y="132" width="368" height="304" rx="34" fill="#fff"/>
+ <path d="M105 137h302a24 24 0 0 1 24 24v177H81V161a24 24 0 0 1 24-24z" fill="url(#panel)"/>
+ <path d="M157 218c31-53 84-77 140-64 35 8 62 30 79 60-28-10-57-12-86-4-31 9-54 26-74 49-20-12-39-25-59-41z" fill="#1ea05a"/>
+ <path d="M157 218c41 30 88 55 144 73-35 23-78 25-116 7-29-14-49-38-58-66 9-6 19-11 30-14z" fill="#1ea05a"/>
+ <path d="M202 211c26-23 61-34 95-27 22 5 41 17 55 34-27-5-53-1-77 12-12 7-22 15-32 26-14-14-27-29-41-45z" fill="#ed1f2f"/>
+ <path d="M277 239v49" stroke="#ed1f2f" stroke-width="17" stroke-linecap="round"/>
+ <path d="M81 259h106m-14 0h36m-8 0 52 33" stroke="#2ca8dc" stroke-width="9" fill="none"/>
+ <path d="M81 318h350" stroke="#fff" stroke-width="10"/>
+ <path d="M81 328h350v77a24 24 0 0 1-24 24H105a24 24 0 0 1-24-24z" fill="url(#blue)"/>
+ <text x="256" y="393" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="61" font-weight="800" letter-spacing="2" fill="#fff">SOPHAL</text>
+</g>
 </svg>
