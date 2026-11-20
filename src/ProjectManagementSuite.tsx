@@ -19,7 +19,8 @@ export default function ProjectManagementSuite({companyId,currentUserId,currentR
  const [busy,setBusy]=useState(false),[notice,setNotice]=useState(""),[modal,setModal]=useState(false),[editing,setEditing]=useState<Row|null>(null),[form,setForm]=useState<Row>({});
  const [commentTask,setCommentTask]=useState(""),[commentText,setCommentText]=useState(""),[subtaskParent,setSubtaskParent]=useState(""),[subtaskTitle,setSubtaskTitle]=useState("");
  const [dependencyTask,setDependencyTask]=useState(""),[dependencyParent,setDependencyParent]=useState(""),[dependencyType,setDependencyType]=useState("finish_to_start");
- const [assigneeTask,setAssigneeTask]=useState(""),[assigneeUser,setAssigneeUser]=useState(""),[assigneeRole,setAssigneeRole]=useState("collaborator");\n const [collabModal,setCollabModal]=useState<"comment"|"dependency"|"subtask"|"assignee"|null>(null);
+ const [assigneeTask,setAssigneeTask]=useState(""),[assigneeUser,setAssigneeUser]=useState(""),[assigneeRole,setAssigneeRole]=useState("collaborator");
+ const [collabModal,setCollabModal]=useState<"comment"|"dependency"|"subtask"|"assignee"|null>(null);
  const canManage=["owner","admin","director","manager","supervisor"].includes(currentRole);
  const project=projects.find(p=>p.id===selectedProjectId)||projects[0]||null;
  const projectTasks=useMemo(()=>tasks.filter(x=>x.project_id===project?.id),[tasks,project?.id]);
