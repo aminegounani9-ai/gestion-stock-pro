@@ -1,4 +1,4 @@
-const CACHE_NAME = "stock-project-management-shell-v10";
+const CACHE_NAME = "stock-project-management-shell-v11";
 const APP_SHELL = ["/", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
@@ -44,7 +44,7 @@ self.addEventListener("push", (event) => {
   const title = payload.title || "Stock & Project Management";
   const options = {
     body: payload.body || payload.message || "Une nouvelle activité nécessite votre attention.",
-    icon: payload.icon || "/icon-192.svg",
+    icon: payload.icon || "/sophal-mark.svg",
     badge: payload.badge || "/icon-192.svg",
     tag: payload.tag || payload.id || "stock-project-management-notification",
     renotify: true,
