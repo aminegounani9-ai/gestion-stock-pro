@@ -26,7 +26,7 @@ const datasets: Dataset[] = [
     {key:"code",required:true},{key:"name",required:true},{key:"management_code",required:true},{key:"description"},{key:"is_active"}
   ]},
   { id:"sites", label:"Sites", table:"org_sites", key:"code", group:"Organisation", fields:[
-    {key:"code",required:true},{key:"name",required:true},{key:"service_code"},{key:"address"},{key:"is_active"}
+    {key:"code",required:true},{key:"name",required:true},{key:"service_code",required:true},{key:"address"},{key:"is_active"}
   ]},
   { id:"departments", label:"Départements", table:"org_departments", key:"code", group:"Organisation", fields:[
     {key:"code",required:true},{key:"name",required:true},{key:"site_code",required:true},{key:"service_code"},{key:"unit_code"},{key:"description"},{key:"is_active"}
@@ -145,7 +145,7 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
       const saved=product.data?await supabase!.from("products").update(p).eq("company_id",companyId).eq("id",product.data.id).select("id").single():await supabase!.from("products").insert(p).select("id").single();if(saved.error)throw saved.error;id=saved.data.id;
       if(ds.id==="spare_parts"){
        const d:any={company_id:companyId,product_id:id};
-       const detailFields=ds.fields.filter(f=>!["sku","name","barcode","description","unit","purchase_price","sale_price","min_stock","max_stock","reorder_quantity","lead_time_days","category_name","initial_quantity"].includes(f.key));
+       const detailFields=ds.fields.filter(f=>!["sku","name","barcode","description","unit","purchase_price","sale_price","min_stock","max_stock","reorder_quantity","lead_time_days","category_name","initial_quantity","site_code","unit_code","service_code","department_code","warehouse_code","location_code"].includes(f.key));
        for(const f of detailFields){const v=value(r,f.key);if(v!==null){if(boolFields.has(f.key))d[f.key]=["true","1","yes","oui","vrai"].includes(String(v).toLowerCase());else if(numericFields.has(f.key)){const n=Number(String(v).replace(",","."));if(!Number.isFinite(n))throw new Error("Valeur numérique invalide: "+f.key);d[f.key]=n;}else d[f.key]=v;}}
        resolveScope(r,d);
        const warehouse=value(r,"warehouse_code");if(warehouse){d.warehouse_id=lookup("warehouses","code",warehouse);if(!d.warehouse_id)throw new Error("Warehouse_Code introuvable: "+warehouse);}
