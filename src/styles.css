@@ -3189,3 +3189,203 @@ body{color:#243550;-webkit-font-smoothing:antialiased;text-rendering:optimizeLeg
     max-height: calc(100dvh - 44px) !important;
   }
 }
+
+
+/* Desktop modal foundation: keep the workspace still and scroll only the dialog. */
+@media (min-width: 761px) {
+  body:has(.modal-backdrop, .pm-modal-backdrop, .pms-modal-backdrop, .sp-modal-backdrop, .org-form-backdrop, [class*="dialog-backdrop"]) {
+    overflow: hidden !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+  }
+
+  .modal-backdrop,
+  .pm-modal-backdrop,
+  .pms-modal-backdrop,
+  .sp-modal-backdrop,
+  .org-form-backdrop,
+  [class*="dialog-backdrop"] {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 28px !important;
+    overflow: hidden !important;
+    overscroll-behavior: contain !important;
+    z-index: 100000 !important;
+    background: rgba(18, 31, 51, .48) !important;
+    -webkit-backdrop-filter: blur(9px) saturate(.82) !important;
+    backdrop-filter: blur(9px) saturate(.82) !important;
+  }
+
+  /* A modal card is a vertical shell, never a two-column grid itself. */
+  .modal-backdrop > .modal-card:not(.form-grid),
+  .org-form-backdrop > .modal-card:not(.form-grid),
+  .modal-backdrop > form.modal-card:not(.form-grid),
+  .modal-backdrop > .modal-card.ops-form,
+  .modal-backdrop > .modal-card.equipment-create-modal {
+    display: flex !important;
+    flex-direction: column !important;
+    width: min(940px, calc(100vw - 56px)) !important;
+    max-width: 940px !important;
+    max-height: calc(100dvh - 56px) !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* Forms inside a modal become the scrollable content area. */
+  .modal-card > form:not(.form-grid),
+  .pm-modal > form,
+  .pms-modal > form,
+  .sp-modal-shell > .panel > form {
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+  }
+
+  /* The stock-operations form is itself the modal shell. */
+  .modal-backdrop > form.modal-card.ops-form {
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+  }
+  .ops-form > .ops-fieldset { flex: 0 0 auto !important; }
+  .ops-form .ops-fields,
+  .ops-form .ops-lines { min-width: 0 !important; }
+
+  .modal-card .form-grid,
+  .modal-card .ops-fields,
+  .modal-card .users-create-form,
+  .pm-modal .pm-form-grid,
+  .pms-modal .pms-form-grid,
+  .sp-modal-shell .ops-fields {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    align-items: start !important;
+    column-gap: 20px !important;
+    row-gap: 16px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .modal-card .span-2,
+  .modal-card .wide,
+  .ops-form .ops-wide,
+  .pm-modal .wide,
+  .pms-modal .pms-wide,
+  .sp-modal-shell .ops-wide,
+  .users-create-form .users-assignment-grid {
+    grid-column: 1 / -1 !important;
+  }
+
+  .modal-card .modal-head,
+  .pm-modal > header,
+  .pms-modal > header,
+  .sp-modal-shell > .panel > .panel-head {
+    flex: 0 0 auto !important;
+  }
+
+  .modal-card .modal-actions,
+  .modal-card .ops-actions,
+  .pm-modal footer,
+  .pms-modal footer,
+  .sp-modal-shell .modal-actions {
+    flex: 0 0 auto !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-end !important;
+    gap: 10px !important;
+    padding: 16px 0 0 !important;
+    margin-top: 18px !important;
+    border-top: 1px solid #e5ebf3 !important;
+    background: transparent !important;
+  }
+
+  .modal-card .modal-head button,
+  .pm-modal > header button,
+  .pms-modal > header button,
+  .sp-modal-shell .panel-head button {
+    flex: 0 0 auto !important;
+    display: inline-grid !important;
+    place-items: center !important;
+    width: 38px !important;
+    height: 38px !important;
+    border: 1px solid #dfe6f0 !important;
+    border-radius: 10px !important;
+    background: #f1f4f9 !important;
+    color: #536781 !important;
+    cursor: pointer !important;
+  }
+
+  .modal-card input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  .modal-card select,
+  .modal-card textarea,
+  .pm-modal input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  .pm-modal select,
+  .pm-modal textarea,
+  .pms-modal input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  .pms-modal select,
+  .pms-modal textarea,
+  .sp-modal-shell input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  .sp-modal-shell select,
+  .sp-modal-shell textarea {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    min-height: 44px !important;
+    box-sizing: border-box !important;
+  }
+
+  .modal-card textarea,
+  .pm-modal textarea,
+  .pms-modal textarea,
+  .sp-modal-shell textarea { min-height: 90px !important; resize: vertical !important; }
+
+  .pms-collab-modal { width: min(720px, calc(100vw - 56px)) !important; }
+  .users-create-modal { width: min(760px, calc(100vw - 56px)) !important; }
+  .org-assignment-modal { width: min(900px, calc(100vw - 56px)) !important; }
+
+  .modal-backdrop > .modal-card,
+  .org-form-backdrop > .modal-card,
+  .pm-modal-backdrop > .pm-modal,
+  .pms-modal-backdrop > .pms-modal,
+  .sp-modal-backdrop > .sp-modal-shell {
+    margin: auto !important;
+    transform: none !important;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1120px) {
+  .modal-backdrop, .pm-modal-backdrop, .pms-modal-backdrop,
+  .sp-modal-backdrop, .org-form-backdrop {
+    padding: 18px !important;
+  }
+  .modal-backdrop > .modal-card,
+  .org-form-backdrop > .modal-card,
+  .pm-modal-backdrop > .pm-modal,
+  .pms-modal-backdrop > .pms-modal,
+  .sp-modal-backdrop > .sp-modal-shell {
+    width: calc(100vw - 36px) !important;
+    max-width: 860px !important;
+    max-height: calc(100dvh - 36px) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-backdrop, .pm-modal-backdrop, .pms-modal-backdrop,
+  .sp-modal-backdrop, .org-form-backdrop,
+  .modal-card, .pm-modal, .pms-modal, .sp-modal-shell {
+    animation: none !important;
+    transition: none !important;
+  }
+}
