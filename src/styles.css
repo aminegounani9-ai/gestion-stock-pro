@@ -2604,3 +2604,318 @@ body{color:#243550;-webkit-font-smoothing:antialiased;text-rendering:optimizeLeg
     animation:none!important;transition:none!important;
   }
 }
+
+
+/* Unified desktop dialogs and forms across all modules (mobile rules remain untouched) */
+@media (min-width: 761px) {
+  :root {
+    --dialog-ink: #263b58;
+    --dialog-muted: #71839b;
+    --dialog-line: #d8e2ef;
+    --dialog-field: #fbfcff;
+    --dialog-accent: #416bc0;
+  }
+
+  /* Dim and softly blur the workspace whenever a dialog is opened. */
+  .modal-backdrop,
+  .pm-modal-backdrop,
+  .pms-modal-backdrop,
+  .sp-modal-backdrop,
+  .org-form-backdrop,
+  .scanner-backdrop,
+  [class*="dialog-backdrop"],
+  [class*="modal-overlay"] {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 1000 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 28px !important;
+    background: rgba(15, 28, 49, .48) !important;
+    -webkit-backdrop-filter: blur(8px) saturate(.82) !important;
+    backdrop-filter: blur(8px) saturate(.82) !important;
+  }
+
+  /* A single visual language for every dialog surface. */
+  .modal-card,
+  .pm-modal,
+  .pms-modal,
+  .sp-modal-shell,
+  .excel-modal,
+  .scanner-card,
+  [role="dialog"] {
+    box-sizing: border-box !important;
+    color: var(--dialog-ink) !important;
+    background: linear-gradient(155deg, #ffffff 0%, #fbfcff 100%) !important;
+    border: 1px solid #d5e0ed !important;
+    border-radius: 20px !important;
+    box-shadow: 0 30px 90px rgba(14, 31, 55, .28), 0 5px 18px rgba(28, 52, 82, .08) !important;
+    overflow-x: hidden !important;
+  }
+
+  .modal-backdrop > .modal-card,
+  .org-form-backdrop > .modal-card {
+    width: min(920px, calc(100vw - 330px)) !important;
+    max-width: 920px !important;
+    max-height: calc(100vh - 56px) !important;
+    overflow-y: auto !important;
+    padding: 30px 34px !important;
+  }
+
+  .pm-modal-backdrop > .pm-modal,
+  .pms-modal-backdrop > .pms-modal,
+  .sp-modal-backdrop > .sp-modal-shell {
+    width: min(1040px, calc(100vw - 330px)) !important;
+    max-width: 1040px !important;
+    max-height: calc(100vh - 56px) !important;
+    overflow-y: auto !important;
+  }
+
+  /* Modal heading: clear hierarchy and a subtle tinted header area. */
+  .modal-card > .modal-head,
+  .modal-card > header,
+  .pm-modal > header,
+  .pms-modal > header,
+  .excel-modal > .modal-head,
+  .scanner-card > .modal-head {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 18px !important;
+    padding: 0 0 20px !important;
+    margin: 0 0 24px !important;
+    border-bottom: 1px solid #e7edf5 !important;
+  }
+
+  .pm-modal > header,
+  .pms-modal > header {
+    padding: 23px 30px !important;
+    margin: 0 !important;
+    background: linear-gradient(110deg, #f0f5ff 0%, #f5f8fc 58%, #eef7f4 100%) !important;
+  }
+
+  .modal-head h2,
+  .modal-head h3,
+  .pm-modal header h3,
+  .pms-modal header h3 {
+    color: #203957 !important;
+    font: 800 21px/1.3 "Manrope", "Segoe UI", sans-serif !important;
+    letter-spacing: -.35px !important;
+  }
+
+  /* Form layout and fields, including forms that do not use a module-specific class. */
+  .modal-card form,
+  .pm-modal form,
+  .pms-modal form,
+  .sp-modal-shell form,
+  .excel-modal form,
+  [role="dialog"] form {
+    min-width: 0 !important;
+  }
+
+  .modal-card.form-grid,
+  .modal-card > form,
+  .pm-form-grid,
+  .pms-form-grid,
+  .sp-modal-shell .ops-fields,
+  .excel-modal .form-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    align-items: start !important;
+    column-gap: 22px !important;
+    row-gap: 19px !important;
+  }
+
+  .modal-card label,
+  .pm-modal label,
+  .pms-modal label,
+  .sp-modal-shell label,
+  .excel-modal label,
+  [role="dialog"] label {
+    min-width: 0 !important;
+    color: #435a78 !important;
+    font: 700 12px/1.5 "DM Sans", "Segoe UI", sans-serif !important;
+  }
+
+  .modal-card input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  .modal-card select,
+  .modal-card textarea,
+  .pm-modal input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  .pm-modal select,
+  .pm-modal textarea,
+  .pms-modal input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  .pms-modal select,
+  .pms-modal textarea,
+  .sp-modal-shell input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  .sp-modal-shell select,
+  .sp-modal-shell textarea,
+  .excel-modal input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  .excel-modal select,
+  .excel-modal textarea,
+  [role="dialog"] input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  [role="dialog"] select,
+  [role="dialog"] textarea {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    min-height: 46px !important;
+    height: auto !important;
+    box-sizing: border-box !important;
+    padding: 11px 13px !important;
+    border: 1px solid var(--dialog-line) !important;
+    border-radius: 11px !important;
+    outline: none !important;
+    background: var(--dialog-field) !important;
+    color: var(--dialog-ink) !important;
+    font: 500 13px/1.45 "DM Sans", "Segoe UI", sans-serif !important;
+    box-shadow: inset 0 1px 2px rgba(24, 47, 76, .035) !important;
+    transition: border-color .18s ease, box-shadow .18s ease, background .18s ease !important;
+  }
+
+  .modal-card textarea,
+  .pm-modal textarea,
+  .pms-modal textarea,
+  .sp-modal-shell textarea,
+  .excel-modal textarea,
+  [role="dialog"] textarea {
+    min-height: 100px !important;
+    resize: vertical !important;
+    line-height: 1.6 !important;
+  }
+
+  .modal-card input:hover,
+  .modal-card select:hover,
+  .modal-card textarea:hover,
+  .pm-modal input:hover,
+  .pm-modal select:hover,
+  .pm-modal textarea:hover,
+  .pms-modal input:hover,
+  .pms-modal select:hover,
+  .pms-modal textarea:hover,
+  .sp-modal-shell input:hover,
+  .sp-modal-shell select:hover,
+  .sp-modal-shell textarea:hover,
+  .excel-modal input:hover,
+  .excel-modal select:hover,
+  .excel-modal textarea:hover {
+    border-color: #b6c8df !important;
+    background: #fff !important;
+  }
+
+  .modal-card input:focus,
+  .modal-card select:focus,
+  .modal-card textarea:focus,
+  .pm-modal input:focus,
+  .pm-modal select:focus,
+  .pm-modal textarea:focus,
+  .pms-modal input:focus,
+  .pms-modal select:focus,
+  .pms-modal textarea:focus,
+  .sp-modal-shell input:focus,
+  .sp-modal-shell select:focus,
+  .sp-modal-shell textarea:focus,
+  .excel-modal input:focus,
+  .excel-modal select:focus,
+  .excel-modal textarea:focus {
+    border-color: var(--dialog-accent) !important;
+    background: #fff !important;
+    box-shadow: 0 0 0 4px rgba(65, 107, 192, .13) !important;
+  }
+
+  .modal-card input[type="checkbox"],
+  .modal-card input[type="radio"],
+  .pm-modal input[type="checkbox"],
+  .pm-modal input[type="radio"],
+  .pms-modal input[type="checkbox"],
+  .pms-modal input[type="radio"],
+  .sp-modal-shell input[type="checkbox"],
+  .sp-modal-shell input[type="radio"],
+  .excel-modal input[type="checkbox"],
+  .excel-modal input[type="radio"] {
+    width: 17px !important;
+    height: 17px !important;
+    min-height: 17px !important;
+    accent-color: #416bc0 !important;
+    box-shadow: none !important;
+  }
+
+  .modal-card .span-2,
+  .modal-card .wide,
+  .pm-form-grid .wide,
+  .pms-form-grid .pms-wide,
+  .sp-modal-shell .ops-wide,
+  .excel-modal .span-2 {
+    grid-column: 1 / -1 !important;
+  }
+
+  .modal-card .modal-actions,
+  .modal-card .ops-actions,
+  .pm-modal footer,
+  .pms-modal footer,
+  .excel-modal .modal-actions {
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 11px !important;
+    padding: 20px 0 0 !important;
+    margin: 24px 0 0 !important;
+    border-top: 1px solid #e7edf5 !important;
+    background: transparent !important;
+  }
+
+  .modal-card .modal-actions button,
+  .modal-card .ops-actions button,
+  .pm-modal footer button,
+  .pms-modal footer button,
+  .excel-modal .modal-actions button {
+    min-width: 126px !important;
+    min-height: 44px !important;
+    border-radius: 10px !important;
+    font-size: 12px !important;
+    font-weight: 750 !important;
+  }
+
+  .modal-card,
+  .pm-modal,
+  .pms-modal,
+  .sp-modal-shell,
+  .excel-modal,
+  .scanner-card,
+  [role="dialog"] {
+    animation: unifiedDialogIn .24s cubic-bezier(.2, .8, .2, 1) both !important;
+  }
+
+  @keyframes unifiedDialogIn {
+    from { opacity: 0; transform: translateY(12px) scale(.99); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1120px) {
+  .modal-backdrop > .modal-card,
+  .org-form-backdrop > .modal-card,
+  .pm-modal-backdrop > .pm-modal,
+  .pms-modal-backdrop > .pms-modal,
+  .sp-modal-backdrop > .sp-modal-shell {
+    width: calc(100vw - 270px) !important;
+    max-width: 820px !important;
+    padding: 22px !important;
+  }
+  .modal-card.form-grid,
+  .modal-card > form,
+  .pm-form-grid,
+  .pms-form-grid,
+  .sp-modal-shell .ops-fields,
+  .excel-modal .form-grid {
+    column-gap: 14px !important;
+    row-gap: 14px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-card, .pm-modal, .pms-modal, .sp-modal-shell, .excel-modal, .scanner-card,
+  [role="dialog"] { animation: none !important; }
+}
