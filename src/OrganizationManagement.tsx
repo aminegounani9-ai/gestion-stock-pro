@@ -66,7 +66,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
     if(kind==="service"){payload.management_id=form.management_id;payload.site_id=form.site_id||null;}
     if(kind==="site")payload.service_id=form.service_id||null;
     if(kind==="unit"){payload.service_id=form.service_id||null;payload.department_id=form.department_id||null;}
-    if(kind==="service"||kind==="department"||kind==="equipment") payload.unit_id=form.unit_id||null;
+    if(kind==="equipment") payload.unit_id=form.unit_id||null;
     if(kind==="department"||kind==="equipment") payload.service_id=form.service_id||null;
     if(kind==="equipment"){payload.equipment_tag=form.equipment_tag?.trim();payload.manufacturer=form.manufacturer?.trim()||null;payload.model=form.model?.trim()||null;payload.serial_number=form.serial_number?.trim()||null;payload.location=form.location?.trim()||null;}
     if(kind==="site")payload.address=form.address?.trim()||null;
