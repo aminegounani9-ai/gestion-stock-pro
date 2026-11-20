@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "Gestion Stock Pro",
-  "short_name": "Stock Pro",
-  "description": "Gestion professionnelle des stocks, équipements et pièces détachées.",
+  "name": "Direct Stock & Project Management",
+  "short_name": "Direct Stock",
+  "description": "Gestion professionnelle des stocks, équipements, pièces détachées et projets.",
   "lang": "fr",
   "start_url": "/",
   "scope": "/",
