@@ -33,7 +33,8 @@ export default function OrganizationManagement({ companyId, members, currentUser
   const [selectedScopeIds,setSelectedScopeIds] = useState<string[]>([]);
   const [busy,setBusy] = useState(false);
   const [managementUserId,setManagementUserId] = useState("");
-  const [formOpen,setFormOpen]=useState(false);\n  const [assignmentModalOpen,setAssignmentModalOpen]=useState(false);
+  const [formOpen,setFormOpen]=useState(false);
+  const [assignmentModalOpen,setAssignmentModalOpen]=useState(false);
   const refresh = useCallback(async () => {
     if(!supabase) return;
     const [a,b,c,d,e,f,g] = await Promise.all([
