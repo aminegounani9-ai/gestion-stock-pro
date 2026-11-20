@@ -11,7 +11,7 @@ const datasets: Dataset[] = [
   { id:"spare_parts", label:"Pièces de rechange", table:"products", key:"sku", group:"Catalogue", fields:[
     {key:"sku",required:true},{key:"name",required:true},{key:"barcode"},{key:"description"},{key:"unit"},{key:"purchase_price"},{key:"sale_price"},{key:"min_stock"},{key:"max_stock"},{key:"reorder_quantity"},{key:"lead_time_days"},{key:"category_name"},
     {key:"part_number"},{key:"manufacturer"},{key:"manufacturer_reference"},{key:"part_type"},{key:"equipment_family"},{key:"equipment_model"},{key:"equipment_tag"},{key:"criticality"},{key:"condition_class"},{key:"shelf_life_months"},{key:"storage_conditions"},{key:"shelf_code"},{key:"alternative_part_number"},{key:"drawing_reference"},{key:"technical_specifications"},{key:"safety_stock"},{key:"is_repairable"},{key:"abc_class"},{key:"xyz_class"},{key:"reorder_point"},{key:"purchase_pack_quantity"},{key:"unit_of_measure"},{key:"weight"},{key:"dimensions"},{key:"material"},{key:"voltage"},{key:"power_rating"},{key:"pressure_rating"},{key:"connection_type"},{key:"operating_temperature"},{key:"standard_reference"},{key:"warranty_months"},{key:"country_of_origin"},{key:"customs_code"},{key:"storage_temperature"},{key:"humidity_range"},{key:"shelf_life_control"},{key:"notes"},
-    {key:"site_code"},{key:"unit_code"},{key:"service_code"},{key:"department_code"},{key:"equipment_tag"},{key:"warehouse_code"},{key:"location_code"},{key:"initial_quantity"}
+    {key:"site_code"},{key:"unit_code"},{key:"service_code"},{key:"department_code"},{key:"equipment_tag"},{key:"warehouse_code"},{key:"location_code"}
   ]},
   { id:"products", label:"Articles", table:"products", key:"sku", group:"Catalogue", fields:[
     {key:"sku",required:true},{key:"name",required:true},{key:"barcode"},{key:"description"},{key:"category_name"},{key:"unit"},{key:"purchase_price"},{key:"sale_price"},{key:"min_stock"},{key:"max_stock"},{key:"reorder_quantity"},{key:"lead_time_days"},{key:"track_lots"},{key:"track_serial_numbers"},{key:"weight"},{key:"volume"},{key:"is_active"}
@@ -90,7 +90,7 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
    const name=(table:string,id:any,field="code")=>refs[table]?.find((x:any)=>x.id===id)?.[field]||"";
    if(ds.id==="spare_parts"){
     const detail=await getRows("spare_part_details"),map=new Map(detail.map((x:any)=>[x.product_id,x]));
-    out=rows.map((p:any)=>{const d:any=map.get(p.id)||{};return {...p,...d,sku:p.sku,name:p.name,category_name:name("product_categories",p.category_id,"name"),equipment_tag:d.equipment_tag||"",site_code:name("org_sites",d.site_id),unit_code:name("org_units",d.unit_id),service_code:name("org_services",d.service_id),department_code:name("org_departments",d.department_id),warehouse_code:name("warehouses",d.warehouse_id),location_code:name("storage_locations",d.storage_location_id),initial_quantity:""};});
+    out=rows.map((p:any)=>{const d:any=map.get(p.id)||{};return {...p,...d,sku:p.sku,name:p.name,category_name:name("product_categories",p.category_id,"name"),equipment_tag:d.equipment_tag||"",site_code:name("org_sites",d.site_id),unit_code:name("org_units",d.unit_id),service_code:name("org_services",d.service_id),department_code:name("org_departments",d.department_id),warehouse_code:name("warehouses",d.warehouse_id),location_code:name("storage_locations",d.storage_location_id)};});
    }else if(ds.id==="products")out=rows.map((p:any)=>({...p,category_name:name("product_categories",p.category_id,"name")}));
    else if(ds.id==="categories")out=rows.map((x:any)=>({...x,parent_category:name("product_categories",x.parent_id,"name")}));
    else if(ds.id==="services")out=rows.map((x:any)=>({...x,management_code:name("org_managements",x.management_id)}));
@@ -134,7 +134,7 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
     const r=rows[i],line=i+2;try{
      for(const f of ds.fields)if(f.required&&!value(r,f.key))throw new Error("Champ obligatoire: "+f.key);
      const p:any={company_id:companyId};
-     for(const f of ds.fields){if(["category_name","parent_category","management_code","service_code","site_code","unit_code","department_code","equipment_tag","warehouse_code","location_code","parent_code","initial_quantity"].includes(f.key))continue;const v=value(r,f.key);if(v!==null){if(boolFields.has(f.key))p[f.key]=["true","1","yes","oui","vrai"].includes(String(v).toLowerCase());else if(numericFields.has(f.key)){const n=Number(String(v).replace(",","."));if(!Number.isFinite(n))throw new Error("Valeur numérique invalide: "+f.key);p[f.key]=n;}else p[f.key]=v;}}
+     for(const f of ds.fields){if(["category_name","parent_category","management_code","service_code","site_code","unit_code","department_code","equipment_tag","warehouse_code","location_code","parent_code""].includes(f.key))continue;const v=value(r,f.key);if(v!==null){if(boolFields.has(f.key))p[f.key]=["true","1","yes","oui","vrai"].includes(String(v).toLowerCase());else if(numericFields.has(f.key)){const n=Number(String(v).replace(",","."));if(!Number.isFinite(n))throw new Error("Valeur numérique invalide: "+f.key);p[f.key]=n;}else p[f.key]=v;}}
      let id:string|null=null;
      if(ds.id==="categories"){
       const parent=value(r,"parent_category");if(parent){p.parent_id=lookup("product_categories","name",parent);if(!p.parent_id)throw new Error("Catégorie parente introuvable: "+parent);}
@@ -145,14 +145,13 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
       const saved=product.data?await supabase!.from("products").update(p).eq("company_id",companyId).eq("id",product.data.id).select("id").single():await supabase!.from("products").insert(p).select("id").single();if(saved.error)throw saved.error;id=saved.data.id;
       if(ds.id==="spare_parts"){
        const d:any={company_id:companyId,product_id:id};
-       const detailFields=ds.fields.filter(f=>!["sku","name","barcode","description","unit","purchase_price","sale_price","min_stock","max_stock","reorder_quantity","lead_time_days","category_name","initial_quantity","site_code","unit_code","service_code","department_code","warehouse_code","location_code"].includes(f.key));
+       const detailFields=ds.fields.filter(f=>!["sku","name","barcode","description","unit","purchase_price","sale_price","min_stock","max_stock","reorder_quantity","lead_time_days","category_name","site_code","unit_code","service_code","department_code","warehouse_code","location_code"].includes(f.key));
        for(const f of detailFields){const v=value(r,f.key);if(v!==null){if(boolFields.has(f.key))d[f.key]=["true","1","yes","oui","vrai"].includes(String(v).toLowerCase());else if(numericFields.has(f.key)){const n=Number(String(v).replace(",","."));if(!Number.isFinite(n))throw new Error("Valeur numérique invalide: "+f.key);d[f.key]=n;}else d[f.key]=v;}}
        resolveScope(r,d);
        const warehouse=value(r,"warehouse_code");if(warehouse){d.warehouse_id=lookup("warehouses","code",warehouse);if(!d.warehouse_id)throw new Error("Warehouse_Code introuvable: "+warehouse);}
        const loc=value(r,"location_code");if(loc){d.storage_location_id=lookup("storage_locations","code",loc,"warehouse_id",d.warehouse_id);if(!d.storage_location_id)throw new Error("Location_Code introuvable: "+loc);}
-       const det=await supabase!.from("spare_part_details").upsert(d,{onConflict:"company_id,product_id"});if(det.error)throw det.error;
-       const qty=Number(value(r,"initial_quantity")||0);if(qty<0||!Number.isFinite(qty))throw new Error("Initial_Quantity invalide");
-       if(qty>0){if(!d.warehouse_id||!d.storage_location_id)throw new Error("Pour le stock initial, Warehouse_Code et Location_Code sont obligatoires.");const stock=await supabase!.rpc("register_opening_stock",{p_company_id:companyId,p_product_id:id,p_warehouse_id:d.warehouse_id,p_location_id:d.storage_location_id,p_quantity:qty,p_unit_cost:Number(p.purchase_price||0),p_note:"Import Excel - stock initial"});if(stock.error)throw stock.error;}
+       const currentDetail=await supabase!.from("spare_part_details").select("id").eq("company_id",companyId).eq("product_id",id).maybeSingle();if(currentDetail.error)throw currentDetail.error;
+       const det=currentDetail.data?await supabase!.from("spare_part_details").update(d).eq("company_id",companyId).eq("product_id",id):await supabase!.from("spare_part_details").insert(d);if(det.error)throw det.error;
       }
      }else if(ds.id==="management"){
       id=await saveByKey(ds.table,ds.key,p);
