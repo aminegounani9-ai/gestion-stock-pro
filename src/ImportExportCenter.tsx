@@ -69,7 +69,7 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
  };
  const refSheets=(refs:any)=>{
    const rows:any[][]=[["Type","Code / Nom","Désignation","Parent"]];
-   const add=(type:string,items:any[],code:string,parent="")=>items.forEach(x=>rows.push([type,x[code]||x.name||"",x.name||"",parent?x[parent]||"": ""]));
+   const add=(type:string,items:any[],code:string,parent="")=>(items||[]).forEach(x=>rows.push([type,x[code]||x.name||"",x.name||"",parent?x[parent]||"": ""]));
    add("Management",refs.org_managements,"code");add("Service",refs.org_services,"code");add("Site",refs.org_sites,"code");add("Département",refs.org_departments,"code");add("Unité",refs.org_units,"code");add("Équipement",refs.org_equipment,"equipment_tag");add("Entrepôt",refs.warehouses,"code");add("Emplacement",refs.storage_locations,"code");add("Catégorie",refs.product_categories,"name");
    return rows;
  };
@@ -92,7 +92,8 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
    if(ds.id==="spare_parts"){
     const detail=await getRows("spare_part_details"),map=new Map(detail.map((x:any)=>[x.product_id,x]));
     out=rows.map((p:any)=>{const d:any=map.get(p.id)||{};return {...p,...d,sku:p.sku,name:p.name,category_name:name("product_categories",p.category_id,"name"),equipment_tag:d.equipment_tag||"",site_code:name("org_sites",d.site_id),unit_code:name("org_units",d.unit_id),service_code:name("org_services",d.service_id),department_code:name("org_departments",d.department_id),warehouse_code:name("warehouses",d.warehouse_id),location_code:name("storage_locations",d.storage_location_id)};});
-   }else if(ds.id==="products")out=rows.map((p:any)=>({...p,category_name:name("product_categories",p.category_id,"name")}));
+   }else if(ds.id==="management")out=rows;
+   else if(ds.id==="products")out=rows.map((p:any)=>({...p,category_name:name("product_categories",p.category_id,"name")}));
    else if(ds.id==="categories")out=rows.map((x:any)=>({...x,parent_category:name("product_categories",x.parent_id,"name")}));
    else if(ds.id==="services")out=rows.map((x:any)=>({...x,management_code:name("org_managements",x.management_id)}));
    else if(ds.id==="sites")out=rows.map((x:any)=>({...x,service_code:name("org_services",x.service_id)}));
