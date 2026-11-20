@@ -2300,3 +2300,156 @@ body{font-size:14px;color:var(--gsp-ink);background:var(--gsp-canvas)}
 
 @media(max-width:1250px) and (min-width:761px){.sidebar{min-width:0}}
 @media(max-width:980px) and (min-width:761px){.sidebar{min-width:0}}
+
+
+/* 2026 desktop readability + cohesive project workspace refresh */
+:root{
+  --gsp-ink:#1b2b45;--gsp-muted:#65758d;--gsp-line:#e3eaf3;
+  font-family:"DM Sans","Segoe UI",Arial,sans-serif;
+  font-size:14px;
+}
+body,button,input,select,textarea{font-family:"DM Sans","Segoe UI",Arial,sans-serif}
+body{color:#243550;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+@media(min-width:761px){
+  .page-content{padding:30px clamp(24px,2.4vw,42px) 42px}
+  .page-heading h1{font-size:29px;line-height:1.22;letter-spacing:-.7px}
+  .page-heading p{font-size:13px;line-height:1.6}
+  .eyebrow{font-size:10px;letter-spacing:1.6px}
+  .nav-item{height:45px;font-size:13px;font-weight:600;letter-spacing:.05px}
+  .nav-label{font-size:10px}
+  .topbar{padding-inline:clamp(24px,2.4vw,42px)}
+  .breadcrumbs{font-size:13px}
+  .global-search input{font-size:13px}
+  .panel-head h3{font-size:15px}
+  .panel-head p{font-size:11px}
+  th{font-size:10px;padding:13px 12px}
+  td{font-size:12px;padding:14px 12px}
+  td b{font-size:12px}
+  .form-grid label,.ops-fields label,.modal-card label{font-size:12px}
+  .form-grid input,.form-grid select,.form-grid textarea,.ops-fields input,.ops-fields select,.modal-card input,.modal-card select,.modal-card textarea{font-size:13px;min-height:44px}
+  .primary-btn,.secondary-btn{font-size:12px;min-height:40px}
+}
+
+/* Project management: stronger type hierarchy, meaningful color coding and calmer spacing */
+.pm-wrap{font-size:13px;gap:21px;color:#243a59}
+.pm-hero{
+  position:relative;isolation:isolate;overflow:hidden;
+  padding:27px 30px;border:1px solid #d4e1f4;
+  background:linear-gradient(112deg,#e9f1ff 0%,#f4f7ff 48%,#e9f8f4 100%);
+  box-shadow:0 10px 28px #244a7810;
+}
+.pm-hero:after{content:"";position:absolute;z-index:-1;width:240px;height:240px;right:-80px;top:-135px;border:1px solid #7c9ed522;border-radius:50%;box-shadow:0 0 0 28px #7c9ed510,0 0 0 58px #7c9ed508}
+.pm-hero-icon{width:58px;height:58px;flex-basis:58px;border-radius:18px;background:linear-gradient(145deg,#315fc4,#24427e);box-shadow:0 9px 20px #315fc43b}
+.pm-hero-copy>span{font-size:10px;letter-spacing:1.55px;color:#4669ad}
+.pm-hero-copy h2{font:800 26px/1.25 "Manrope","Segoe UI",sans-serif;letter-spacing:-.55px;color:#1c3458;margin:5px 0}
+.pm-hero-copy p{font-size:13px;line-height:1.65;color:#647895}
+.pm-kpis{gap:15px}
+.pm-kpis article{padding:19px 20px;border-radius:16px;box-shadow:0 5px 18px #213b5c0b;transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}
+.pm-kpis article:hover{transform:translateY(-3px);box-shadow:0 12px 25px #213b5c14;border-color:#cfdbed}
+.pm-kpi-icon{width:39px;height:39px;border-radius:12px}
+.pm-kpis small{font-size:11px;color:#657790;font-weight:750}
+.pm-kpis b{font:800 26px/1.2 "Manrope","Segoe UI",sans-serif;color:#203958}
+.pm-kpis em{font-size:10px;color:#8291a7}
+.pm-tabs{padding:7px;background:linear-gradient(110deg,#eaf0fa,#eef5f4);border-color:#dce6f1;box-shadow:inset 0 1px 2px #1c355008}
+.pm-tabs button{font-size:12px;min-height:44px;color:#63758f;border-radius:10px}
+.pm-tabs button.active{color:#244f9c;background:#fff;box-shadow:0 4px 12px #23456b16}
+.pm-main-grid{gap:19px}
+.pm-project-list,.pm-chart-card,.pm-analytics-card,.pm-detail,.pm-upcoming,.pm-task-panel,.pm-notifications,.pm-calendar-panel{border-color:#e2eaf3;border-radius:15px;box-shadow:0 5px 18px #213b5c09}
+.pm-project-list>.panel-head h3,.pm-chart-card .panel-head h3,.pm-analytics-card .panel-head h3{font:750 14px/1.35 "Manrope","Segoe UI",sans-serif;color:#233d60}
+.pm-search{height:42px;background:#fbfcff;border-color:#dfe7f1}
+.pm-search input{font-size:12px}
+.pm-project-items{gap:8px}
+.pm-project-item{padding:13px 12px;border:1px solid #edf1f7;background:linear-gradient(110deg,#fff,#fcfdff);transition:all .2s ease}
+.pm-project-item:hover{transform:translateX(3px);border-color:#d8e4f5;background:#f7faff}
+.pm-project-item.selected{border-color:#a9c1eb;background:linear-gradient(110deg,#edf4ff,#f7faff);box-shadow:inset 3px 0 #4774c7}
+.pm-project-name b{font-size:12px;font-weight:800;color:#263f61}
+.pm-project-name small{font-size:10px;color:#7b8ca5}
+.pm-project-item>strong{font-size:11px;color:#315da9}
+.pm-chart-grid,.pm-analytics-grid{gap:16px}
+.pm-chart-card,.pm-analytics-card{padding:19px}
+.pm-bars{gap:14px}
+.pm-bars span,.pm-task-stats>div{font-size:11px;color:#647791}
+.pm-bars>div>div,.pm-band-chart>div>div,.pm-project-performance>div>div{height:10px;background:#edf2f8}
+.pm-bars b,.pm-band-chart b,.pm-project-performance b{font-size:11px;color:#314d73}
+.pm-detail{padding:21px}
+.pm-detail .panel-head h3{font:800 19px/1.3 "Manrope","Segoe UI",sans-serif;color:#203a5e}
+.pm-code{display:inline-flex;padding:5px 8px;border-radius:7px;background:#edf3ff;color:#315eae;font-size:10px}
+.pm-status{font-size:10px;padding:7px 10px;background:#edf3fb}
+.pm-description{font-size:12px;line-height:1.75;color:#637792}
+.pm-detail-grid{gap:15px;padding:16px 0}
+.pm-detail-grid small{font-size:10px;color:#7b8da6}
+.pm-detail-grid b{font-size:12px;color:#2c4669}
+.pm-project-progress>div:first-child{font-size:12px}
+.pm-project-progress strong{font-size:13px;color:#2d63bd}
+.pm-progress-track{height:8px;background:#eaf0f7}
+.pm-progress-track i{background:linear-gradient(90deg,#416cc2,#29a782)}
+.pm-detail-foot{gap:19px}
+.pm-detail-foot span{font-size:10px;color:#6e819c}
+.pm-task-row{gap:13px;padding:14px 8px;border-top-color:#edf1f6;border-radius:10px;transition:background .2s ease,transform .2s ease}
+.pm-task-row:hover{background:#f5f8fd;transform:translateX(2px)}
+.pm-task-info b{font-size:12px;font-weight:800;color:#294363}
+.pm-task-info small{font-size:10px;color:#7a8ba3}
+.pm-task-priority{font-size:10px;font-weight:750;padding:5px 8px;border-radius:7px;background:#f1f4f9;color:#63758e}
+.pm-task-row select,.pm-task-progress-input{font-size:11px;min-height:35px;border-color:#dce5f0}
+.pm-deadline{padding:12px 2px}
+.pm-deadline b{font-size:11px;color:#2b4668}
+.pm-deadline small,.pm-deadline time{font-size:10px}
+.pm-deadline-icon{background:#edf3ff;color:#426cba}
+.pm-rich-details>div{padding:14px;border-color:#e4ebf4;background:linear-gradient(145deg,#fbfcff,#f6f9fd);border-radius:12px}
+.pm-rich-details small{font-size:10px;color:#55719a;letter-spacing:.2px}
+.pm-rich-details p{font-size:11px;line-height:1.75;color:#3c5577}
+.pm-live-pill{font-size:9px;color:#147c61;background:#e4f7ef;padding:6px 9px}
+.pm-donut b{font:800 28px "Manrope","Segoe UI",sans-serif;color:#25456d}
+.pm-completion-legend>div{font-size:11px}
+.pm-completion-legend b{font-size:12px;color:#2c4a70}
+.pm-band-chart span,.pm-project-performance span{font-size:10px;color:#657994}
+.pm-radar-labels span{font-size:10px;color:#647792}
+.pm-radar-labels b{color:#2b4b75}
+.pm-sound-toggle{font-size:10px;padding:9px 12px;background:#eef4ff;border-color:#d8e4f6;color:#315ca9}
+.pm-modal{border-color:#dce6f2;box-shadow:0 28px 90px #10213b44}
+.pm-modal header{padding:20px 24px;background:linear-gradient(110deg,#f0f5ff,#f2f8f7)}
+.pm-modal header small{font-size:10px;letter-spacing:1.2px;color:#4269b2}
+.pm-modal header h3{font:800 20px "Manrope","Segoe UI",sans-serif;color:#213b60}
+.pm-modal form{padding:22px 24px}
+.pm-form-grid{gap:16px}
+.pm-form-grid label{font-size:12px;line-height:1.45;color:#536a88}
+.pm-form-grid input,.pm-form-grid select,.pm-form-grid textarea{min-height:43px;font-size:13px;color:#263f60;border-color:#dce5f0;border-radius:10px;background:#fff}
+.pm-form-grid textarea{line-height:1.6}
+.pm-modal footer{padding-top:18px}
+.pms-shell{gap:18px}
+.pms-heading{padding:22px 24px;border-radius:16px;background:linear-gradient(110deg,#eef4ff 0%,#f6f8ff 55%,#edf8f5 100%);border-color:#dce6f2}
+.pms-heading h3{font:800 19px/1.35 "Manrope","Segoe UI",sans-serif;color:#213c61}
+.pms-heading p{font-size:12px;line-height:1.65;color:#687e9a}
+.pms-nav{gap:9px;padding:9px;background:#eaf0f8;border-color:#dce5f0}
+.pms-nav button{min-height:46px;font-size:12px;color:#5d718e;border-radius:10px}
+.pms-nav button.active{color:#2858a8;border-color:#d2e0f3;box-shadow:0 4px 12px #27466b14}
+.pms-panel{padding:21px;border-radius:15px;border-color:#e1e9f2;box-shadow:0 5px 18px #213b5c09}
+.pms-panel-head h4{font:750 15px "Manrope","Segoe UI",sans-serif;color:#243f64}
+.pms-panel-head p{font-size:11px;color:#71839c}
+.pms-table th{font-size:10px;color:#7385a0}
+.pms-table td{font-size:12px;color:#425b7c}
+.pms-record-main>b{font-size:13px;color:#2b4567}
+.pms-record-main>small{font-size:10px;color:#788ba4}
+.pms-form-grid label{font-size:12px;color:#566d8b}
+.pms-form-grid input,.pms-form-grid select,.pms-form-grid textarea{font-size:13px;min-height:43px;border-radius:9px}
+.pms-report-kpis b{font:800 24px "Manrope","Segoe UI",sans-serif;color:#24456d}
+.pm-wrap .panel,.pms-shell .panel{animation:pmWorkspaceIn .42s cubic-bezier(.2,.75,.25,1) both}
+.pm-wrap .panel:nth-child(2),.pms-shell .panel:nth-child(2){animation-delay:.04s}
+.pm-wrap .panel:nth-child(3),.pms-shell .panel:nth-child(3){animation-delay:.08s}
+.pm-wrap button,.pms-shell button{transition:transform .2s ease,box-shadow .2s ease,background .2s ease,border-color .2s ease}
+.pm-wrap button:active,.pms-shell button:active{transform:scale(.985)}
+@keyframes pmWorkspaceIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media(min-width:761px) and (max-width:1250px){
+ .pm-hero{padding:22px}.pm-hero-copy h2{font-size:22px}
+ .pm-main-grid{grid-template-columns:minmax(220px,285px) minmax(0,1fr)}
+ .pm-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .pms-nav{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(max-width:760px){
+ .pm-hero-copy h2{font-size:19px}.pm-kpis b{font-size:19px}
+ .pm-rich-details{grid-template-columns:1fr}
+ .pms-heading h3{font-size:16px}
+}
+@media(prefers-reduced-motion:reduce){
+ .pm-wrap .panel,.pms-shell .panel,.pm-project-item,.pm-kpis article{animation:none!important;transition:none!important}
+}
