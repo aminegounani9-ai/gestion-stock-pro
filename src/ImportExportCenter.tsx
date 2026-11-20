@@ -123,7 +123,7 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
     if(unit){p.unit_id=lookup("org_units","code",unit,"site_id",p.site_id);if(!p.unit_id)throw new Error("Unit_Code introuvable ou hors site: "+unit);}
     if(service){p.service_id=lookup("org_services","code",service);if(!p.service_id)throw new Error("Service_Code introuvable: "+service);}
     if(department){p.department_id=lookup("org_departments","code",department,"site_id",p.site_id);if(!p.department_id)throw new Error("Department_Code introuvable ou hors site: "+department);}
-    if(tag){p.equipment_id=lookup("org_equipment","equipment_tag",tag);if(!p.equipment_id)throw new Error("Equipment_Tag introuvable: "+tag);}
+    if(tag){p.equipment_id=lookup("org_equipment","equipment_tag",tag);if(!p.equipment_id)throw new Error("Equipment_Tag introuvable: "+tag);p.equipment_tag=tag;}
    };
    const saveByKey=async(table:string,key:string,payload:any,extra?:{field?:string;value?:any})=>{
     let q=supabase!.from(table).select("id").eq("company_id",companyId).eq(key,payload[key]);if(extra?.field&&extra.value)q=q.eq(extra.field,extra.value);
