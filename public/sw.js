@@ -41,7 +41,7 @@ self.addEventListener("fetch", (event) => {
 self.addEventListener("push", (event) => {
   let payload = {};
   try { payload = event.data ? event.data.json() : {}; } catch { payload = { body: event.data?.text() || "" }; }
-  const title = payload.title || "Direct Stock & Project Management";
+  const title = payload.title || "Stock & Project Management";
   const options = {
     body: payload.body || payload.message || "Une nouvelle activité nécessite votre attention.",
     icon: payload.icon || "/icon-192.svg",
