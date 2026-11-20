@@ -135,7 +135,7 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
     const r=rows[i],line=i+2;try{
      for(const f of ds.fields)if(f.required&&!value(r,f.key))throw new Error("Champ obligatoire: "+f.key);
      const p:any={company_id:companyId};
-     for(const f of ds.fields){if(["category_name","parent_category","management_code","service_code","site_code","unit_code","department_code","equipment_tag","warehouse_code","location_code","parent_code""].includes(f.key))continue;const v=value(r,f.key);if(v!==null){if(boolFields.has(f.key))p[f.key]=["true","1","yes","oui","vrai"].includes(String(v).toLowerCase());else if(numericFields.has(f.key)){const n=Number(String(v).replace(",","."));if(!Number.isFinite(n))throw new Error("Valeur numérique invalide: "+f.key);p[f.key]=n;}else p[f.key]=v;}}
+     for(const f of ds.fields){if(["category_name","parent_category","management_code","service_code","site_code","unit_code","department_code","equipment_tag","warehouse_code","location_code","parent_code"].includes(f.key))continue;const v=value(r,f.key);if(v!==null){if(boolFields.has(f.key))p[f.key]=["true","1","yes","oui","vrai"].includes(String(v).toLowerCase());else if(numericFields.has(f.key)){const n=Number(String(v).replace(",","."));if(!Number.isFinite(n))throw new Error("Valeur numérique invalide: "+f.key);p[f.key]=n;}else p[f.key]=v;}}
      let id:string|null=null;
      if(ds.id==="categories"){
       const parent=value(r,"parent_category");if(parent){p.parent_id=lookup("product_categories","name",parent);if(!p.parent_id)throw new Error("Catégorie parente introuvable: "+parent);}
