@@ -63,7 +63,8 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
  const groups=[{id:"Catalogue",label:t.groupCatalogue},{id:"Organisation",label:t.groupOrganisation},{id:"Stock",label:t.groupStock}];
  const getRows=async(table:string)=>{const q=await supabase!.from(table).select("*").eq("company_id",companyId).limit(10000);if(q.error)throw q.error;return q.data||[]};
  const refsFor=async()=>{
-   const required:Record<string,string[]>={spare_parts:["product_categories","org_sites","org_units","org_services","org_departments","org_equipment","warehouses","storage_locations"],products:["product_categories"],categories:["product_categories"],management:[],services:["org_managements"],sites:["org_services"],departments:["org_sites","org_units","org_services"],units:["org_sites","org_units","org_services","org_departments"],equipment:["org_sites","org_units","org_services","org_departments"],warehouses:["org_sites","org_units","org_services","org_departments","org_equipment"],locations:["warehouses","storage_locations"]};\n   const tables=required[selected]||[];
+   const required:Record<string,string[]>={spare_parts:["product_categories","org_sites","org_units","org_services","org_departments","org_equipment","warehouses","storage_locations"],products:["product_categories"],categories:["product_categories"],management:[],services:["org_managements"],sites:["org_services"],departments:["org_sites","org_units","org_services"],units:["org_sites","org_units","org_services","org_departments"],equipment:["org_sites","org_units","org_services","org_departments"],warehouses:["org_sites","org_units","org_services","org_departments","org_equipment"],locations:["warehouses","storage_locations"]};
+   const tables=required[selected]||[];
    const out:any={};for(const table of tables)out[table]=await getRows(table);return out;
  };
  const refSheets=(refs:any)=>{
