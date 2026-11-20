@@ -2919,3 +2919,268 @@ body{color:#243550;-webkit-font-smoothing:antialiased;text-rendering:optimizeLeg
   .modal-card, .pm-modal, .pms-modal, .sp-modal-shell, .excel-modal, .scanner-card,
   [role="dialog"] { animation: none !important; }
 }
+
+
+/* Desktop form presentation v2: true centered dialog, full-screen soft backdrop.
+   Kept strictly above the desktop breakpoint so the phone layout is untouched. */
+@media (min-width: 761px) {
+  .modal-backdrop,
+  .org-form-backdrop,
+  .scanner-backdrop,
+  .pm-modal-backdrop,
+  .pms-modal-backdrop,
+  .sp-modal-backdrop {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    box-sizing: border-box !important;
+    display: grid !important;
+    place-items: center !important;
+    align-content: center !important;
+    justify-content: center !important;
+    padding: 34px !important;
+    overflow: auto !important;
+    z-index: 99999 !important;
+    background: rgba(20, 34, 54, .43) !important;
+    -webkit-backdrop-filter: blur(9px) saturate(.78) !important;
+    backdrop-filter: blur(9px) saturate(.78) !important;
+  }
+
+  /* Override previous sidebar-width calculations: dialogs are centered in the
+     actual viewport, not in the remaining area beside the navigation. */
+  .modal-backdrop > .modal-card,
+  .org-form-backdrop > .modal-card,
+  .scanner-backdrop > .modal-card,
+  .pm-modal-backdrop > .pm-modal,
+  .pms-modal-backdrop > .pms-modal,
+  .sp-modal-backdrop > .sp-modal-shell {
+    position: relative !important;
+    inset: auto !important;
+    justify-self: center !important;
+    align-self: center !important;
+    width: min(940px, calc(100vw - 68px)) !important;
+    max-width: 940px !important;
+    min-width: 0 !important;
+    max-height: calc(100dvh - 68px) !important;
+    margin: auto !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    border: 1px solid #d4dfec !important;
+    border-radius: 20px !important;
+    background: linear-gradient(145deg, #fff 0%, #f8faff 100%) !important;
+    box-shadow: 0 32px 100px rgba(10, 25, 46, .34), 0 8px 24px rgba(10, 25, 46, .10) !important;
+  }
+
+  .modal-backdrop > .modal-card,
+  .org-form-backdrop > .modal-card,
+  .scanner-backdrop > .modal-card {
+    padding: 30px 34px !important;
+  }
+
+  .pm-modal-backdrop > .pm-modal,
+  .pms-modal-backdrop > .pms-modal {
+    width: min(980px, calc(100vw - 68px)) !important;
+    max-width: 980px !important;
+  }
+
+  .sp-modal-backdrop > .sp-modal-shell {
+    width: min(1040px, calc(100vw - 68px)) !important;
+    max-width: 1040px !important;
+    padding: 0 !important;
+  }
+
+  .sp-modal-shell > .panel {
+    margin: 0 !important;
+    border: 0 !important;
+    border-radius: inherit !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  .sp-modal-shell > .panel > .panel-head {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 2 !important;
+    padding: 24px 30px !important;
+    border-bottom: 1px solid #e5ecf5 !important;
+    background: linear-gradient(110deg, #eff4ff, #f7f9fc 65%, #eef7f3) !important;
+  }
+
+  .sp-modal-shell > .panel > form {
+    padding: 25px 30px 30px !important;
+  }
+
+  .modal-card > .modal-head,
+  .org-form > .modal-head,
+  .pm-modal > header,
+  .pms-modal > header,
+  .excel-modal > .modal-head,
+  .scanner-card > .modal-head {
+    position: relative !important;
+    top: auto !important;
+    margin: 0 0 24px !important;
+    padding: 0 0 18px !important;
+    border-bottom: 1px solid #e5ecf5 !important;
+    background: transparent !important;
+  }
+
+  .pm-modal > header,
+  .pms-modal > header {
+    padding: 23px 30px !important;
+    margin: 0 !important;
+    background: linear-gradient(110deg, #eff4ff, #f7f9fc 65%, #eef7f3) !important;
+  }
+
+  .pm-modal > form,
+  .pms-modal > form {
+    padding: 25px 30px 30px !important;
+  }
+
+  .modal-card .form-grid,
+  .modal-card .ops-fields,
+  .modal-card .pm-form-grid,
+  .modal-card .pms-form-grid,
+  .modal-card .users-create-form,
+  .ops-form .ops-fields,
+  .pm-form-grid,
+  .pms-form-grid,
+  .org-form,
+  .sp-modal-shell .ops-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    column-gap: 22px !important;
+    row-gap: 19px !important;
+    align-items: start !important;
+  }
+
+  .modal-card .span-2,
+  .modal-card .wide,
+  .org-form > .span-2,
+  .pm-form-grid > .wide,
+  .pms-form-grid > .pms-wide,
+  .ops-fields > .ops-wide {
+    grid-column: 1 / -1 !important;
+  }
+
+  .ops-form {
+    width: min(900px, calc(100vw - 68px)) !important;
+  }
+
+  .ops-fieldset {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+  }
+
+  .modal-card input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  .modal-card select,
+  .modal-card textarea,
+  .pm-modal input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  .pm-modal select,
+  .pm-modal textarea,
+  .pms-modal input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  .pms-modal select,
+  .pms-modal textarea,
+  .sp-modal-shell input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  .sp-modal-shell select,
+  .sp-modal-shell textarea {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    min-height: 46px !important;
+    box-sizing: border-box !important;
+    border: 1px solid #d5dfec !important;
+    border-radius: 11px !important;
+    background: #fbfcff !important;
+    color: #263b58 !important;
+    box-shadow: inset 0 1px 2px rgba(24, 47, 76, .035) !important;
+    transition: border-color .18s ease, box-shadow .18s ease, background .18s ease !important;
+  }
+
+  .modal-card input:focus,
+  .modal-card select:focus,
+  .modal-card textarea:focus,
+  .pm-modal input:focus,
+  .pm-modal select:focus,
+  .pm-modal textarea:focus,
+  .pms-modal input:focus,
+  .pms-modal select:focus,
+  .pms-modal textarea:focus,
+  .sp-modal-shell input:focus,
+  .sp-modal-shell select:focus,
+  .sp-modal-shell textarea:focus {
+    outline: 0 !important;
+    border-color: #557bc1 !important;
+    background: #fff !important;
+    box-shadow: 0 0 0 4px rgba(65, 107, 192, .13) !important;
+  }
+
+  .modal-card label,
+  .pm-modal label,
+  .pms-modal label,
+  .sp-modal-shell label {
+    min-width: 0 !important;
+    color: #435a78 !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    line-height: 1.5 !important;
+  }
+
+  .modal-card .modal-actions,
+  .pm-modal footer,
+  .pms-modal footer,
+  .sp-modal-shell .modal-actions {
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+    padding-top: 20px !important;
+    margin-top: 24px !important;
+    border-top: 1px solid #e5ecf5 !important;
+  }
+
+  .modal-card .modal-actions button,
+  .pm-modal footer button,
+  .pms-modal footer button {
+    min-width: 124px !important;
+    min-height: 44px !important;
+    border-radius: 10px !important;
+  }
+
+  .modal-card,
+  .pm-modal,
+  .pms-modal,
+  .sp-modal-shell,
+  .excel-modal,
+  .scanner-card {
+    animation: desktopFormEnter .22s cubic-bezier(.2,.8,.2,1) both !important;
+  }
+
+  @keyframes desktopFormEnter {
+    from { opacity: 0; transform: translateY(10px) scale(.99); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1120px) {
+  .modal-backdrop, .org-form-backdrop, .scanner-backdrop,
+  .pm-modal-backdrop, .pms-modal-backdrop, .sp-modal-backdrop {
+    padding: 22px !important;
+  }
+  .modal-backdrop > .modal-card,
+  .org-form-backdrop > .modal-card,
+  .scanner-backdrop > .modal-card,
+  .pm-modal-backdrop > .pm-modal,
+  .pms-modal-backdrop > .pms-modal,
+  .sp-modal-backdrop > .sp-modal-shell {
+    width: calc(100vw - 44px) !important;
+    max-width: 860px !important;
+    max-height: calc(100dvh - 44px) !important;
+  }
+}
