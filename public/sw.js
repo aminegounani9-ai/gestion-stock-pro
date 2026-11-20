@@ -1,4 +1,4 @@
-const CACHE_NAME = "gestion-stock-pro-shell-v8";
+const CACHE_NAME = "direct-stock-project-shell-v9";
 const APP_SHELL = ["/", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
@@ -41,12 +41,12 @@ self.addEventListener("fetch", (event) => {
 self.addEventListener("push", (event) => {
   let payload = {};
   try { payload = event.data ? event.data.json() : {}; } catch { payload = { body: event.data?.text() || "" }; }
-  const title = payload.title || "Gestion Stock Pro";
+  const title = payload.title || "Direct Stock & Project Management";
   const options = {
     body: payload.body || payload.message || "Une nouvelle activité nécessite votre attention.",
     icon: payload.icon || "/icon-192.svg",
     badge: payload.badge || "/icon-192.svg",
-    tag: payload.tag || payload.id || "gestion-stock-pro-notification",
+    tag: payload.tag || payload.id || "direct-stock-project-notification",
     renotify: true,
     data: { url: payload.url || "/" }
   };
