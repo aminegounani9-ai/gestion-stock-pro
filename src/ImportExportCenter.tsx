@@ -53,7 +53,7 @@ const words = {
 const clean=(v:any)=>v===undefined||v===null||String(v).trim()===""?null:v;
 const fileName=(s:string)=>s.toLowerCase().replace(/[^a-z0-9_-]+/g,"_");
 const boolFields=new Set(["is_active","is_default","track_lots","track_serial_numbers","is_repairable","shelf_life_control"]);
-const numericFields=new Set(["purchase_price","sale_price","min_stock","max_stock","reorder_quantity","lead_time_days","weight","volume","shelf_life_months","safety_stock","reorder_point","purchase_pack_quantity","warranty_months","capacity","initial_quantity"]);
+const numericFields=new Set(["purchase_price","sale_price","min_stock","max_stock","reorder_quantity","lead_time_days","weight","volume","shelf_life_months","safety_stock","reorder_point","purchase_pack_quantity","warranty_months" ,"capacity"]);
 const normalize=(v:any)=>String(v??"").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[\s-]+/g,"_");
 
 export default function ImportExportCenter({companyId,lang,canImport,onClose,onDone}:{companyId:string;lang:Lang;canImport:boolean;onClose:()=>void;onDone:()=>Promise<void>}){
@@ -63,7 +63,7 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
  const groups=[{id:"Catalogue",label:t.groupCatalogue},{id:"Organisation",label:t.groupOrganisation},{id:"Stock",label:t.groupStock}];
  const getRows=async(table:string)=>{const q=await supabase!.from(table).select("*").eq("company_id",companyId).limit(10000);if(q.error)throw q.error;return q.data||[]};
  const refsFor=async()=>{
-   const tables=["product_categories","org_managements","org_services","org_sites","org_departments","org_units","org_equipment","warehouses","storage_locations"];
+   const required:Record<string,string[]>={spare_parts:["product_categories","org_sites","org_units","org_services","org_departments","org_equipment","warehouses","storage_locations"],products:["product_categories"],categories:["product_categories"],management:[],services:["org_managements"],sites:["org_services"],departments:["org_sites","org_units","org_services"],units:["org_sites","org_units","org_services","org_departments"],equipment:["org_sites","org_units","org_services","org_departments"],warehouses:["org_sites","org_units","org_services","org_departments","org_equipment"],locations:["warehouses","storage_locations"]};\n   const tables=required[selected]||[];
    const out:any={};for(const table of tables)out[table]=await getRows(table);return out;
  };
  const refSheets=(refs:any)=>{
