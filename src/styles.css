@@ -128,9 +128,9 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 @media(max-width:380px){.sp-kpi-grid{grid-template-columns:1fr}.sp-kpi{grid-template-columns:40px minmax(0,1fr)}}
 
 
-/* SOPHAL industrial stock workspace — visual consistency pass */
-:root{--sophal-ink:#1d2b43;--sophal-muted:#718096;--sophal-line:#e5eaf1;--sophal-surface:#ffffff;--sophal-canvas:#f4f6fa}
-.app-shell{background:var(--sophal-canvas)}
+/* Stock & Project Management visual consistency */
+:root{--brand-ink:#1d2b43;--brand-muted:#718096;--brand-line:#e5eaf1;--brand-surface:#ffffff;--brand-canvas:#f4f6fa}
+.app-shell{background:var(--brand-canvas)}
 .sidebar{background:#17253d;border-right:1px solid #243650}
 .brand{padding:22px 20px 19px}
 .brand small{letter-spacing:1.2px}
@@ -138,17 +138,17 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .nav-item{min-height:42px;margin:2px 9px;padding:0 12px;border-radius:9px;color:#c5d0df;font-size:12px;transition:background .16s,color .16s}
 .nav-item:hover{background:#263852;color:#fff}
 .nav-item.active{background:#304b70;color:#fff;box-shadow:inset 3px 0 #7ca7e8}
-.main-area{background:var(--sophal-canvas)}
-.topbar{background:#fff;border-bottom:1px solid var(--sophal-line);box-shadow:0 2px 10px #1d2b4308}
+.main-area{background:var(--brand-canvas)}
+.topbar{background:#fff;border-bottom:1px solid var(--brand-line);box-shadow:0 2px 10px #1d2b4308}
 .page-content{max-width:1600px;margin:0 auto;padding:26px 30px 34px}
 .page-heading{align-items:center;margin-bottom:22px}
-.page-heading h1{color:var(--sophal-ink);font-size:25px;letter-spacing:-.6px}
-.page-heading p{color:var(--sophal-muted);font-size:12px;line-height:1.6;margin-top:6px}
-.panel,.ops-panel{border:1px solid var(--sophal-line);border-radius:13px;box-shadow:0 4px 18px #1d2b4308;background:#fff}
+.page-heading h1{color:var(--brand-ink);font-size:25px;letter-spacing:-.6px}
+.page-heading p{color:var(--brand-muted);font-size:12px;line-height:1.6;margin-top:6px}
+.panel,.ops-panel{border:1px solid var(--brand-line);border-radius:13px;box-shadow:0 4px 18px #1d2b4308;background:#fff}
 .panel-head,.ops-panel .panel-head{padding-bottom:13px;border-bottom:1px solid #edf0f5;margin-bottom:16px}
-.panel-head h3,.ops-panel .panel-head h3{color:var(--sophal-ink);font-size:14px;font-weight:750}
+.panel-head h3,.ops-panel .panel-head h3{color:var(--brand-ink);font-size:14px;font-weight:750}
 .panel-head p{color:#8390a4;font-size:11px;line-height:1.55}
-.ops-kpi{border:1px solid var(--sophal-line);border-radius:12px;background:#fff;box-shadow:0 3px 12px #1d2b4308;padding:16px}
+.ops-kpi{border:1px solid var(--brand-line);border-radius:12px;background:#fff;box-shadow:0 3px 12px #1d2b4308;padding:16px}
 .ops-fields label,.modal-card label{display:flex;flex-direction:column;gap:7px;color:#526177;font-size:11px;font-weight:700}
 .ops-fields input,.ops-fields select,.ops-fields textarea,.ops-line input,.ops-line select,.modal-card input,.modal-card select,.modal-card textarea{border:1px solid #dce3ed;border-radius:8px;background:#fbfcfe;color:#26364f;padding:10px 11px;font-size:12px;min-height:40px;outline:none;transition:border-color .15s,box-shadow .15s,background .15s}
 .ops-fields input:focus,.ops-fields select:focus,.ops-fields textarea:focus,.ops-line input:focus,.ops-line select:focus,.modal-card input:focus,.modal-card select:focus,.modal-card textarea:focus{border-color:#6f91c8;box-shadow:0 0 0 3px #6f91c81a;background:#fff}
