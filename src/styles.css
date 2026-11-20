@@ -3404,3 +3404,141 @@ body{color:#243550;-webkit-font-smoothing:antialiased;text-rendering:optimizeLeg
   }
   .org-management-modal { width: min(620px, calc(100vw - 56px)) !important; }
 }
+
+/* Unified desktop dialog system: dialogs are rendered through ModalPortal at document.body. */
+@media (min-width: 761px) {
+  body:has(.modal-backdrop, .pm-modal-backdrop, .pms-modal-backdrop, .sp-modal-backdrop, .org-form-backdrop, .users-create-backdrop) {
+    overflow: hidden !important;
+    overscroll-behavior: none !important;
+  }
+  .modal-backdrop, .pm-modal-backdrop, .pms-modal-backdrop, .sp-modal-backdrop,
+  .org-form-backdrop, .users-create-backdrop {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 28px !important;
+    overflow: hidden !important;
+    z-index: 100000 !important;
+    background: rgba(18, 31, 51, .48) !important;
+    -webkit-backdrop-filter: blur(9px) saturate(.82) !important;
+    backdrop-filter: blur(9px) saturate(.82) !important;
+  }
+  .modal-card, .pm-modal, .pms-modal, .sp-modal-shell {
+    min-width: 0 !important;
+    max-height: calc(100dvh - 56px) !important;
+    border: 1px solid #dfe7f1 !important;
+    border-radius: 18px !important;
+    background: #fbfcfe !important;
+    box-shadow: 0 28px 80px rgba(16, 33, 59, .28) !important;
+  }
+  .pm-modal, .pms-modal, .sp-modal-shell {
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+  .pm-modal { width: min(920px, calc(100vw - 56px)) !important; }
+  .pms-modal { width: min(900px, calc(100vw - 56px)) !important; }
+  .sp-modal-shell { width: min(940px, calc(100vw - 56px)) !important; overflow: hidden !important; }
+  .modal-card {
+    width: min(920px, calc(100vw - 56px)) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: auto !important;
+    overscroll-behavior: contain !important;
+  }
+  .pm-modal > header, .pms-modal > header,
+  .modal-card > .modal-head, .sp-modal-shell .panel-head {
+    flex: 0 0 auto !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 5 !important;
+    min-height: 72px !important;
+    padding: 17px 22px !important;
+    margin: -1px -1px 0 !important;
+    border-bottom: 1px solid #e5ebf3 !important;
+    background: linear-gradient(110deg, #f1f5ff, #f7fafc 60%, #eef7f5) !important;
+  }
+  .pm-modal > form, .pms-modal > form,
+  .sp-modal-shell > .panel > form {
+    display: flex !important;
+    flex: 1 1 auto !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: contain !important;
+    padding: 20px 22px !important;
+  }
+  .pm-form-grid, .pms-form-grid, .modal-card .form-grid,
+  .modal-card .ops-fields, .sp-modal-shell .ops-fields,
+  .users-create-form {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    align-items: start !important;
+    gap: 16px 20px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  .pm-form-grid label, .pms-form-grid label, .modal-card label,
+  .sp-modal-shell label, .users-create-form label {
+    min-width: 0 !important;
+    display: grid !important;
+    gap: 7px !important;
+    color: #58677d !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+  }
+  .pm-form-grid input, .pm-form-grid select, .pm-form-grid textarea,
+  .pms-form-grid input, .pms-form-grid select, .pms-form-grid textarea,
+  .modal-card input:not([type=checkbox]):not([type=radio]):not([type=file]),
+  .modal-card select, .modal-card textarea,
+  .sp-modal-shell input:not([type=checkbox]):not([type=radio]):not([type=file]),
+  .sp-modal-shell select, .sp-modal-shell textarea {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    min-height: 42px !important;
+    box-sizing: border-box !important;
+    border: 1px solid #dce3ed !important;
+    border-radius: 10px !important;
+    background: #fbfcff !important;
+    color: #2d3c54 !important;
+    padding: 10px 12px !important;
+    font: 500 11px 'DM Sans', sans-serif !important;
+  }
+  .pm-form-grid textarea, .pms-form-grid textarea,
+  .modal-card textarea, .sp-modal-shell textarea { min-height: 88px !important; resize: vertical !important; }
+  .pm-form-grid label.wide, .pms-form-grid .pms-wide,
+  .modal-card .span-2, .modal-card .wide,
+  .sp-modal-shell .ops-wide, .users-create-form .users-assignment-grid {
+    grid-column: 1 / -1 !important;
+  }
+  .pm-modal footer, .pms-modal footer,
+  .modal-card .modal-actions, .modal-card .ops-actions,
+  .sp-modal-shell .ops-actions {
+    position: sticky !important;
+    bottom: -20px !important;
+    z-index: 6 !important;
+    flex: 0 0 auto !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    padding: 16px 0 2px !important;
+    margin-top: 18px !important;
+    border-top: 1px solid #e5ebf3 !important;
+    background: #fbfcfe !important;
+  }
+}
+@media (max-width: 760px) {
+  .modal-backdrop, .pm-modal-backdrop, .pms-modal-backdrop,
+  .sp-modal-backdrop, .org-form-backdrop, .users-create-backdrop {
+    z-index: 100000 !important;
+  }
+}
