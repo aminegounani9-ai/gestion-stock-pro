@@ -219,9 +219,14 @@ PARCOURS TRANSFERT: source > destination > lignes > contrôle > valider > vérif
 PARCOURS INVENTAIRE: entrepôt > comptage physique > saisie > écarts > validation autorisée > contrôle stock.
 PARCOURS PROJET: projet > objectifs/budget/dates > tâches/responsables > dépendances/jalons > progression > Gantt/rapports.
 `;
-    const systemInstruction = `Stock Pro AI: اللغة المكتشفة للسؤال الحالي هي ${language}. استعملها في الجواب، مع مطابقة أسلوب المستخدم. جاوب بنفس لغة وآسلوب آخر سؤال للمستخدم. Français إذا كتب بالفرنسية، English إذا كتب بالإنجليزية، العربية إذا كتب بالعربية، والدارجة الوهرانية إذا كتب بالدارجة حتى بالحروف اللاتينية. لا تفرض لغة واجهة البرنامج.
-إذا السؤال بسيط، جاوب باختصار. إذا طلب شرح logiciel أو module أو formulaire أو procédure، أعط شرحاً كاملاً خطوة بخطوة، واش معنى كل champ، واش يدخل فيه، مثال واضح وموسوم كمثال، وكيفاش يراجع قبل الحفظ/المصادقة. لا تختصر طلب شرح مفصل.
-استعمل STOCK PRO GUIDE وLIVE APPLICATION DATA والـ schema الفعلي. ابدأ بالموديول الحالي، وإذا طلب شرح البرنامج كامل اعطه خريطة modules والعمليات. لا تخترع أسماء أزرار أو حقول أو صلاحيات. إذا التفاصيل غير مؤكدة، صرّح بذلك واطلب اسم الشاشة أو capture.
+    const systemInstruction = `Stock Pro AI: اللغة المكتشفة للسؤال الحالي هي ${language}. أجب بنفس لغة وأسلوب آخر سؤال للمستخدم، ولا تفرض لغة واجهة البرنامج.
+قاعدة أساسية: طول الجواب يتحدد حسب السؤال، وليس حسب طول دليل البرنامج.
+- سؤال مباشر أو معلومة بسيطة: جواب مباشر في جملة إلى 3 جمل كحد أقصى.
+- سؤال عن وجود article أو référence أو quantité: أعط النتيجة أولاً، ثم أهم معلومة داعمة فقط. إذا البيانات لا تثبت الكمية المتاحة، قل ذلك بوضوح.
+- سؤال "كيفاش/كيف/كيف أستعمل": خطوات عملية قصيرة ومرقمة، فقط الخطوات اللازمة للسؤال والموديول المعني.
+- شرح مفصل، جميع الحقول، مقارنة أو إجراء كامل: أعط التفاصيل المطلوبة فقط عندما يطلب المستخدم ذلك صراحة.
+لا تعطِ مقدمة عامة، ولا تعاود صياغة السؤال، ولا تسرد modules غير المطلوبة، ولا تكرر نفس المعلومة، ولا تضف نصائح عامة لا تساعد في السؤال. إذا السؤال واضح، لا تسأل أسئلة إضافية. إذا معلومة واحدة ضرورية ناقصة، اسأل سؤال توضيح واحد فقط.
+استعمل STOCK PRO GUIDE وLIVE APPLICATION DATA والـ schema الفعلي كمراجع داخلية، لكن لا تفرغ محتواها في الجواب. ابدأ بالإجابة المطلوبة مباشرة. لا تخترع أسماء أزرار أو حقول أو صلاحيات. إذا التفاصيل غير مؤكدة، صرّح بالجزء غير المؤكد فقط.
 بيانات LIVE هي المصدر الوحيد للأرقام والمخزون. لا تخلط وجود article في catalogue مع stock disponible؛ لا تحسب الرصيد من mouvements إلا إذا كان موثوقاً وصريحاً. في أسئلة القطع والـ références فتّش productMatches وsparePartTechnicalRecords وطابق SKU/Barcode/Part Number/Référence constructeur.
 READ-ONLY: تشرح وتوجّه فقط، لا تدّعي أنك أضفت أو عدلت أو حذفت أو استلمت أو حولت أو صادقت. احمِ بيانات الشركات الأخرى والأسرار.
 `;
@@ -231,7 +236,10 @@ READ-ONLY: تشرح وتوجّه فقط، لا تدّعي أنك أضفت أو �
       parts: [{ text: String(m.content || "").slice(0, 3500) }]
     }));
     // Keep live evidence in the system instruction, not as a fake user turn.
-    const groundedSystemInstruction = systemInstruction + "\n\nSTOCK PRO SOFTWARE GUIDE: " + softwareGuide + "\n\nLIVE APPLICATION DATA (trusted factual context; never invent beyond it): " + contextText + "\n\nCURRENT SCREEN: " + (currentPageLabel[page] || page);
+    const groundedSystemInstruction = systemInstruction + "\n\nSTOCK PRO SOFTWARE GUIDE (reference only; use only the parts relevant to the question): " + softwareGuide + "\n\nLIVE APPLICATION DATA (trusted factual context; never invent beyond it): " + contextText + "\n\nCURRENT SCREEN: " + (currentPageLabel[page] || page);
+    const asksForDetail = /\b(d[eé]taill[eé]|en d[eé]tail|tous les champs|chaque champ|complet|compl[eè]te|pas [àa] pas|step by step|in detail|full explanation|شرح مفصل|بالتفصيل|كل الحقول|خطوة بخطوة)\b/i.test(latestQuestion);
+    const asksHowTo = /\b(comment|kifach|kifeh|how to|how do i|how can i|اشرح|كيفاش|كيف ندير|كيف أ)\b/i.test(latestQuestion);
+    const maxOutputTokens = asksForDetail ? 520 : asksHowTo ? 260 : 180;
 
     const models = ["gemini-3.5-flash-lite", "gemini-3.6-flash"];
     let lastStatus = 0;
@@ -245,7 +253,7 @@ READ-ONLY: تشرح وتوجّه فقط، لا تدّعي أنك أضفت أو �
           body: JSON.stringify({
             system_instruction: { parts: [{ text: groundedSystemInstruction }] },
             contents,
-            generationConfig: { temperature: 0.1, maxOutputTokens: 380 }
+            generationConfig: { temperature: 0.1, maxOutputTokens }
           })
         });
       } catch (error) {
