@@ -144,11 +144,11 @@ Deno.serve(async (req: Request) => {
 
     const companyName = String(body.company?.name || "votre entreprise").slice(0, 120);
     const detectLanguage = (value: string): string => {
-      const text = value.toLowerCase();
-      if (/[\\u0600-\\u06ff]/.test(value)) return "Arabic";
-      if (/\\b(wach|wesh|kifach|kifeh|3lach|3lah|chhal|ch7al|win|wein|rani|rana|rah|rahi|nheb|bghit|baghi|ndir|dirli|saha|kayen|kayn|ma3lich|mlih|ta3|t3|m3a|hada|hadi|hadak|smahli)\\b/i.test(text)) return "Algerian Darija (Wahrani), naturally mixing simple French technical terms";
-      if (/[àâçéèêëîïôûùüÿœ]/i.test(text) || /\\b(bonjour|comment|pourquoi|merci|article|entrepôt|fournisseur|quantité|commande|achat|vente|enregistrer|modifier|supprimer|gestion|logiciel|formulaire|je|vous|nous|avec|dans|pour|quelle|quels)\\b/i.test(text)) return "French";
-      if (/\\b(what|how|why|where|when|please|help|show|product|warehouse|supplier|purchase|sales|inventory|create|update|delete|form|field|save|report|hello|thanks|can you|i need)\\b/i.test(text)) return "English";
+      const text = value.toLowerCase().trim();
+      if (/[\u0600-\u06FF]/.test(value)) return "Arabic (use the same register as the user)";
+      if (/\b(wach|wesh|kifach|kifeh|3lach|3lah|chhal|ch7al|win|wein|rani|rana|rah|rahi|nheb|bghit|baghi|ndir|dirli|saha|kayen|kayn|ma3lich|mlih|ta3|t3|m3a|hada|hadi|hadak|smahli|machi|mazal|wella|3awed|3awd)\b/i.test(text)) return "Algerian Darija in Latin script (Wahrani), naturally mixing French technical terms";
+      if (/[àâçéèêëîïôûùüÿœ]/i.test(text) || /\b(bonjour|comment|pourquoi|merci|article|entrepôt|fournisseur|quantité|commande|achat|vente|enregistrer|modifier|supprimer|gestion|logiciel|formulaire|je|vous|nous|avec|dans|pour|quelle|quels)\b/i.test(text)) return "French";
+      if (/\b(what|how|why|where|when|please|help|show|product|warehouse|supplier|purchase|sales|inventory|create|update|delete|form|field|save|report|hello|thanks|can you|i need)\b/i.test(text)) return "English";
       return "the same language and writing style as the user's latest message";
     };
     const language = detectLanguage(latestQuestion);
@@ -219,7 +219,7 @@ PARCOURS TRANSFERT: source > destination > lignes > contrôle > valider > vérif
 PARCOURS INVENTAIRE: entrepôt > comptage physique > saisie > écarts > validation autorisée > contrôle stock.
 PARCOURS PROJET: projet > objectifs/budget/dates > tâches/responsables > dépendances/jalons > progression > Gantt/rapports.
 `;
-    const systemInstruction = `Stock Pro AI: اللغة المكتشفة للسؤال الحالي هي ${language}. أجب بنفس لغة وأسلوب آخر سؤال للمستخدم، ولا تفرض لغة واجهة البرنامج.
+    const systemInstruction = `Stock Pro AI: اللغة المكتشفة للسؤال الحالي هي ${language}. أجب حصرياً بلغة آخر سؤال وبنفس طريقة كتابته: الدارجة بالحروف اللاتينية تبقى دارجة لاتينية، والدارجة/العربية بالحروف العربية تبقى بالعربية، والفرنسية تبقى بالفرنسية، والإنجليزية تبقى بالإنجليزية. لا تحوّل الدارجة إلى العربية الفصحى ولا تختار العربية لمجرد أن واجهة البرنامج عربية.
 قاعدة أساسية: طول الجواب يتحدد حسب السؤال، وليس حسب طول دليل البرنامج.
 - سؤال مباشر أو معلومة بسيطة: جواب مباشر في جملة إلى 3 جمل كحد أقصى.
 - سؤال عن وجود article أو référence أو quantité: أعط النتيجة أولاً، ثم أهم معلومة داعمة فقط. إذا البيانات لا تثبت الكمية المتاحة، قل ذلك بوضوح.
