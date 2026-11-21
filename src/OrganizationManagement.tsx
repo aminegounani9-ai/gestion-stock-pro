@@ -16,7 +16,7 @@ const words={
 };
 
 
-export default function OrganizationManagement({ companyId, members, currentUserId, onNotice, onRefreshMembers, lang="fr" }: { companyId:string; members:Member[]; currentUserId:string; onNotice:(type:"success"|"error",message:string)=>void; onRefreshMembers?:()=>void|Promise<void>; lang?:"fr"|"en"|"ar" }) {
+export default function OrganizationManagement({ companyId, members, currentUserId, onNotice, lang="fr" }: { companyId:string; members:Member[]; currentUserId:string; onNotice:(type:"success"|"error",message:string)=>void; lang?:"fr"|"en"|"ar" }) {
   const t=words[lang];
   const scopeLabels:Record<ScopeType,string>={management:"Management",site:lang==="ar"?"الموقع":lang==="en"?"Site":"Site",unit:lang==="ar"?"الوحدة":lang==="en"?"Unit":"Unité",service:lang==="ar"?"المصلحة":"Service",department:lang==="ar"?"القسم":lang==="en"?"Department":"Département",equipment:lang==="ar"?"المعدة":lang==="en"?"Equipment":"Équipement",warehouse:lang==="ar"?"المخزن":lang==="en"?"Warehouse":"Entrepôt"};
   const [activeTab,setActiveTab] = useState<"structure"|"assignments">("structure");
@@ -97,11 +97,12 @@ export default function OrganizationManagement({ companyId, members, currentUser
       const parentId=result.data.id;
       const relationConfig:any={management:{table:"org_sites",column:"management_id"},site:{table:"org_services",column:"site_id"},service:{table:"org_departments",column:"service_id"},department:{table:"org_units",column:"department_id"}};
       const relation=relationConfig[kind];
+      const db:any=supabase;
       if(relation){
-        const clear=await supabase.from(relation.table).update({[relation.column]:null}).eq("company_id",companyId).eq(relation.column,parentId);
+        const clear=await db.from(relation.table).update({[relation.column]:null}).eq("company_id",companyId).eq(relation.column,parentId);
         if(clear.error)throw clear.error;
         if(selectedChildIds.length){
-          const attach=await supabase.from(relation.table).update({[relation.column]:parentId}).eq("company_id",companyId).in("id",selectedChildIds);
+          const attach=await db.from(relation.table).update({[relation.column]:parentId}).eq("company_id",companyId).in("id",selectedChildIds);
           if(attach.error)throw attach.error;
           if(kind==="site"){
             const childDepartments=await supabase.from("org_departments").select("id").eq("company_id",companyId).in("service_id",selectedChildIds);
