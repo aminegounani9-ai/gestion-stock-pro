@@ -415,7 +415,8 @@ export default function App() {
       ]);
       if(teamProjectResult.error)throw teamProjectResult.error;
       if(leadProjectResult.error)throw leadProjectResult.error;
-      setHasProjectAccess(!!teamProjectResult.data?.length||!!leadProjectResult.data?.length);
+      const canListProjectTeam=!!teamProjectResult.data?.length||!!leadProjectResult.data?.length;
+      setHasProjectAccess(canListProjectTeam);
       if(chosenIsAdmin||Object.values(permissionMap).some((p:any)=>p.can_view)){
         await loadWorkspace(chosen.id);
       }else if(["manager","supervisor"].includes(chosenRole)){
@@ -425,7 +426,7 @@ export default function App() {
         setProducts([]);setWarehouses([]);setSuppliers([]);setCustomers([]);setMovements([]);setPurchases([]);setSales([]);setCategories([]);
         setOrgSites([]);setOrgUnits([]);setOrgServices([]);setOrgDepartments([]);setOrgEquipment([]);setMyScopeAssignments([]);
       }
-      if (["owner","admin","manager","supervisor"].includes(chosenRole)) {
+      if (["owner","admin","manager","supervisor"].includes(chosenRole)||(["director","project_responsible"].includes(chosenRole)&&canListProjectTeam)) {
         const {data: memberRows,error: memberError} = await supabase.rpc("list_company_users",{p_company_id:chosen.id});
         if (memberError) throw memberError;
         setMembers(memberRows ?? []);
