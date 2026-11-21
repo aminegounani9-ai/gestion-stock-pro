@@ -14,90 +14,118 @@ const safeText = (value: unknown, max = 160) => String(value ?? "").replace(/[,%
 const numericCode = (value: string) => value.match(/[a-z0-9][a-z0-9._/-]{1,}/gi) || [];
 
 async function buildLiveContext(client: any, companyId: string, question: string) {
-  const q = safeText(question, 180);
-  const terms = [...new Set(numericCode(q).map(x => x.trim()).filter(x => x.length >= 2))].slice(0, 5);
-  const result: Record<string, unknown> = { source: "live_database", companyId, lookup: q };
+  const q = safeText(question, 240);
+  const lower = q.toLowerCase();
+  const stockIntent = /\b(stock|quantity|quantit[eé]|disponible|disponibilit[eé]|available|balance|inventory|inventaire|entrep[oô]t|warehouse|lot|expiry|p[eé]remption|r[eé]servation|reserved|mouvement|movement|article|produit|product|pi[eè]ce|spare|r[eé]f[eé]rence|reference|sku|barcode|code.barre|prix|value|valeur)\b/i.test(lower);
+  const broadIntent = /\b(tout|tous|toutes|global|globale|r[eé]sum[eé]|overview|summary|dashboard|logiciel|modules|combien|chhal|total|statistique|statistics|rapport|report|d[eé]tail|details)\b/i.test(lower);
+  const stop = new Set(["wach","wesh","kifach","kifeh","3tini","atini","donne","moi","svp","stp","please","show","give","want","need","what","how","where","which","the","and","for","with","dans","pour","avec","les","des","une","un","est","que","qui","quoi","comment","combien","stock","article","articles","produit","produits","quantite","quantité","disponible","disponibilite","disponibilité","entrepot","entrepôt","entrepots","entrepôts","kayn","kayen","rani","rah","rahi","ta3","m3a","fih","fiha","hada","hadi","3la","li","bghit","baghi","nheb","nchof","chof","dirli","mouvement","mouvements","details","détails"]);
+  const tokens = [...new Set((q.match(/[a-zA-Z0-9À-ÿ][a-zA-Z0-9À-ÿ._/-]{1,}/g) || [])
+    .map((x: string) => x.trim()).filter((x: string) => x.length >= 2 && !stop.has(x.toLowerCase())))].slice(0, 6);
+  const result: Record<string, unknown> = { source: "live_database", lookup: q, stockIntent, retrievalScope: "current_company_only" };
 
-  // Search both the catalogue and technical spare-part references. This is the
-  // key path for questions such as "do we have belt 1717?".
-  if (terms.length) {
-    const clauses = (columns: string[]) => terms.flatMap(term => columns.map(col => `${col}.ilike.%${term}%`)).join(",");
-    const [productRes, detailRes] = await Promise.all([
-      client.from("products")
-        .select("id,sku,barcode,name,description,unit,purchase_price,sale_price,min_stock,max_stock,is_active,category_id")
-        .eq("company_id", companyId)
-        .or(clauses(["sku", "barcode", "name", "description"]))
-        .limit(25),
-      client.from("spare_part_details")
-        .select("product_id,part_number,manufacturer,manufacturer_reference,part_type,equipment_family,equipment_model,equipment_tag,criticality,condition_class,alternative_part_number,drawing_reference,technical_specifications,safety_stock,reorder_point,max_stock,reorder_quantity,lead_time_days,unit_of_measure,material,voltage,power_rating,notes,warehouse_id,site_id,unit_id,service_id,department_id,equipment_id")
-        .eq("company_id", companyId)
-        .or(clauses(["part_number", "manufacturer_reference", "alternative_part_number", "equipment_tag", "equipment_model", "manufacturer", "part_type", "technical_specifications"]))
-        .limit(25)
-    ]);
-    if (productRes.error) console.error("AI product lookup failed", productRes.error.message);
-    if (detailRes.error) console.error("AI spare detail lookup failed", detailRes.error.message);
-    const products = productRes.data || [];
-    const details = detailRes.data || [];
-    const ids = [...new Set([...products.map((p: any) => p.id), ...details.map((d: any) => d.product_id)].filter(Boolean))];
-    let linkedProducts: any[] = products;
-    if (ids.length && ids.some(id => !products.some((p: any) => p.id === id))) {
-      const extra = await client.from("products")
-        .select("id,sku,barcode,name,description,unit,purchase_price,sale_price,min_stock,max_stock,is_active,category_id")
-        .eq("company_id", companyId).in("id", ids).limit(25);
-      linkedProducts = [...products, ...(extra.data || []).filter((p: any) => !products.some((x: any) => x.id === p.id))];
-    }
-    result.productMatches = linkedProducts;
-    result.sparePartTechnicalRecords = details;
+  const [warehouseRes, productCountRes, balanceRes] = await Promise.all([
+    client.from("warehouses").select("id,code,name,is_active").eq("company_id", companyId).limit(200),
+    client.from("products").select("id", {count:"exact",head:true}).eq("company_id", companyId),
+    client.from("stock_balances").select("product_id,warehouse_id,quantity_on_hand").eq("company_id", companyId).limit(stockIntent ? 1000 : 100)
+  ]);
+  const warehouses = warehouseRes.data || [];
+  const balances = balanceRes.data || [];
+  if (warehouseRes.error) console.error("AI warehouse lookup failed", warehouseRes.error.message);
+  if (balanceRes.error) console.error("AI stock balance lookup failed", balanceRes.error.message);
+  result.warehouses = warehouses;
+  result.stockBalanceRowsReturned = balances.length;
+  result.stockBalanceRowsLimited = balances.length >= (stockIntent ? 1000 : 100);
 
-    if (ids.length) {
-      const [movementRes, reservationRes, lotRes] = await Promise.all([
-        client.from("stock_movements")
-          .select("product_id,warehouse_id,movement_type,quantity,unit_cost,reference_type,note,occurred_at")
-          .eq("company_id", companyId).in("product_id", ids)
-          .order("occurred_at", { ascending: false }).limit(100),
-        client.from("spare_part_reservations")
-          .select("product_id,warehouse_id,quantity,reservation_number,requested_for,work_order_reference,required_date,status,notes")
-          .eq("company_id", companyId).in("product_id", ids).limit(100),
-        client.from("stock_lots")
-          .select("product_id,warehouse_id,lot_number,expiry_date,quantity_on_hand,status")
-          .eq("company_id", companyId).in("product_id", ids).limit(100)
-      ]);
-      result.stockMovements = movementRes.data || [];
-      result.reservations = reservationRes.data || [];
-      result.lots = lotRes.data || [];
-      if (movementRes.error) console.error("AI movement lookup failed", movementRes.error.message);
-      if (reservationRes.error) console.error("AI reservation lookup failed", reservationRes.error.message);
-      if (lotRes.error) console.error("AI lot lookup failed", lotRes.error.message);
-    }
-    const [warehouseRes, supplierRes] = await Promise.all([
-      client.from("warehouses").select("id,code,name").eq("company_id", companyId).limit(100),
-      client.from("suppliers").select("id,name,phone,email").eq("company_id", companyId).limit(100)
+  let productRows: any[] = [];
+  let detailRows: any[] = [];
+  if (tokens.length) {
+    const clauses = (cols: string[]) => tokens.flatMap(term => cols.map(col => col + ".ilike.%" + term + "%")).join(",");
+    const [pRes,dRes] = await Promise.all([
+      client.from("products").select("id,sku,barcode,name,description,unit,purchase_price,sale_price,min_stock,max_stock,reorder_quantity,lead_time_days,track_lots,track_serial_numbers,is_active,category_id")
+        .eq("company_id",companyId).or(clauses(["sku","barcode","name","description"])).limit(40),
+      client.from("spare_part_details").select("product_id,part_number,manufacturer,manufacturer_reference,part_type,equipment_family,equipment_model,equipment_tag,criticality,condition_class,shelf_life_months,storage_conditions,shelf_code,alternative_part_number,drawing_reference,technical_specifications,safety_stock,reorder_point,max_stock,reorder_quantity,lead_time_days,purchase_pack_quantity,unit_of_measure,weight,dimensions,material,voltage,power_rating,pressure_rating,connection_type,operating_temperature,standard_reference,warranty_months,country_of_origin,storage_temperature,humidity_range,notes,warehouse_id,site_id,unit_id,service_id,department_id,equipment_id,storage_location_id")
+        .eq("company_id",companyId).or(clauses(["part_number","manufacturer_reference","alternative_part_number","equipment_tag","equipment_model","manufacturer","part_type","technical_specifications"])).limit(40)
     ]);
-    result.warehouses = warehouseRes.data || [];
-    result.suppliers = supplierRes.data || [];
+    if(pRes.error) console.error("AI product search failed",pRes.error.message);
+    if(dRes.error) console.error("AI technical search failed",dRes.error.message);
+    productRows=pRes.data||[];
+    detailRows=dRes.data||[];
   }
 
-  // Provide real module-level counts for broad questions without dumping the
-  // entire database into the model. Every query remains scoped to this company
-  // and runs with the signed-in user's JWT/RLS permissions.
-  const summaryTables = [
-    ["products", "Articles"], ["spare_part_details", "Fiches techniques pièces"],
-    ["warehouses", "Entrepôts"], ["suppliers", "Fournisseurs"], ["customers", "Clients"],
-    ["purchase_orders", "Commandes d'achat"], ["sales", "Ventes"],
-    ["stock_movements", "Mouvements de stock"], ["stock_transfers", "Transferts"],
-    ["inventory_counts", "Inventaires"], ["stock_returns", "Retours"],
-    ["expenses", "Dépenses"], ["payment_transactions", "Paiements"],
-    ["projects", "Projets"], ["project_tasks", "Tâches projets"],
-    ["org_equipment", "Équipements"]
-  ];
-  const countResults = await Promise.all(summaryTables.map(async ([table, label]) => {
-    const { count, error } = await client.from(table).select("id", { count: "exact", head: true }).eq("company_id", companyId);
-    return error ? null : { module: label, count: count ?? 0 };
-  }));
-  result.moduleCounts = countResults.filter(Boolean);
+  const ids = [...new Set([...productRows.map((p:any)=>p.id),...detailRows.map((d:any)=>d.product_id),...(stockIntent?balances.map((x:any)=>x.product_id):[])].filter(Boolean))];
+  const knownIds = new Set(productRows.map((p:any)=>p.id));
+  const missingIds = ids.filter(id=>!knownIds.has(id));
+  for(let i=0;i<missingIds.length;i+=100){
+    const extra=await client.from("products").select("id,sku,barcode,name,description,unit,purchase_price,sale_price,min_stock,max_stock,reorder_quantity,lead_time_days,track_lots,track_serial_numbers,is_active,category_id")
+      .eq("company_id",companyId).in("id",missingIds.slice(i,i+100)).limit(100);
+    if(extra.error) console.error("AI balance product labels failed",extra.error.message);
+    productRows.push(...(extra.data||[]));
+  }
+  const productById = new Map(productRows.map((p:any)=>[p.id,p]));
+  const warehouseById = new Map(warehouses.map((w:any)=>[w.id,w]));
+  const enrichedBalances = balances.map((row:any)=>({...row,product:productById.get(row.product_id)||null,warehouse:warehouseById.get(row.warehouse_id)||null}));
+  result.productMatches = productRows;
+  result.sparePartTechnicalRecords = detailRows;
+  result.stockBalances = enrichedBalances;
+  result.stockSummary = {
+    totalQuantityAcrossReturnedRows: balances.reduce((sum:number,row:any)=>sum+Number(row.quantity_on_hand||0),0),
+    productsWithBalance: new Set(balances.map((x:any)=>x.product_id)).size,
+    warehousesWithBalance: new Set(balances.map((x:any)=>x.warehouse_id)).size,
+    productCount: productCountRes.count ?? null,
+    note: "Sum of quantity_on_hand rows returned; not a monetary valuation. If row limit is reached, this is not a complete company total."
+  };
+
+  if(ids.length){
+    const [movementRes,lotRes,serialRes,reservationRes] = await Promise.all([
+      client.from("stock_movements").select("product_id,warehouse_id,movement_type,quantity,unit_cost,reference_type,reference_id,note,occurred_at,location_id,lot_id")
+        .eq("company_id",companyId).in("product_id",ids).order("occurred_at",{ascending:false}).limit(80),
+      client.from("stock_lots").select("product_id,warehouse_id,location_id,lot_number,manufacture_date,expiry_date,received_quantity,quantity_on_hand,unit_cost,supplier_id,status,notes")
+        .eq("company_id",companyId).in("product_id",ids).limit(100),
+      client.from("stock_serial_numbers").select("product_id,warehouse_id,location_id,lot_id,serial_number,status,received_at,notes")
+        .eq("company_id",companyId).in("product_id",ids).limit(100),
+      client.from("spare_part_reservations").select("product_id,warehouse_id,quantity,reservation_number,requested_for,work_order_reference,required_date,status,notes")
+        .eq("company_id",companyId).in("product_id",ids).limit(100)
+    ]);
+    result.stockMovements=movementRes.data||[];
+    result.stockLots=lotRes.data||[];
+    result.stockSerialNumbers=serialRes.data||[];
+    result.sparePartReservations=reservationRes.data||[];
+    for(const [name,res] of [["movements",movementRes],["lots",lotRes],["serials",serialRes],["reservations",reservationRes]] as any){
+      if(res.error) console.error("AI "+name+" lookup failed",res.error.message);
+    }
+  }
+
+  if(broadIntent){
+    const tables=[
+      ["products","Articles"],["categories","Catégories"],["warehouses","Entrepôts"],["suppliers","Fournisseurs"],["customers","Clients"],
+      ["purchase_orders","Commandes d'achat"],["sales","Ventes"],["stock_movements","Mouvements"],["stock_transfers","Transferts"],
+      ["inventory_counts","Inventaires"],["stock_returns","Retours"],["expenses","Dépenses"],["payment_transactions","Paiements"],
+      ["projects","Projets"],["project_tasks","Tâches projets"],["org_equipment","Équipements"],["spare_part_details","Fiches techniques pièces"],
+      ["stock_lots","Lots"],["stock_serial_numbers","Numéros de série"]
+    ];
+    const counts=await Promise.all(tables.map(async ([table,label])=>{
+      const {count,error}=await client.from(table).select("*",{count:"exact",head:true}).eq("company_id",companyId);
+      return error?null:{module:label,count:count??0};
+    }));
+    result.moduleCounts=counts.filter(Boolean);
+  }
+
+  if(/\b(achat|purchase|commande|order|fournisseur|vente|sales|invoice|facture|transfert|transfer|inventaire|inventory|retour|return)\b/i.test(lower)){
+    const [poRes,saleRes,transferRes,inventoryRes,returnRes]=await Promise.all([
+      client.from("purchase_orders").select("id,order_number,status,order_date,expected_date,subtotal,supplier_id,warehouse_id,notes").eq("company_id",companyId).order("order_date",{ascending:false}).limit(20),
+      client.from("sales").select("id,invoice_number,status,sale_date,subtotal,discount,total,customer_id,notes").eq("company_id",companyId).order("sale_date",{ascending:false}).limit(20),
+      client.from("stock_transfers").select("id,transfer_number,status,transfer_date,source_warehouse_id,destination_warehouse_id,approved_at,dispatched_at,received_at,notes").eq("company_id",companyId).order("transfer_date",{ascending:false}).limit(20),
+      client.from("inventory_counts").select("id,count_number,status,count_date,warehouse_id,notes").eq("company_id",companyId).order("count_date",{ascending:false}).limit(20),
+      client.from("stock_returns").select("id,return_number,return_type,status,return_date,warehouse_id,reason,notes").eq("company_id",companyId).order("return_date",{ascending:false}).limit(20)
+    ]);
+    result.recentPurchaseOrders=poRes.data||[];
+    result.recentSales=saleRes.data||[];
+    result.recentTransfers=transferRes.data||[];
+    result.recentInventoryCounts=inventoryRes.data||[];
+    result.recentReturns=returnRes.data||[];
+  }
   return result;
 }
-
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "METHOD_NOT_ALLOWED" }, 405);
@@ -146,7 +174,7 @@ Deno.serve(async (req: Request) => {
     const detectLanguage = (value: string): string => {
       const text = value.toLowerCase().trim();
       if (/[\u0600-\u06FF]/.test(value)) return "Arabic (use the same register as the user)";
-      if (/\b(wach|wesh|kifach|kifeh|3lach|3lah|chhal|ch7al|win|wein|rani|rana|rah|rahi|nheb|bghit|baghi|ndir|dirli|saha|kayen|kayn|ma3lich|mlih|ta3|t3|m3a|hada|hadi|hadak|smahli|machi|mazal|wella|3awed|3awd)\b/i.test(text)) return "Algerian Darija in Latin script (Wahrani), naturally mixing French technical terms";
+      if (/\b(wach|wesh|kifach|kifeh|3lach|3lah|3tini|atini|chhal|ch7al|win|wein|rani|rana|rah|rahi|nheb|bghit|baghi|ndir|dirli|saha|kayen|kayn|ma3lich|mlih|ta3|t3|m3a|hada|hadi|hadak|smahli|machi|mazal|wella|3awed|3awd|nchof|chof|m3aya|3andi|3ndek|3ndna)\b/i.test(text)) return "Algerian Darija in Latin script (Wahrani), naturally mixing French technical terms";
       if (/[àâçéèêëîïôûùüÿœ]/i.test(text) || /\b(bonjour|comment|pourquoi|merci|article|entrepôt|fournisseur|quantité|commande|achat|vente|enregistrer|modifier|supprimer|gestion|logiciel|formulaire|je|vous|nous|avec|dans|pour|quelle|quels)\b/i.test(text)) return "French";
       if (/\b(what|how|why|where|when|please|help|show|product|warehouse|supplier|purchase|sales|inventory|create|update|delete|form|field|save|report|hello|thanks|can you|i need)\b/i.test(text)) return "English";
       return "the same language and writing style as the user's latest message";
@@ -168,7 +196,7 @@ Deno.serve(async (req: Request) => {
       signedInRole: userRole,
       liveDatabaseEvidence: liveContext,
       uiSnapshot: body.context || {}
-    }).slice(0, 18000);
+    }).slice(0, 28000);
 
     const softwareGuide = `
 STOCK PRO — GUIDE FONCTIONNEL
@@ -220,7 +248,7 @@ PARCOURS INVENTAIRE: entrepôt > comptage physique > saisie > écarts > validati
 PARCOURS PROJET: projet > objectifs/budget/dates > tâches/responsables > dépendances/jalons > progression > Gantt/rapports.
 `;
     const systemInstruction = `Stock Pro AI: اللغة المكتشفة للسؤال الحالي هي ${language}. أجب حصرياً بلغة آخر سؤال وبنفس طريقة كتابته: الدارجة بالحروف اللاتينية تبقى دارجة لاتينية، والدارجة/العربية بالحروف العربية تبقى بالعربية، والفرنسية تبقى بالفرنسية، والإنجليزية تبقى بالإنجليزية. لا تحوّل الدارجة إلى العربية الفصحى ولا تختار العربية لمجرد أن واجهة البرنامج عربية.
-قاعدة أساسية: طول الجواب يتحدد حسب السؤال، وليس حسب طول دليل البرنامج.
+أجب اعتماداً على بيانات قاعدة البيانات الحية قبل أي معرفة عامة. اربط stock_balances مع products وwarehouses، واستعمل stock_movements وstock_lots وstock_serial_numbers وspare_part_reservations للتفاصيل التاريخية والدفعات والأرقام التسلسلية والحجوزات. دليل البرنامج ليس بديلاً عن البيانات الفعلية. إذا سأل المستخدم عن كمية article، اذكر الكمية حسب كل warehouse ثم الإجمالي. لا تحسب المتبقي بعد الحجز إلا إذا كانت statuses واضحة ويمكن التحقق من الحساب. لا تعرض نتيجة مشابهة على أنها تطابق مؤكد؛ إذا لم تجد تطابقاً قل ذلك بوضوح. إذا كانت قراءة البيانات محدودة أو جزئية، لا تعرض الإجمالي كأنه كامل.\nقاعدة أساسية: طول الجواب يتحدد حسب السؤال، وليس حسب طول دليل البرنامج.
 - سؤال مباشر أو معلومة بسيطة: جواب مباشر في جملة إلى 3 جمل كحد أقصى.
 - سؤال عن وجود article أو référence أو quantité: أعط النتيجة أولاً، ثم أهم معلومة داعمة فقط. إذا البيانات لا تثبت الكمية المتاحة، قل ذلك بوضوح.
 - سؤال "كيفاش/كيف/كيف أستعمل": خطوات عملية قصيرة ومرقمة، فقط الخطوات اللازمة للسؤال والموديول المعني.
