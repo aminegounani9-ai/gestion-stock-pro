@@ -170,6 +170,30 @@ export default function OrganizationManagement({ companyId, members, currentUser
     setActiveTab("assignments");
     setAssignmentModalOpen(true);
   }
+  async function saveProjectTeam(){
+    if(!supabase||!projectId){onNotice("error","Sélectionnez un projet.");return;}
+    setBusy(true);
+    try{
+      const update=await supabase.from("projects").update({project_manager_id:projectManagerId||null,responsible_user_id:projectResponsibleId||null}).eq("company_id",companyId).eq("id",projectId);
+      if(update.error)throw update.error;
+      const remove=await supabase.from("project_team_members").delete().eq("company_id",companyId).eq("project_id",projectId);
+      if(remove.error)throw remove.error;
+      const rows=[
+        ...(projectManagerId?[{company_id:companyId,project_id:projectId,user_id:projectManagerId,assignment_role:"project_manager",assigned_by:currentUserId}]:[]),
+        ...(projectResponsibleId?[{company_id:companyId,project_id:projectId,user_id:projectResponsibleId,assignment_role:"responsible",assigned_by:currentUserId}]:[]),
+        ...projectTeamIds.filter(id=>id!==projectManagerId&&id!==projectResponsibleId).map(user_id=>({company_id:companyId,project_id:projectId,user_id,assignment_role:"team_member",assigned_by:currentUserId}))
+      ];
+      if(rows.length){const insert=await supabase.from("project_team_members").insert(rows);if(insert.error)throw insert.error;}
+      await refresh();onNotice("success","Affectation du projet enregistrée.");
+    }catch(e:any){onNotice("error",e.message)}finally{setBusy(false)}
+  }
+  function selectProject(id:string){
+    setProjectId(id);
+    const p=projects.find(x=>x.id===id);
+    setProjectManagerId(p?.project_manager_id||"");
+    setProjectResponsibleId(p?.responsible_user_id||"");
+    setProjectTeamIds(projectTeamRows.filter(x=>x.project_id===id&&x.assignment_role==="team_member").map(x=>x.user_id));
+  }
   const tabs:[ScopeType,string][]=[["management","Management"],["site",lang==="ar"?"المواقع":lang==="en"?"Sites":"Sites"],["service",lang==="ar"?"المصالح":lang==="en"?"Services":"Services"],["department",lang==="ar"?"الأقسام":lang==="en"?"Departments":"Départements"],["unit",lang==="ar"?"الوحدات":lang==="en"?"Units":"Unités"],["equipment",lang==="ar"?"المعدات":lang==="en"?"Equipment":"Équipements"]];
   const parentOptions = kind==="equipment"||kind==="unit"||kind==="department"||kind==="service";
   const childType=kind==="management"?"site":kind==="site"?"service":kind==="service"?"department":kind==="department"?"unit":null;
@@ -207,7 +231,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
         <div className="span-2 org-permissions">{(["can_view","can_create","can_edit","can_delete","can_approve","can_issue","can_receive","can_transfer","can_inventory"] as const).map((key)=><label key={key}><input type="checkbox" checked={assignment[key]} onChange={e=>setAssignment(old=>key==="can_view"&&!e.target.checked?({...old,can_view:false,can_create:false,can_edit:false,can_delete:false,can_approve:false,can_issue:false,can_receive:false,can_transfer:false,can_inventory:false}):({...old,[key]:e.target.checked,...(e.target.checked?{can_view:true}:{})}))}/><span>{{can_view:"Consulter",can_create:t.create,can_edit:t.update,can_delete:t.delete,can_approve:t.approve,can_issue:t.issue,can_receive:t.receive,can_transfer:t.transfer,can_inventory:t.inventory}[key]}</span></label>)}</div></div>
         <div className="modal-actions"><button type="button" className="secondary-btn" onClick={()=>setAssignmentModalOpen(false)} disabled={busy}>{t.cancel}</button><button className="primary-btn" disabled={busy}><Check size={15}/> Enregistrer l'affectation</button></div>
       </form></div></ModalPortal>}
-      <div className="table-wrap"><table><thead><tr><th>{t.user}</th><th>{t.job}</th><th>{t.scope}</th><th>{t.rightsCount}</th><th></th></tr></thead><tbody>{assignments.map(a=>{const row=(scopeRows as any)[a.scope_type]?.find((x:Row)=>x.id===a.scope_id);const member=members.find(m=>m.user_id===a.user_id);const rights=["can_view","can_create","can_edit","can_delete","can_approve","can_issue","can_receive","can_transfer","can_inventory"].filter(k=>a[k]).length;return <tr key={a.id}><td>{member?.email||a.user_id}</td><td>{a.job_title||"—"}</td><td>{scopeLabels[a.scope_type as ScopeType]} · {row?.name||"Élément indisponible"}</td><td>{rights}/9</td><td><div className="row-actions"><button className="ops-icon-btn" type="button" title={t.edit} onClick={()=>editAssignment(a)}><Pencil size={14}/></button><button className="ops-icon-btn danger-action" type="button" title={t.remove} onClick={()=>void removeAssignment(a.id)}><X size={14}/></button></div></td></tr>})}</tbody></table></div></>}
+      <div className="table-wrap"><table><thead><tr><th>{t.user}</th><th>{t.job}</th><th>{t.scope}</th><th>{t.rightsCount}</th><th></th></tr></thead><tbody>{assignments.map(a=>{const row=(scopeRows as any)[a.scope_type]?.find((x:Row)=>x.id===a.scope_id);const member=members.find(m=>m.user_id===a.user_id);const rights=["can_view","can_create","can_edit","can_delete","can_approve","can_issue","can_receive","can_transfer","can_inventory"].filter(k=>a[k]).length;return <tr key={a.id}><td>{member?.email||a.user_id}</td><td>{a.job_title||"—"}</td><td>{scopeLabels[a.scope_type as ScopeType]} · {row?.name||"Élément indisponible"}</td><td>{rights}/9</td><td><div className="row-actions"><button className="ops-icon-btn" type="button" title={t.edit} onClick={()=>editAssignment(a)}><Pencil size={14}/></button><button className="ops-icon-btn danger-action" type="button" title={t.remove} onClick={()=>void removeAssignment(a.id)}><X size={14}/></button></div></td></tr>})}</tbody></table></div><<section className="panel org-project-assignment"><div className="panel-head"><div><h3>Projects · Équipes & responsables</h3><p>Définissez séparément le Chef de projet, le Responsable et les membres de l’équipe pour chaque projet.</p></div></div><div className="form-grid"><label>Projet<select value={projectId} onChange={e=>selectProject(e.target.value)}><option value="">Sélectionner un projet</option>{projects.map(p=><option key={p.id} value={p.id}>{p.project_code} · {p.name}</option>)}</select></label><label>Chef de projet<select value={projectManagerId} onChange={e=>setProjectManagerId(e.target.value)}><option value="">Non affecté</option>{members.filter(m=>m.is_active!==false).map(m=><option key={m.user_id} value={m.user_id}>{m.email} · {m.role}</option>)}</select></label><label>Responsable projet<select value={projectResponsibleId} onChange={e=>setProjectResponsibleId(e.target.value)}><option value="">Non affecté</option>{members.filter(m=>m.is_active!==false).map(m=><option key={m.user_id} value={m.user_id}>{m.email} · {m.role}</option>)}</select></label><div className="span-2 org-multi-scope-field"><div className="org-scope-picker-head"><label>Équipe du projet</label><span>{projectTeamIds.length} membre(s)</span></div><div className="org-scope-picker-list">{members.filter(m=>m.is_active!==false&&m.user_id!==projectManagerId&&m.user_id!==projectResponsibleId).map(m=><label className="org-scope-choice" key={m.user_id}><input type="checkbox" checked={projectTeamIds.includes(m.user_id)} onChange={e=>setProjectTeamIds(old=>e.target.checked?[...old,m.user_id]:old.filter(id=>id!==m.user_id))}/><span><b>{m.email}</b><small>{m.role}</small></span></label>)}</div></div><div className="span-2 modal-actions"><button type="button" className="primary-btn" disabled={busy||!projectId} onClick={()=>void saveProjectTeam()}><Check size={15}/> Enregistrer l’équipe du projet</button></div></div></section></>}
     </section>
   </div>;
 }
