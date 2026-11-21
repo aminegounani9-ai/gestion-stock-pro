@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ModalPortal from "./ModalPortal";
-import { Activity, AlertTriangle, Bell, CalendarDays, CheckCircle2, Clock3, FolderKanban, Plus, Search, Target, Users, Wallet, X, Pencil, Trash2, Volume2, VolumeX, ChevronLeft, ChevronRight } from "lucide-react";
+import { Activity, AlertTriangle, Bell, CalendarDays, CheckCircle2, Clock3, FolderKanban, Plus, Search, Target, Users, Wallet, X, Pencil, Trash2, Volume2, VolumeX } from "lucide-react";
 import { supabase } from "./lib/supabase";
 import ProjectManagementSuite from "./ProjectManagementSuite";
 import ProjectGantt from "./ProjectGantt";
@@ -21,7 +21,6 @@ export default function ProjectManagement({companyId,currentUserId,currentRole,m
  const t=words[lang], rtl=lang==="ar";
  const [projects,setProjects]=useState<Project[]>([]),[tasks,setTasks]=useState<Task[]>([]),[notifications,setNotifications]=useState<any[]>([]);
  const [selected,setSelected]=useState<string>(""),[tab,setTab]=useState<"overview"|"tasks"|"notifications">("overview");
- const [calendarMonth,setCalendarMonth]=useState(()=>new Date()),[calendarView,setCalendarView]=useState<"month"|"week"|"day">("month");
  const [query,setQuery]=useState(""),[statusFilter,setStatusFilter]=useState("all"),[showProjectForm,setShowProjectForm]=useState(false),[showTaskForm,setShowTaskForm]=useState(false),[editingProjectId,setEditingProjectId]=useState<string|null>(null),[editingTaskId,setEditingTaskId]=useState<string|null>(null),[busy,setBusy]=useState(false),[projectSoundEnabled,setProjectSoundEnabled]=useState(()=>localStorage.getItem("gsp_project_sound")!=="off");
  const [projectForm,setProjectForm]=useState<Record<string,string>>({project_code:"",name:"",project_type:"internal",priority:"medium",status:"planned",description:"",objectives:"",scope:"",site:"",department:"",project_manager_id:currentUserId,responsible_user_id:"",start_date:new Date().toISOString().slice(0,10),target_end_date:"",budget:"0",actual_cost:"0",risk_level:"medium",success_criteria:"",notes:""});
  const [taskForm,setTaskForm]=useState<Record<string,string>>({title:"",description:"",status:"todo",priority:"medium",assigned_to:"",parent_task_id:"",allocation_percent:"100",start_date:new Date().toISOString().slice(0,10),start_time:"08:00",due_date:new Date().toISOString().slice(0,10),end_time:"17:00",estimated_hours:"0",actual_hours:"0",progress:"0"});
