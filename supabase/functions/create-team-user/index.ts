@@ -64,22 +64,39 @@ Deno.serve(async (req: Request) => {
         .select("scope_type,scope_id").eq("company_id", companyId).eq("user_id", caller.id).eq("can_view", true);
       if (scopesError) throw scopesError;
       const assignments = scopes ?? [];
-      const direct = assignments.some((s: any) => s.scope_type === scopeType && s.scope_id === scopeId);
-      const parentDepartments = assignments.filter((s: any) => s.scope_type === "department").map((s: any) => s.scope_id);
-      const { data: departmentRows, error: departmentError } = parentDepartments.length
-        ? await adminClient.from("org_departments").select("id,unit_id,service_id,site_id").eq("company_id", companyId).in("id", parentDepartments)
-        : { data: [], error: null };
-      if (departmentError) throw departmentError;
-      const departmentAllowsUnit = scopeType === "unit" && (departmentRows ?? []).some((d: any) =>
-        d.unit_id === scopeId || (!!d.service_id && d.service_id === scope.service_id)
-      );
-      const parentAllowed = assignments.some((s: any) =>
-        (s.scope_type === "site" && scope.site_id === s.scope_id) ||
-        (s.scope_type === "service" && scope.service_id === s.scope_id) ||
-        (s.scope_type === "unit" && (scope.unit_id === s.scope_id || (scopeType === "service" && scope.unit_id === s.scope_id))) ||
-        (s.scope_type === "department" && ["equipment","warehouse"].includes(scopeType) && scope.department_id === s.scope_id) ||
-        (s.scope_type === "equipment" && scopeType === "warehouse" && scope.equipment_id === s.scope_id)
-      ) || departmentAllowsUnit;
+      const has = (type:string,id:string|null|undefined) => !!id && assignments.some((x:any)=>x.scope_type===type&&x.scope_id===id);
+      const direct = has(scopeType,scopeId);
+      const managementIds=assignments.filter((x:any)=>x.scope_type==="management").map((x:any)=>x.scope_id);
+      const siteIds=new Set<string>(assignments.filter((x:any)=>x.scope_type==="site").map((x:any)=>x.scope_id));
+      if(managementIds.length){
+        const {data,error}=await adminClient.from("org_sites").select("id").eq("company_id",companyId).in("management_id",managementIds);
+        if(error)throw error;(data??[]).forEach((x:any)=>siteIds.add(x.id));
+      }
+      const serviceIds=new Set<string>(assignments.filter((x:any)=>x.scope_type==="service").map((x:any)=>x.scope_id));
+      if(siteIds.size){
+        const {data,error}=await adminClient.from("org_services").select("id").eq("company_id",companyId).in("site_id",[...siteIds]);
+        if(error)throw error;(data??[]).forEach((x:any)=>serviceIds.add(x.id));
+      }
+      const departmentIds=new Set<string>(assignments.filter((x:any)=>x.scope_type==="department").map((x:any)=>x.scope_id));
+      if(serviceIds.size){
+        const {data,error}=await adminClient.from("org_departments").select("id").eq("company_id",companyId).in("service_id",[...serviceIds]);
+        if(error)throw error;(data??[]).forEach((x:any)=>departmentIds.add(x.id));
+      }
+      const unitIds=new Set<string>(assignments.filter((x:any)=>x.scope_type==="unit").map((x:any)=>x.scope_id));
+      if(departmentIds.size){
+        const {data,error}=await adminClient.from("org_units").select("id").eq("company_id",companyId).in("department_id",[...departmentIds]);
+        if(error)throw error;(data??[]).forEach((x:any)=>unitIds.add(x.id));
+      }
+      const equipmentIds=new Set<string>(assignments.filter((x:any)=>x.scope_type==="equipment").map((x:any)=>x.scope_id));
+      const warehouseIds=new Set<string>(assignments.filter((x:any)=>x.scope_type==="warehouse").map((x:any)=>x.scope_id));
+      const allowedScope =
+        (scopeType==="site"&&siteIds.has(scopeId)) ||
+        (scopeType==="service"&&serviceIds.has(scopeId)) ||
+        (scopeType==="department"&&departmentIds.has(scopeId)) ||
+        (scopeType==="unit"&&unitIds.has(scopeId)) ||
+        (scopeType==="equipment"&&(equipmentIds.has(scopeId)||unitIds.has(scope.unit_id)||departmentIds.has(scope.department_id)||serviceIds.has(scope.service_id)||siteIds.has(scope.site_id))) ||
+        (scopeType==="warehouse"&&(warehouseIds.has(scopeId)||unitIds.has(scope.unit_id)||departmentIds.has(scope.department_id)||serviceIds.has(scope.service_id)||siteIds.has(scope.site_id)||equipmentIds.has(scope.equipment_id)));
+      const parentAllowed=allowedScope;
       if (!direct && !parentAllowed) return respond({ error: "Vous ne pouvez créer un compte que dans votre périmètre autorisé." }, 403);
     }
 
