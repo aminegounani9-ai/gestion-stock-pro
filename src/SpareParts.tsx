@@ -78,7 +78,7 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,ro
    const siteIds=new Set(ownScopeIds("site"));const serviceIds=new Set(ownScopeIds("service"));const departmentIds=new Set(ownScopeIds("department"));const equipmentIds=new Set(ownScopeIds("equipment"));const warehouseIds=new Set(ownScopeIds("warehouse"));
    warehouses.filter((w:any)=>warehouseIds.has(w.id)).forEach((w:any)=>{if(w.unit_id)ids.add(w.unit_id);});
    orgUnits.forEach((u:any)=>{if(siteIds.has(u.site_id)||serviceIds.has(u.service_id)||departmentIds.has(u.department_id))ids.add(u.id);});
-   orgDepartments.filter((d:any)=>departmentIds.has(d.id)).forEach((d:any)=>{if(d.unit_id)ids.add(d.unit_id);});
+   orgDepartments.filter((d:any)=>departmentIds.has(d.id)).forEach((d:any)=>{if(d.unit_id)ids.add(d.unit_id);else if(d.service_id)orgUnits.filter((u:any)=>u.service_id===d.service_id).forEach((u:any)=>ids.add(u.id));});
    orgEquipment.filter((e:any)=>equipmentIds.has(e.id)&&e.unit_id).forEach((e:any)=>ids.add(e.unit_id));
    return [...ids].filter(id=>orgUnits.some((u:any)=>u.id===id));
  },[warehouseScoped,requestScopes,currentUserId,orgUnits,orgDepartments,orgEquipment,warehouses]);
