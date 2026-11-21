@@ -27,7 +27,7 @@ const configs:Record<string,{tables:{name:string;label:string;date?:string}[];su
 };
 const label=(key:string)=>key.replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase());
 const value=(v:any)=>v===null||v===undefined||v===""?"—":typeof v==="object"?JSON.stringify(v):String(v);
-const skip=new Set(["id","company_id","created_by","updated_by","approved_by","received_by","dispatched_by","prepared_by","reviewer_id","requested_by","issued_by","uploaded_by","user_id","recipient_user_id","actor_user_id"]);
+const skip=new Set(["id","company_id","created_by","updated_by","approved_by","received_by","dispatched_by","prepared_by","reviewer_id","requested_by","issued_by","uploaded_by","user_id","recipient_user_id","actor_user_id","assigned_to","requested_for_user_id"]);
 export default function ProfessionalModuleReport({companyId,company,page,title,lang}:Props){
  const [open,setOpen]=useState(false),[busy,setBusy]=useState(false),[sections,setSections]=useState<ReportSection[]>([]),[from,setFrom]=useState(""),[to,setTo]=useState(""),[error,setError]=useState("");
  const cfg=configs[page]||{tables:[],subtitle:"Rapport détaillé des données du module."};
@@ -41,13 +41,19 @@ export default function ProfessionalModuleReport({companyId,company,page,title,l
     return {item,rows:(data||[]) as Record<string,any>[]};
    }));
    const dateChildren:Record<string,{parent:string;foreignKey:string}>={purchase_order_items:{parent:"purchase_orders",foreignKey:"purchase_order_id"},sale_items:{parent:"sales",foreignKey:"sale_id"},stock_transfer_items:{parent:"stock_transfers",foreignKey:"transfer_id"},inventory_count_items:{parent:"inventory_counts",foreignKey:"count_id"},stock_return_items:{parent:"stock_returns",foreignKey:"return_id"},spare_part_request_items:{parent:"spare_part_requests",foreignKey:"request_id"}};
+   const lookupTables=["products","product_categories","warehouses","suppliers","customers","storage_locations","stock_lots","org_sites","org_units","org_services","org_departments","org_equipment","purchase_orders","sales","stock_transfers","inventory_counts","stock_returns","spare_part_requests"];
+   const lookupResults=await Promise.all(lookupTables.map(async name=>{const result=await supabase!.from(name).select("*").eq("company_id",companyId).limit(5000);return [name,result.error?[]:(result.data||[])] as const;}));
+   const lookupMap:Record<string,Map<string,string>>={};
+   const lookupKey:Record<string,string>={products:"name",product_categories:"name",warehouses:"name",suppliers:"name",customers:"name",storage_locations:"code",stock_lots:"lot_number",org_sites:"name",org_units:"name",org_services:"name",org_departments:"name",org_equipment:"name",purchase_orders:"order_number",sales:"invoice_number",stock_transfers:"transfer_number",inventory_counts:"count_number",stock_returns:"return_number",spare_part_requests:"request_number"};
+   lookupResults.forEach(([name,records])=>{lookupMap[name]=new Map((records as Record<string,any>[]).map(row=>[row.id,String(row[lookupKey[name]]||row.name||row.code||row.id)]));});
+   const foreignLookups:Record<string,string>={product_id:"products",category_id:"product_categories",warehouse_id:"warehouses",source_warehouse_id:"warehouses",destination_warehouse_id:"warehouses",supplier_id:"suppliers",preferred_supplier_id:"suppliers",customer_id:"customers",location_id:"storage_locations",storage_location_id:"storage_locations",lot_id:"stock_lots",site_id:"org_sites",unit_id:"org_units",service_id:"org_services",department_id:"org_departments",equipment_id:"org_equipment",purchase_order_id:"purchase_orders",sale_id:"sales",transfer_id:"stock_transfers",count_id:"inventory_counts",return_id:"stock_returns",request_id:"spare_part_requests"};
    const filtered=fetched.map(({item,rows})=>{
     let selected=rows;
     if((from||to)&&item.date)selected=selected.filter(r=>{const d=String(r[item.date!]||"").slice(0,10);return (!from||d>=from)&&(!to||d<=to);});
     else if((from||to)&&dateChildren[item.name]){const relation=dateChildren[item.name];const parent=fetched.find(x=>x.item.name===relation.parent)?.rows||[];const valid=new Set(parent.filter(r=>{const dateKey=cfg.tables.find(x=>x.name===relation.parent)?.date;const d=String(dateKey?r[dateKey]||"":r.created_at||"").slice(0,10);return (!from||d>=from)&&(!to||d<=to);}).map(r=>r.id));selected=selected.filter(r=>valid.has(r[relation.foreignKey]));}
     selected=[...selected].sort((a,b)=>String(b[item.date||"created_at"]||"").localeCompare(String(a[item.date||"created_at"]||"")));
     const cols=selected.length?Object.keys(selected[0]).filter(k=>!skip.has(k)):item.name==="products"?["sku","name","unit","purchase_price","sale_price","min_stock","max_stock","is_active"]:["name","status","created_at"];
-    return {title:item.label,columns:cols.map(label),rows:selected.map(r=>cols.map(k=>value(r[k])))};
+    return {title:item.label,columns:cols.map(label),rows:selected.map(r=>cols.map(k=>foreignLookups[k]?(lookupMap[foreignLookups[k]]?.get(String(r[k]))||"—"):value(r[k])))};
    });
    setSections(filtered);
   }catch(e:any){setError(e.message||"Erreur de chargement.");setSections([]);}finally{setBusy(false);}
