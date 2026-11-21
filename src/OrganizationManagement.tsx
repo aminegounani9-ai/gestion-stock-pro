@@ -201,7 +201,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
   const tabs:[ScopeType,string][]=[["management","Management"],["site",lang==="ar"?"المواقع":lang==="en"?"Sites":"Sites"],["service",lang==="ar"?"المصالح":lang==="en"?"Services":"Services"],["department",lang==="ar"?"الأقسام":lang==="en"?"Departments":"Départements"],["unit",lang==="ar"?"الوحدات":lang==="en"?"Units":"Unités"],["equipment",lang==="ar"?"المعدات":lang==="en"?"Equipment":"Équipements"]];
   const parentOptions = kind==="equipment"||kind==="unit"||kind==="department";
   const childType=kind==="management"?"site":kind==="site"?"service":kind==="service"?"department":kind==="department"?"unit":null;
-  const childOptions:Row[]=childType==="site"?sites:childType==="service"?services:childType==="department"?departments:childType==="unit"?units:[];
+  const childOptions:Row[]=childType==="site"?sites:childType==="service"?services:childType==="department"?departments.filter(x=>!form.site_id||x.site_id===form.site_id):childType==="unit"?units.filter(x=>!form.site_id||x.site_id===form.site_id):[];
   const childTitle=childType==="site"?"Sites à rattacher":childType==="service"?"Services à rattacher":childType==="department"?"Départements à rattacher":"Unités à rattacher";
   return <div className="ops-wrap" dir={lang==="ar"?"rtl":"ltr"}>
     <section className="panel">
