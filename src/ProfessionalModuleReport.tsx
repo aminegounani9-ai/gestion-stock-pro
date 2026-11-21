@@ -35,15 +35,21 @@ export default function ProfessionalModuleReport({companyId,company,page,title,l
  const load=async()=>{
   if(!supabase)return;setBusy(true);setError("");
   try{
-   const results=await Promise.all(cfg.tables.map(async item=>{
-    const {data,error}=await supabase!.from(item.name).select("*").eq("company_id",companyId).order("created_at",{ascending:false}).limit(5000);
+   const fetched=await Promise.all(cfg.tables.map(async item=>{
+    const {data,error}=await supabase!.from(item.name).select("*").eq("company_id",companyId).limit(5000);
     if(error)throw new Error(item.label+": "+error.message);
-    let rows=(data||[]) as Record<string,any>[];
-    if(item.date&& (from||to)){rows=rows.filter(r=>{const d=String(r[item.date!]||"").slice(0,10);return (!from||d>=from)&&(!to||d<=to);});}
-    const cols=rows.length?Object.keys(rows[0]).filter(k=>!skip.has(k)):item.name==="products"?["sku","name","unit","purchase_price","sale_price","min_stock","max_stock","is_active"]:["name","status","created_at"];
-    return {title:item.label,columns:cols.map(label),rows:rows.map(r=>cols.map(k=>value(r[k])))};
+    return {item,rows:(data||[]) as Record<string,any>[]};
    }));
-   setSections(results);
+   const dateChildren:Record<string,{parent:string;foreignKey:string}>={purchase_order_items:{parent:"purchase_orders",foreignKey:"purchase_order_id"},sale_items:{parent:"sales",foreignKey:"sale_id"},stock_transfer_items:{parent:"stock_transfers",foreignKey:"transfer_id"},inventory_count_items:{parent:"inventory_counts",foreignKey:"count_id"},stock_return_items:{parent:"stock_returns",foreignKey:"return_id"},spare_part_request_items:{parent:"spare_part_requests",foreignKey:"request_id"}};
+   const filtered=fetched.map(({item,rows})=>{
+    let selected=rows;
+    if((from||to)&&item.date)selected=selected.filter(r=>{const d=String(r[item.date!]||"").slice(0,10);return (!from||d>=from)&&(!to||d<=to);});
+    else if((from||to)&&dateChildren[item.name]){const relation=dateChildren[item.name];const parent=fetched.find(x=>x.item.name===relation.parent)?.rows||[];const valid=new Set(parent.filter(r=>{const dateKey=cfg.tables.find(x=>x.name===relation.parent)?.date;const d=String(dateKey?r[dateKey]||"":r.created_at||"").slice(0,10);return (!from||d>=from)&&(!to||d<=to);}).map(r=>r.id));selected=selected.filter(r=>valid.has(r[relation.foreignKey]));}
+    selected=[...selected].sort((a,b)=>String(b[item.date||"created_at"]||"").localeCompare(String(a[item.date||"created_at"]||"")));
+    const cols=selected.length?Object.keys(selected[0]).filter(k=>!skip.has(k)):item.name==="products"?["sku","name","unit","purchase_price","sale_price","min_stock","max_stock","is_active"]:["name","status","created_at"];
+    return {title:item.label,columns:cols.map(label),rows:selected.map(r=>cols.map(k=>value(r[k])))};
+   });
+   setSections(filtered);
   }catch(e:any){setError(e.message||"Erreur de chargement.");setSections([]);}finally{setBusy(false);}
  };
  const total=sections.reduce((n,s)=>n+s.rows.length,0);
