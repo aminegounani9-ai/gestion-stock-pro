@@ -42,10 +42,8 @@ export default function OrganizationManagement({ companyId, members, currentUser
   const [selectedChildIds,setSelectedChildIds] = useState<string[]>([]);
   const [assignmentSearch,setAssignmentSearch]=useState("");
   const [busy,setBusy] = useState(false);
-  const [managementUserId,setManagementUserId] = useState("");
   const [formOpen,setFormOpen]=useState(false);
   const [assignmentModalOpen,setAssignmentModalOpen]=useState(false);
-  const [managementModalOpen,setManagementModalOpen]=useState(false);
   const refresh = useCallback(async () => {
     if(!supabase) return;
     const [a,b,c,d,e,f,g,h,p,pt] = await Promise.all([
@@ -105,6 +103,33 @@ export default function OrganizationManagement({ companyId, members, currentUser
         if(selectedChildIds.length){
           const attach=await supabase.from(relation.table).update({[relation.column]:parentId}).eq("company_id",companyId).in("id",selectedChildIds);
           if(attach.error)throw attach.error;
+          if(kind==="site"){
+            const childDepartments=await supabase.from("org_departments").select("id").eq("company_id",companyId).in("service_id",selectedChildIds);
+            if(childDepartments.error)throw childDepartments.error;
+            if(childDepartments.data?.length){
+              const syncDepartments=await supabase.from("org_departments").update({site_id:parentId}).eq("company_id",companyId).in("id",childDepartments.data.map(x=>x.id));
+              if(syncDepartments.error)throw syncDepartments.error;
+              const syncUnits=await supabase.from("org_units").update({site_id:parentId}).eq("company_id",companyId).in("department_id",childDepartments.data.map(x=>x.id));
+              if(syncUnits.error)throw syncUnits.error;
+            }
+          }
+          if(kind==="service"){
+            const service=services.find(x=>x.id===parentId);
+            if(service?.site_id){
+              const syncDepartments=await supabase.from("org_departments").update({site_id:service.site_id}).eq("company_id",companyId).in("id",selectedChildIds);
+              if(syncDepartments.error)throw syncDepartments.error;
+              const syncUnits=await supabase.from("org_units").update({site_id:service.site_id}).eq("company_id",companyId).in("department_id",selectedChildIds);
+              if(syncUnits.error)throw syncUnits.error;
+            }
+          }
+          if(kind==="department"){
+            const department=departments.find(x=>x.id===parentId);
+            const siteId=department?.site_id||form.site_id;
+            if(siteId){
+              const syncUnits=await supabase.from("org_units").update({site_id:siteId}).eq("company_id",companyId).in("id",selectedChildIds);
+              if(syncUnits.error)throw syncUnits.error;
+            }
+          }
         }
       }
       setForm({});setEditingId(null);setFormOpen(false);setSelectedChildIds([]);await refresh();onNotice("success",labels[kind]+(editingId?" modifié(e).":" ajouté(e)."));
@@ -123,27 +148,6 @@ export default function OrganizationManagement({ companyId, members, currentUser
     if(!supabase)return;
     const {error}=await supabase.from(tables[type]).update(type==="equipment"?{status:row.is_active?"inactive":"active"}:{is_active:!row.is_active}).eq("id",row.id).eq("company_id",companyId);
     if(error){onNotice("error",error.message);return;}await refresh();onNotice("success",row.is_active?"Élément désactivé.":"Élément réactivé.");
-  }
-  async function appointDirector(event:FormEvent){
-    event.preventDefault();if(!supabase||!managementUserId)return;
-    setBusy(true);
-    try{
-      const {error}=await supabase.from("company_members").update({role:"director"}).eq("company_id",companyId).eq("user_id",managementUserId).neq("role","owner");
-      if(error)throw error;
-      setManagementUserId("");setManagementModalOpen(false);
-      await onRefreshMembers?.();
-      onNotice("success",t.directorAssigned);
-    }catch(e:any){onNotice("error",e.message)}finally{setBusy(false)}
-  }
-  async function removeDirector(userId:string){
-    if(!supabase||!window.confirm(t.removeDirector+" ?"))return;
-    setBusy(true);
-    try{
-      const {error}=await supabase.from("company_members").update({role:"viewer"}).eq("company_id",companyId).eq("user_id",userId).eq("role","director");
-      if(error)throw error;
-      await onRefreshMembers?.();
-      onNotice("success",t.directorRemoved);
-    }catch(e:any){onNotice("error",e.message)}finally{setBusy(false)}
   }
   async function saveAssignment(event:FormEvent){
     event.preventDefault();if(!supabase)return;
@@ -195,7 +199,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
     setProjectTeamIds(projectTeamRows.filter(x=>x.project_id===id&&x.assignment_role==="team_member").map(x=>x.user_id));
   }
   const tabs:[ScopeType,string][]=[["management","Management"],["site",lang==="ar"?"المواقع":lang==="en"?"Sites":"Sites"],["service",lang==="ar"?"المصالح":lang==="en"?"Services":"Services"],["department",lang==="ar"?"الأقسام":lang==="en"?"Departments":"Départements"],["unit",lang==="ar"?"الوحدات":lang==="en"?"Units":"Unités"],["equipment",lang==="ar"?"المعدات":lang==="en"?"Equipment":"Équipements"]];
-  const parentOptions = kind==="equipment"||kind==="unit"||kind==="department"||kind==="service";
+  const parentOptions = kind==="equipment"||kind==="unit"||kind==="department";
   const childType=kind==="management"?"site":kind==="site"?"service":kind==="service"?"department":kind==="department"?"unit":null;
   const childOptions:Row[]=childType==="site"?sites:childType==="service"?services:childType==="department"?departments:childType==="unit"?units:[];
   const childTitle=childType==="site"?"Sites à rattacher":childType==="service"?"Services à rattacher":childType==="department"?"Départements à rattacher":"Unités à rattacher";
@@ -206,7 +210,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
       {formOpen&&<ModalPortal><div className="modal-backdrop org-form-backdrop"><form className="modal-card form-grid org-form" onSubmit={createStructure}><div className="modal-head span-2"><div><span className="eyebrow">{editingId?t.edit:t.add}</span><h3>{editingId?scopeLabels[kind]+" · "+t.edit:scopeLabels[kind]+" · "+t.add}</h3></div><button type="button" className="ops-icon-btn" onClick={()=>{setFormOpen(false);setEditingId(null);setForm({});}}><X size={16}/></button></div>
         <label>{kind==="equipment"?t.tag:t.code}<input value={kind==="equipment"?(form.equipment_tag||""):(form.code||"")} onChange={e=>setField(kind==="equipment"?"equipment_tag":"code",e.target.value)} required/></label>
         <label>{kind==="equipment"?t.designation:t.name}<input value={form.name||""} onChange={e=>setField("name",e.target.value)} required/></label>
-        {parentOptions&&<label>{t.site}<select required={kind!=="equipment"} value={form.site_id||""} onChange={e=>setField("site_id",e.target.value)}><option value="">{t.chooseSite}</option>{sites.filter(x=>x.is_active).map(x=><option key={x.id} value={x.id}>{x.code} · {x.name}</option>)}</select></label>}
+        {parentOptions&&<label>{t.site}<select required value={form.site_id||""} onChange={e=>setField("site_id",e.target.value)}><option value="">{t.chooseSite}</option>{sites.filter(x=>x.is_active).map(x=><option key={x.id} value={x.id}>{x.code} · {x.name}</option>)}</select></label>}
         {kind==="management"&&<label>Description<input value={form.description||""} onChange={e=>setField("description",e.target.value)}/></label>}
         {childType&&<div className="span-2 org-multi-scope-field"><div className="org-scope-picker-head"><label>{childTitle}</label><span>{selectedChildIds.length} sélectionné(s)</span></div><div className="org-scope-picker-list">{childOptions.filter(x=>x.is_active!==false).map(x=><label className="org-scope-choice" key={x.id}><input type="checkbox" checked={selectedChildIds.includes(x.id)} onChange={e=>setSelectedChildIds(old=>e.target.checked?[...old,x.id]:old.filter(id=>id!==x.id))}/><span><b>{x.code||x.equipment_tag||"—"} · {x.name}</b></span></label>)}</div><small>Vous pouvez rattacher plusieurs éléments à ce niveau.</small></div>}
         {kind==="equipment"&&<label>{t.unit}<select value={form.unit_id||""} onChange={e=>setField("unit_id",e.target.value)}><option value="">{t.noUnit}</option>{units.filter(x=>x.is_active&&(!form.site_id||x.site_id===form.site_id)).map(x=><option key={x.id} value={x.id}>{x.code} · {x.name}</option>)}</select></label>}
@@ -222,7 +226,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
     <section className="panel">
       <div className="panel-head"><div><h3><ShieldCheck size={17}/> {t.rights}</h3><p>{t.rightsIntro}</p></div></div>
       <div className="org-tabs"><button type="button" className={activeTab==="structure"?"active":""} onClick={()=>setActiveTab("structure")}>{t.structure}</button><button type="button" className={activeTab==="assignments"?"active":""} onClick={()=>setActiveTab("assignments")}>{t.assignments}</button></div>
-      {activeTab==="assignments"&&<><section className="org-management-card"><div className="org-management-heading"><div className="org-management-icon"><ShieldCheck size={21}/></div><div><span className="org-management-kicker">EXECUTIVE ACCESS</span><h3>{t.management}</h3><p>{t.managementIntro}</p></div><span className="org-management-badge">{t.director}</span></div><div className="org-management-actions"><button type="button" className="primary-btn" onClick={()=>setManagementModalOpen(true)}><ShieldCheck size={15}/>{t.assignDirector}</button></div>{managementModalOpen&&<ModalPortal><div className="modal-backdrop org-form-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget&&!busy)setManagementModalOpen(false);}}><form className="modal-card org-management-modal" onSubmit={appointDirector}><div className="modal-head"><div><span className="eyebrow">EXECUTIVE ACCESS</span><h3>{t.assignDirector}</h3><p>{t.managementIntro}</p></div><button type="button" className="icon-btn" aria-label="Fermer" onClick={()=>setManagementModalOpen(false)} disabled={busy}><X size={18}/></button></div><div className="form-grid"><label>{t.user}<select required value={managementUserId} onChange={e=>setManagementUserId(e.target.value)}><option value="">{t.selectMember}</option>{members.filter(m=>m.is_active!==false&&m.user_id!==currentUserId&&m.role!=="owner"&&m.role!=="director").map(m=><option key={m.user_id} value={m.user_id}>{m.email||m.user_id} · {m.role||"membre"}</option>)}</select></label></div><div className="modal-actions"><button type="button" className="secondary-btn" onClick={()=>setManagementModalOpen(false)} disabled={busy}>{t.cancel}</button><button className="primary-btn" disabled={busy||!managementUserId}><ShieldCheck size={15}/>{t.assignDirector}</button></div></form></div></ModalPortal>}<div className="org-directors-list"><b>{t.currentDirectors}</b>{members.filter(m=>m.is_active!==false&&m.role==="director").length?members.filter(m=>m.is_active!==false&&m.role==="director").map(m=><div className="org-director-row" key={m.user_id}><span className="org-director-avatar"><ShieldCheck size={15}/></span><span>{m.email||m.user_id}<small>{t.director}</small></span><button type="button" className="secondary-btn" disabled={busy} onClick={()=>void removeDirector(m.user_id)}>{t.removeDirector}</button></div>):<p className="org-directors-empty">{t.noDirectors}</p>}</div></section><div className="org-assignment-toolbar"><div><b>{t.assignments}</b><p>{t.rightsIntro}</p></div><button type="button" className="primary-btn" onClick={()=>setAssignmentModalOpen(true)}><Plus size={15}/>{t.saveAssignment}</button></div>
+      {activeTab==="assignments"&&<><div className="org-assignment-toolbar"><div><b>{t.assignments}</b><p>{t.rightsIntro}</p></div><button type="button" className="primary-btn" onClick={()=>setAssignmentModalOpen(true)}><Plus size={15}/>{t.saveAssignment}</button></div>
       {assignmentModalOpen&&<ModalPortal><div className="modal-backdrop org-form-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget&&!busy)setAssignmentModalOpen(false);}}><form className="modal-card org-assignment-modal" onSubmit={saveAssignment}><div className="modal-head"><div><span className="eyebrow">ORGANISATION · ACCÈS</span><h3>{t.saveAssignment}</h3><p>{t.rightsIntro}</p></div><button type="button" className="icon-btn" aria-label="Fermer" onClick={()=>setAssignmentModalOpen(false)} disabled={busy}><X size={18}/></button></div><div className="form-grid org-form">
         <label>{t.user}<select required value={assignment.user_id} onChange={e=>setAssignment(old=>({...old,user_id:e.target.value}))}><option value="">{t.select}</option>{members.filter(m=>m.is_active!==false&&m.user_id!==currentUserId).map(m=><option key={m.user_id} value={m.user_id}>{m.email||m.user_id} · {m.role||"membre"}</option>)}</select></label>
         <label>{t.job}<input value={assignment.job_title} onChange={e=>setAssignment(old=>({...old,job_title:e.target.value}))} placeholder={t.jobHint}/></label>
