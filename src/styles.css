@@ -3542,3 +3542,5 @@ body{color:#243550;-webkit-font-smoothing:antialiased;text-rendering:optimizeLeg
     z-index: 100000 !important;
   }
 }
+
+.pgantt-task-label.child{padding-left:28px;background:linear-gradient(90deg,#f7f9fc,transparent)}.pgantt-task-label.child:before{content:"↳";position:absolute;margin-left:-16px;color:#8ba0bc;font-size:13px;font-weight:800}.pgantt-task-label{position:relative}
