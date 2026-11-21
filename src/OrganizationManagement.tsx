@@ -33,6 +33,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
   const [editingId,setEditingId] = useState<string|null>(null);
   const [assignment,setAssignment] = useState({user_id:"",job_title:"",scope_type:"unit" as ScopeType,scope_id:"",can_view:true,can_create:false,can_edit:false,can_delete:false,can_approve:false,can_issue:false,can_receive:false,can_transfer:false,can_inventory:false});
   const [selectedScopeIds,setSelectedScopeIds] = useState<string[]>([]);
+  const [assignmentSearch,setAssignmentSearch]=useState("");
   const [busy,setBusy] = useState(false);
   const [managementUserId,setManagementUserId] = useState("");
   const [formOpen,setFormOpen]=useState(false);
@@ -58,6 +59,15 @@ export default function OrganizationManagement({ companyId, members, currentUser
 
   const scopeRows = useMemo(()=>({management:managements,site:sites,unit:units,service:services,department:departments,equipment,warehouse:warehouses}),[managements,sites,units,services,departments,equipment,warehouses]);
   const availableScopes = scopeRows[assignment.scope_type] ?? [];
+  const filteredScopeOptions=availableScopes.filter((x:Row)=>[x.code,x.name,x.equipment_tag].filter(Boolean).join(" ").toLowerCase().includes(assignmentSearch.toLowerCase()));
+  function scopeContext(row:Row){
+    const site=sites.find(x=>x.id===row.site_id)?.name;
+    const unit=units.find(x=>x.id===row.unit_id)?.name;
+    const service=services.find(x=>x.id===row.service_id)?.name;
+    const department=departments.find(x=>x.id===row.department_id)?.name;
+    const management=managements.find(x=>x.id===row.management_id)?.name;
+    return [management,service,site,unit,department].filter(Boolean).join(" › ")||(assignment.scope_type==="warehouse"?"Magasin":"");
+  }
   function setField(key:string,value:string){setForm(old=>({...old,[key]:value}));}
   async function createStructure(event:FormEvent){
     event.preventDefault();if(!supabase)return;
@@ -65,7 +75,8 @@ export default function OrganizationManagement({ companyId, members, currentUser
     if(kind==="unit"||kind==="department"||kind==="equipment") payload.site_id=form.site_id;
     if(kind==="service"){payload.management_id=form.management_id;payload.site_id=form.site_id||null;}
     if(kind==="site")payload.service_id=form.service_id||null;
-    if(kind==="unit"){payload.service_id=form.service_id||null;payload.department_id=form.department_id||null;}
+    if(kind==="unit")payload.service_id=form.service_id||null;
+    if(kind==="department")payload.unit_id=form.unit_id||null;
     if(kind==="equipment") payload.unit_id=form.unit_id||null;
     if(kind==="department"||kind==="equipment") payload.service_id=form.service_id||null;
     if(kind==="equipment"){payload.equipment_tag=form.equipment_tag?.trim();payload.manufacturer=form.manufacturer?.trim()||null;payload.model=form.model?.trim()||null;payload.serial_number=form.serial_number?.trim()||null;payload.location=form.location?.trim()||null;}
@@ -122,7 +133,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
     const {error}=await supabase.from("user_scope_assignments").delete().eq("id",id).eq("company_id",companyId);
     if(error){onNotice("error",error.message);return;}await refresh();onNotice("success",lang==="ar"?"تم حذف التعيين.":lang==="en"?"Assignment removed.":"Affectation retirée.");
   }
-  const tabs:[ScopeType,string][]=[["management","Management"],["service",lang==="ar"?"المصالح":lang==="en"?"Services":"Services"],["site",lang==="ar"?"المواقع":lang==="en"?"Sites":"Sites"],["department",lang==="ar"?"الأقسام":lang==="en"?"Departments":"Départements"],["unit",lang==="ar"?"الوحدات":lang==="en"?"Units":"Unités"],["equipment",lang==="ar"?"المعدات":lang==="en"?"Equipment":"Équipements"]];
+  const tabs:[ScopeType,string][]=[["management","Management"],["service",lang==="ar"?"المصالح":lang==="en"?"Services":"Services"],["site",lang==="ar"?"المواقع":lang==="en"?"Sites":"Sites"],["unit",lang==="ar"?"الوحدات":lang==="en"?"Units":"Unités"],["department",lang==="ar"?"الأقسام":lang==="en"?"Departments":"Départements"],["equipment",lang==="ar"?"المعدات":lang==="en"?"Equipment":"Équipements"]];
   const parentOptions = kind==="unit"||kind==="department"||kind==="equipment";
   return <div className="ops-wrap" dir={lang==="ar"?"rtl":"ltr"}>
     <section className="panel">
@@ -137,7 +148,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
         {kind==="management"&&<label>Description<input value={form.description||""} onChange={e=>setField("description",e.target.value)}/></label>}
         {kind==="equipment"&&<label>{t.unit}<select value={form.unit_id||""} onChange={e=>setField("unit_id",e.target.value)}><option value="">{t.noUnit}</option>{units.filter(x=>x.is_active&&(!form.site_id||x.site_id===form.site_id)).map(x=><option key={x.id} value={x.id}>{x.code} · {x.name}</option>)}</select></label>}
         {(kind==="unit"||kind==="department"||kind==="equipment")&&<label>{kind==="unit"?(lang==="ar"?"المصلحة المرتبطة":lang==="en"?"Assigned service":"Service affecté"):t.service}<select required={kind==="unit"||kind==="department"} value={form.service_id||""} onChange={e=>{setField("service_id",e.target.value);if(kind==="unit")setField("department_id","");}}><option value="">{t.noService}</option>{services.filter(x=>x.is_active&&(!form.site_id||x.site_id===form.site_id)).map(x=><option key={x.id} value={x.id}>{x.code} · {x.name}</option>)}</select></label>}
-        {kind==="unit"&&<label>Département affecté<select required value={form.department_id||""} onChange={e=>setField("department_id",e.target.value)}><option value="">Aucun département</option>{departments.filter(x=>x.is_active&&(!form.site_id||x.site_id===form.site_id)&&(!form.service_id||x.service_id===form.service_id)).map(x=><option key={x.id} value={x.id}>{x.code} · {x.name}</option>)}</select></label>}
+        {kind==="department"&&<label>{lang==="ar"?"الوحدة التابعة":lang==="en"?"Parent unit":"Unité de rattachement"}<select value={form.unit_id||""} onChange={e=>{const unit=units.find(x=>x.id===e.target.value);setForm(old=>({...old,unit_id:e.target.value,site_id:unit?.site_id||old.site_id,service_id:unit?.service_id||old.service_id}));}}><option value="">{lang==="ar"?"بدون وحدة":lang==="en"?"No unit":"Aucune unité"}</option>{units.filter(x=>x.is_active&&(!form.site_id||x.site_id===form.site_id)&&(!form.service_id||x.service_id===form.service_id)).map(x=><option key={x.id} value={x.id}>{x.code} · {x.name}</option>)}</select></label>}
         {kind==="site"&&<label>{t.address}<input value={form.address||""} onChange={e=>setField("address",e.target.value)}/></label>}
         {kind==="equipment"&&<><label>{t.manufacturer}<input value={form.manufacturer||""} onChange={e=>setField("manufacturer",e.target.value)}/></label><label>{t.model}<input value={form.model||""} onChange={e=>setField("model",e.target.value)}/></label><label>{t.serial}<input value={form.serial_number||""} onChange={e=>setField("serial_number",e.target.value)}/></label><label>{t.location}<input value={form.location||""} onChange={e=>setField("location",e.target.value)}/></label></>}
         <div className="span-2 modal-actions"><button className="primary-btn" disabled={busy}>{editingId?<Pencil size={15}/>:<Plus size={15}/>} {editingId?t.save:t.add+" "+scopeLabels[kind].toLowerCase()}</button>{editingId&&<button type="button" className="secondary-btn" onClick={()=>{setEditingId(null);setForm({});setFormOpen(false)}}>{t.cancel}</button>}</div>
@@ -152,8 +163,8 @@ export default function OrganizationManagement({ companyId, members, currentUser
       {assignmentModalOpen&&<ModalPortal><div className="modal-backdrop org-form-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget&&!busy)setAssignmentModalOpen(false);}}><form className="modal-card org-assignment-modal" onSubmit={saveAssignment}><div className="modal-head"><div><span className="eyebrow">ORGANISATION · ACCÈS</span><h3>{t.saveAssignment}</h3><p>{t.rightsIntro}</p></div><button type="button" className="icon-btn" aria-label="Fermer" onClick={()=>setAssignmentModalOpen(false)} disabled={busy}><X size={18}/></button></div><div className="form-grid org-form">
         <label>{t.user}<select required value={assignment.user_id} onChange={e=>setAssignment(old=>({...old,user_id:e.target.value}))}><option value="">{t.select}</option>{members.filter(m=>m.is_active!==false&&m.user_id!==currentUserId).map(m=><option key={m.user_id} value={m.user_id}>{m.email||m.user_id} · {m.role||"membre"}</option>)}</select></label>
         <label>{t.job}<input value={assignment.job_title} onChange={e=>setAssignment(old=>({...old,job_title:e.target.value}))} placeholder={t.jobHint}/></label>
-        <label>{t.scopeType}<select value={assignment.scope_type} onChange={e=>{setSelectedScopeIds([]);setAssignment(old=>({...old,scope_type:e.target.value as ScopeType,scope_id:""}));}}>{Object.entries(labels).map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label>
-        <label className="org-multi-scope-field">{t.scope}<select required multiple size={Math.min(6,Math.max(3,availableScopes.filter(x=>x.is_active).length))} value={selectedScopeIds} onChange={e=>{const ids=Array.from(e.target.selectedOptions).map(option=>option.value);setSelectedScopeIds(ids);setAssignment(old=>({...old,scope_id:ids[0]||""}));}}>{availableScopes.filter(x=>x.is_active).map(x=><option key={x.id} value={x.id}>{x.code||x.equipment_tag} · {x.name}</option>)}</select><small>{t.multiScopeHint}</small></label>
+        <label>{t.scopeType}<select value={assignment.scope_type} onChange={e=>{setSelectedScopeIds([]);setAssignmentSearch("");setAssignment(old=>({...old,scope_type:e.target.value as ScopeType,scope_id:""}));}}><optgroup label={lang==="ar"?"الهيكل التنظيمي":lang==="en"?"Organization":"Structure organisation"}><option value="management">Management</option><option value="service">{scopeLabels.service}</option><option value="site">{scopeLabels.site}</option><option value="unit">{scopeLabels.unit}</option><option value="department">{scopeLabels.department}</option></optgroup><optgroup label={lang==="ar"?"الموارد":lang==="en"?"Resources":"Ressources"}><option value="warehouse">{scopeLabels.warehouse}</option><option value="equipment">{scopeLabels.equipment}</option></optgroup></select></label>
+        <div className="org-multi-scope-field"><div className="org-scope-picker-head"><label>{t.scope}</label><span>{selectedScopeIds.length} sélectionné(s)</span></div><input className="org-scope-search" value={assignmentSearch} onChange={e=>setAssignmentSearch(e.target.value)} placeholder={lang==="ar"?"ابحث في النطاقات...":lang==="en"?"Search scopes...":"Rechercher un site, une unité, un service..."} /><div className="org-scope-picker-list">{filteredScopeOptions.filter(x=>x.is_active!==false).map(x=><label className="org-scope-choice" key={x.id}><input type="checkbox" checked={selectedScopeIds.includes(x.id)} onChange={e=>{const ids=e.target.checked?[...selectedScopeIds,x.id]:selectedScopeIds.filter(id=>id!==x.id);setSelectedScopeIds(ids);setAssignment(old=>({...old,scope_id:ids[0]||""}));}}/><span><b>{x.code||x.equipment_tag||"—"} · {x.name}</b><small>{scopeContext(x)}</small></span></label>)}{!filteredScopeOptions.length&&<small className="org-scope-empty">Aucun élément correspondant.</small>}</div><small>{lang==="ar"?"يمكن اختيار عدة عناصر دون استعمال Ctrl.":lang==="en"?"Select multiple items directly; no Ctrl key needed.":"Cochez un ou plusieurs éléments directement, sans utiliser Ctrl/Cmd."}</small></div>
         <div className="span-2 org-permissions">{(["can_view","can_create","can_edit","can_delete","can_approve","can_issue","can_receive","can_transfer","can_inventory"] as const).map((key)=><label key={key}><input type="checkbox" checked={assignment[key]} onChange={e=>setAssignment(old=>({...old,[key]:e.target.checked}))}/><span>{{can_view:"Consulter",can_create:t.create,can_edit:t.update,can_delete:t.delete,can_approve:t.approve,can_issue:t.issue,can_receive:t.receive,can_transfer:t.transfer,can_inventory:t.inventory}[key]}</span></label>)}</div></div>
         <div className="modal-actions"><button type="button" className="secondary-btn" onClick={()=>setAssignmentModalOpen(false)} disabled={busy}>{t.cancel}</button><button className="primary-btn" disabled={busy}><Check size={15}/> Enregistrer l'affectation</button></div>
       </form></div></ModalPortal>}
