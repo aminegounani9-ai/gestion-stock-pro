@@ -3577,3 +3577,5 @@ body{color:#243550;-webkit-font-smoothing:antialiased;text-rendering:optimizeLeg
 @media(max-width:760px){.pm-kpis-modern{grid-template-columns:repeat(2,minmax(0,1fr))}.pm-dashboard-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.pm-project-dashboard{padding:14px}.pm-dashboard-title h3{font-size:16px}}
 @media(max-width:390px){.pm-dashboard-kpis{grid-template-columns:1fr 1fr}.pm-kpis-modern>article{padding:12px}.pm-kpis-modern>article>b{font-size:21px}}
 @media(prefers-reduced-motion:reduce){.pm-kpis-modern>article,.pm-dashboard-meter i{transition:none}}
+
+.pm-subtask-row{margin-left:22px;border-left:3px solid #a9bfdf;background:#f9fbfe}.pm-subtask-row .pm-task-info b:before{content:'↳ ';color:#7893b9}.pm-task-info small{line-height:1.5}
