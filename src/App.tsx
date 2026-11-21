@@ -579,7 +579,7 @@ export default function App() {
 
   async function refreshTeam(){if(!supabase||!company)return;const team=await supabase.rpc("list_company_users",{p_company_id:company.id});if(team.error)flash("error",team.error.message);else setMembers(team.data??[]);}
 
-  const accessFor = (key:string) => {const p=modulePermissions[key]||{};return {canView:isAdmin||p.can_view===true,canCreate:isAdmin||p.can_create===true,canEdit:isAdmin||p.can_edit===true,canDelete:isAdmin||p.can_delete===true,canApprove:isAdmin||p.can_approve===true,canIssue:isAdmin||p.can_issue===true,canReceive:isAdmin||p.can_receive===true,canTransfer:isAdmin||p.can_transfer===true,canInventory:isAdmin||p.can_inventory===true,isAdmin};};
+  const accessFor = (key:string) => {const p=modulePermissions[key]||{};const canView=isAdmin||p.can_view===true;const allowed=(permission:string)=>isAdmin||(canView&&p[permission]===true);return {canView,canCreate:allowed("can_create"),canEdit:allowed("can_edit"),canDelete:allowed("can_delete"),canApprove:allowed("can_approve"),canIssue:allowed("can_issue"),canReceive:allowed("can_receive"),canTransfer:allowed("can_transfer"),canInventory:allowed("can_inventory"),isAdmin};};
   const canManageUsers = ["owner","admin"].includes(currentRole);
   const visibleNav = nav.filter(item=>{if(item.id==="users")return canManageUsers;if(item.id==="organization")return isAdmin;if(item.id==="settings")return isAdmin||modulePermissions.settings?.can_view===true;if(isAdmin)return true;return modulePermissions[item.id]?.can_view===true;});
   const visiblePageIds=visibleNav.map(item=>item.id).join("|");
