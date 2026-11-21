@@ -34,3 +34,26 @@
 .pgantt-track>i.other-month.weekend{background:#f2f4f7}
 @media(max-width:560px){.pgantt-bar{height:29px;top:13px;padding:0 5px}.pgantt-bar b{font-size:8px}.pgantt-bar strong{font-size:9px}}
 @media(prefers-reduced-motion:reduce){.pgantt-bar,.pgantt-bar-fill{transition:none}}
+
+
+/* Gantt: each task gets its own stable color; bar geometry follows exact datetime */
+.pgantt-track{position:relative;min-width:0;overflow:hidden}
+.pgantt-bar{
+  box-sizing:border-box;
+  min-width:1px;
+  padding:0 8px;
+  border:1px solid color-mix(in srgb,var(--task-color) 42%,white);
+  border-radius:8px;
+  background:color-mix(in srgb,var(--task-color) 18%,white);
+  color:color-mix(in srgb,var(--task-color) 72%,#172b45);
+  box-shadow:0 2px 7px color-mix(in srgb,var(--task-color) 18%,transparent);
+}
+.pgantt-bar:hover{filter:saturate(1.12);box-shadow:0 4px 12px color-mix(in srgb,var(--task-color) 30%,transparent)}
+.pgantt-bar-fill{
+  background:var(--task-color);
+  opacity:.92;
+  border-radius:6px 0 0 6px;
+}
+.pgantt-bar b{color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+.pgantt-bar strong{color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+.pgantt-row-meta .pgantt-compliance{font-variant-numeric:tabular-nums}
