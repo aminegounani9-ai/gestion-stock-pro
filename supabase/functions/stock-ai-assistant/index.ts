@@ -143,7 +143,23 @@ Deno.serve(async (req: Request) => {
     }
 
     const companyName = String(body.company?.name || "votre entreprise").slice(0, 120);
-    const language = "Algerian Darija (Wahrani), naturally mixing simple French technical terms when useful";
+    const detectLanguage = (value: string): string => {
+      const text = value.toLowerCase();
+      if (/[\\u0600-\\u06ff]/.test(value)) return "Arabic";
+      if (/\\b(wach|wesh|kifach|kifeh|3lach|3lah|chhal|ch7al|win|wein|rani|rana|rah|rahi|nheb|bghit|baghi|ndir|dirli|saha|kayen|kayn|ma3lich|mlih|ta3|t3|m3a|hada|hadi|hadak|smahli)\\b/i.test(text)) return "Algerian Darija (Wahrani), naturally mixing simple French technical terms";
+      if (/[àâçéèêëîïôûùüÿœ]/i.test(text) || /\\b(bonjour|comment|pourquoi|merci|article|entrepôt|fournisseur|quantité|commande|achat|vente|enregistrer|modifier|supprimer|gestion|logiciel|formulaire|je|vous|nous|avec|dans|pour|quelle|quels)\\b/i.test(text)) return "French";
+      if (/\\b(what|how|why|where|when|please|help|show|product|warehouse|supplier|purchase|sales|inventory|create|update|delete|form|field|save|report|hello|thanks|can you|i need)\\b/i.test(text)) return "English";
+      return "the same language and writing style as the user's latest message";
+    };
+    const language = detectLanguage(latestQuestion);
+    const currentPageLabel: Record<string, string> = {
+      dashboard:"Tableau de bord", projects:"Gestion des projets", requests:"Demandes de pièces", products:"Articles",
+      categories:"Catégories", stock:"Mouvements de stock", warehouses:"Entrepôts", suppliers:"Fournisseurs",
+      customers:"Clients", purchases:"Achats", sales:"Ventes", transfers:"Transferts", inventory:"Inventaires",
+      locations:"Emplacements", lots:"Lots et péremption", spareParts:"Pièces de rechange", returns:"Retours",
+      expenses:"Dépenses", payments:"Paiements", reports:"Rapports", users:"Utilisateurs",
+      settings:"Paramètres", organization:"Organisation et affectations", equipment:"Équipements"
+    };
     const page = String(body.currentPage || "dashboard").slice(0, 60);
     const userRole = String(membership.role || body.userRole || "staff").slice(0, 50);
     const contextText = JSON.stringify({
@@ -154,18 +170,60 @@ Deno.serve(async (req: Request) => {
       uiSnapshot: body.context || {}
     }).slice(0, 18000);
 
-    const systemInstruction = `نتا Stock Pro AI، مساعد ذكي داخل برنامج تسيير المخزون. جاوب دائماً بالدارجة الجزائرية الوهرانية، وبطريقة طبيعية ومفهومة، واستعمل المصطلحات التقنية بالفرنسية كي يلزم.
-قواعد ضرورية:
-- جاوب غير على السؤال المطروح، مباشرة وباختصار. عادةً جملة إلى 3 جمل؛ ما تطوّلش وما تعاودش السؤال.
-- ما تعطِ حتى معلومة من راسك. بيانات الشركة الموجودة في LIVE DATA هي المرجع الوحيد للمخزون والمنتجات والأرقام.
-- كي يسقسيك على قطعة أو Référence، فتّش في productMatches و sparePartTechnicalRecords. طابق الاسم وSKU وBarcode وPart Number وRéférence constructeur. إذا لقيتها، قول بوضوح موجودة واذكر الاسم والمرجع والمعدة المرتبطة بها إذا كانت موجودة.
-- إذا ما لقيتش تطابق، قول: "ما لقيتش هاد المرجع في البيانات اللي قدرت نفتش فيها"، وما تخترعش جواب.
-- ما تخلطش بين وجود القطعة في الكاتالوغ والكمية المتوفرة. ما تعطيش Stock disponible إلا إذا عندك رصيد موثوق وصريح في البيانات.
-- إذا السؤال على كيفية استعمال البرنامج، أعطِ خطوات قليلة وواضحة حسب الموديول اللي راه ظاهر في معلومات البرنامج. إذا ما تعرفش اسم زر أو صفحة بالضبط، ما تخترعهاش.
-- إذا السؤال بسيط، ما تزيدش شرح ما طلبوش. إذا السؤال يحتاج توضيح، اسأل سؤال واحد فقط.
-- تقدر تشرح وتحلل وتقترح، بصح READ-ONLY: ما تقولش بلي درت إضافة أو تعديل أو حذف أو تحويل.
-- ممنوع تكشف بيانات شركة أخرى أو أسرار الدخول.
-- إذا المستخدم يهدر بالدارجة، جاوبه بالدارجة. ما تستعملش الفرنسية الكاملة إلا إذا طلبها.
+    const softwareGuide = `
+STOCK PRO — GUIDE FONCTIONNEL
+Logiciel web de gestion de stock et de projets. Les données sont isolées par entreprise; les écrans et actions dépendent du rôle et des permissions.
+
+MODULES ET PROCESSUS
+• Tableau de bord: synthèse des articles, fournisseurs, entrepôts, mouvements et alertes.
+• Articles: SKU/référence, désignation, description, code-barres, catégorie, prix d'achat, unité, seuil minimum, stock maximum, quantité de réapprovisionnement, délai fournisseur, poids, volume, suivi lots et numéros de série.
+• Catégories: nom et description pour classer les articles.
+• Entrepôts: code, nom et adresse.
+• Fournisseurs/Clients: nom, contact, téléphone, e-mail, identifiant fiscal, adresse et notes.
+• Mouvements de stock: entrée, sortie ou ajustement; choisir article, quantité, entrepôt et note/motif. Contrôler le sens avant validation.
+• Achats: choisir fournisseur, date et lignes d'articles (quantités/prix); enregistrer la commande puis réceptionner la marchandise réellement. Une commande non réceptionnée n'augmente pas nécessairement le stock.
+• Ventes: choisir client, date, articles, quantités, prix et remise; vérifier le total puis valider. La vente validée entraîne la sortie selon le flux applicatif.
+• Transferts: entrepôt source et destination, articles et quantités; les entrepôts doivent être différents. C'est un déplacement interne, pas un achat/vente.
+• Inventaires: choisir entrepôt, compter physiquement, saisir les quantités comptées, analyser les écarts; un brouillon ne modifie pas le stock, la validation autorisée applique les écarts.
+• Emplacements: code (ex. A-01-02), nom, capacité, unité (palette/m³/kg) et note.
+• Lots & péremption: numéro de lot, quantité, coût unitaire, date de fabrication, date d'expiration, fournisseur et note. Vérifier la cohérence des dates.
+• Retours: numéro, type, entrepôt, date, raison et note; vérifier retour client/fournisseur et l'effet stock avant validation.
+• Dépenses: numéro, description, montant, date, référence et note.
+• Paiements: suivi des transactions; vérifier montant, date, statut/moyen et document lié.
+• Pièces de rechange: SKU interne, désignation, prix d'achat, fabricant, référence fabricant/Part Number, quantité initiale réelle et stock minimum/safety stock. Détails complémentaires: compatibilité équipement (repère, nom, famille, modèle, fabricant, quantité par équipement, criticité, notes); devis fournisseur (référence, prix, devise DZD/EUR/USD, MOQ, délai, date offre, garantie, fournisseur préféré); réparation (numéro série/actif, équipement, prestataire, date envoi, retour prévu, coût/devise, panne); numéros de série. Catalogue ≠ disponibilité physique.
+• Demandes de pièces: sélectionner équipement/pièces, quantités et date souhaitée; suivre le statut. Une demande ne constitue pas automatiquement une sortie physique.
+• Équipements: Equipment Tag obligatoire, désignation obligatoire, fabricant, modèle, numéro de série, emplacement et notes; associer pièces compatibles, suivre demandes/consommations et QR.
+• Organisation: hiérarchie Management > Site > Service > Département > Unité; codes, noms et descriptions; affectations utilisateur selon périmètre.
+• Utilisateurs: compte/invitation, nom complet, rôle, périmètre et permissions par module/action.
+• Projets: code, nom, statut, site, département, date/heure début, date/heure fin cible, budget, coût réel, description, objectifs, périmètre, critères de réussite et notes. Tâches: titre, priorité, début/fin planifiés, heures estimées/réelles, description, progression, responsables/équipe et dépendances. Gantt reflète les dates de chaque tâche. Sous-fonctions: jalons, risques, problèmes, réunions, documents, RACI, commentaires, dépendances et demandes de changement.
+• Rapports: filtres période/module, consultation, export/impression selon droits.
+• Paramètres entreprise: nom commercial, raison sociale, NIF, téléphone, e-mail, ville, adresse et pays.
+
+COMMENT REMPLIR LES FORMULAIRES
+1. Commencer par les champs obligatoires (*) et ne jamais inventer une donnée.
+2. SKU = code unique stable; désignation = nom clair; code-barres = code réellement scanné/imprimé.
+3. Quantité = nombre positif dans l'unité de l'article; prix/coût = montant dans le champ monétaire, avec devise affichée.
+4. Choisir des fournisseurs, clients, catégories et entrepôts existants; les créer d'abord si absents.
+5. Transfert: source et destination différentes. Vérifier article, quantité et entrepôt avant confirmation.
+6. Dates = dates réelles du document/événement; expiration après fabrication si les deux sont renseignées.
+7. Notes = complément, pas un substitut aux champs structurés.
+8. Avant Enregistrer/Valider/Recevoir/Appliquer, vérifier toutes les lignes, quantités, totaux et lieux.
+9. Expliquer clairement la différence entre brouillon, enregistrement, validation et réception, ainsi que leur impact sur le stock.
+10. Si un champ ou bouton n'est pas confirmé sur l'écran réel, ne pas l'inventer; demander le module exact ou une capture.
+
+PARCOURS DE DÉMARRAGE
+Créer l'espace entreprise > compléter paramètres > créer entrepôt(s) > catégories > fournisseurs/clients nécessaires > articles/pièces > saisir stock initial via la procédure disponible > contrôler tableau de bord.
+PARCOURS ACHAT: fournisseur > commande > lignes/prix/quantités > enregistrer > réception réelle > vérifier stock.
+PARCOURS VENTE: client si nécessaire > vente > lignes/prix/remise > vérifier total > valider > vérifier mouvement.
+PARCOURS TRANSFERT: source > destination > lignes > contrôle > valider > vérifier mouvements.
+PARCOURS INVENTAIRE: entrepôt > comptage physique > saisie > écarts > validation autorisée > contrôle stock.
+PARCOURS PROJET: projet > objectifs/budget/dates > tâches/responsables > dépendances/jalons > progression > Gantt/rapports.
+`;
+    const systemInstruction = `Stock Pro AI: جاوب بنفس لغة وآسلوب آخر سؤال للمستخدم. Français إذا كتب بالفرنسية، English إذا كتب بالإنجليزية، العربية إذا كتب بالعربية، والدارجة الوهرانية إذا كتب بالدارجة حتى بالحروف اللاتينية. لا تفرض لغة واجهة البرنامج.
+إذا السؤال بسيط، جاوب باختصار. إذا طلب شرح logiciel أو module أو formulaire أو procédure، أعط شرحاً كاملاً خطوة بخطوة، واش معنى كل champ، واش يدخل فيه، مثال واضح وموسوم كمثال، وكيفاش يراجع قبل الحفظ/المصادقة. لا تختصر طلب شرح مفصل.
+استعمل STOCK PRO GUIDE وLIVE APPLICATION DATA والـ schema الفعلي. ابدأ بالموديول الحالي، وإذا طلب شرح البرنامج كامل اعطه خريطة modules والعمليات. لا تخترع أسماء أزرار أو حقول أو صلاحيات. إذا التفاصيل غير مؤكدة، صرّح بذلك واطلب اسم الشاشة أو capture.
+بيانات LIVE هي المصدر الوحيد للأرقام والمخزون. لا تخلط وجود article في catalogue مع stock disponible؛ لا تحسب الرصيد من mouvements إلا إذا كان موثوقاً وصريحاً. في أسئلة القطع والـ références فتّش productMatches وsparePartTechnicalRecords وطابق SKU/Barcode/Part Number/Référence constructeur.
+READ-ONLY: تشرح وتوجّه فقط، لا تدّعي أنك أضفت أو عدلت أو حذفت أو استلمت أو حولت أو صادقت. احمِ بيانات الشركات الأخرى والأسرار.
 `;
 
     const contents = messages.map((m: any) => ({
@@ -173,7 +231,7 @@ Deno.serve(async (req: Request) => {
       parts: [{ text: String(m.content || "").slice(0, 3500) }]
     }));
     // Keep live evidence in the system instruction, not as a fake user turn.
-    const groundedSystemInstruction = systemInstruction + "\n\nLIVE APPLICATION DATA (trusted factual context; never invent beyond it): " + contextText;
+    const groundedSystemInstruction = systemInstruction + "\n\nSTOCK PRO SOFTWARE GUIDE: " + softwareGuide + "\n\nLIVE APPLICATION DATA (trusted factual context; never invent beyond it): " + contextText + "\n\nCURRENT SCREEN: " + (currentPageLabel[page] || page);
 
     const models = ["gemini-3.5-flash-lite", "gemini-3.6-flash"];
     let lastStatus = 0;
