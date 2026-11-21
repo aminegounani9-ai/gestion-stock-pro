@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Bot, X, Send, Mic, MicOff, Volume2, VolumeX, Sparkles, Trash2, MessageCircle, LoaderCircle } from "lucide-react";
+import { Bot, X, Send, Mic, MicOff, Volume2, VolumeX, Sparkles, Trash2, LoaderCircle } from "lucide-react";
 import { supabase } from "./lib/supabase";
 
 type Lang = "fr" | "en" | "ar";
