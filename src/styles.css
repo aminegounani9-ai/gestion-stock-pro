@@ -3544,3 +3544,36 @@ body{color:#243550;-webkit-font-smoothing:antialiased;text-rendering:optimizeLeg
 }
 
 .pgantt-task-label.child{padding-left:28px;background:linear-gradient(90deg,#f7f9fc,transparent)}.pgantt-task-label.child:before{content:"↳";position:absolute;margin-left:-16px;color:#8ba0bc;font-size:13px;font-weight:800}.pgantt-task-label{position:relative}
+
+
+/* Project Management - redesigned executive dashboard */
+.pm-kpis-modern{grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.pm-kpis-modern>article{min-width:0;position:relative;overflow:hidden;border:1px solid #e6ebf3;border-radius:15px;background:linear-gradient(145deg,#fff,#f7f9fc);box-shadow:0 7px 22px rgba(28,48,78,.055);padding:16px 17px;transition:transform .2s ease,box-shadow .2s ease}
+.pm-kpis-modern>article:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(28,48,78,.09)}
+.pm-kpis-modern>article>small{display:block;color:#77869c;font-size:10px;font-weight:750;letter-spacing:.02em}
+.pm-kpis-modern>article>b{display:block;margin:9px 0 5px;color:#213a5a;font:850 25px/1.1 Manrope,sans-serif;font-variant-numeric:tabular-nums}
+.pm-kpis-modern>article>b small{display:inline;color:#8290a3;font-size:12px}
+.pm-kpis-modern>article>em{display:block;color:#8b98aa;font-size:10px;font-style:normal}
+.pm-kpis-modern .pm-kpi-icon{width:34px;height:34px;border-radius:11px}
+.pm-kpis-modern .pm-meter{height:5px;margin-top:8px}
+.pm-project-dashboard{position:relative;overflow:hidden;margin:0 0 16px;padding:20px;border:1px solid #dfe7f1;border-radius:18px;background:linear-gradient(125deg,#f7faff 0%,#fff 54%,#f6f9fd 100%);box-shadow:0 10px 30px rgba(29,54,88,.06)}
+.pm-dashboard-title{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;margin-bottom:17px}
+.pm-dashboard-title>div>span{color:#6483ad;font-size:9px;font-weight:850;letter-spacing:.14em}
+.pm-dashboard-title h3{margin:5px 0 4px;color:#1e3553;font:800 19px Manrope,sans-serif}
+.pm-dashboard-title p{margin:0;color:#8492a6;font-size:10px}
+.pm-dashboard-status{padding:6px 10px;border:1px solid currentColor;border-radius:20px;background:#fff;font-size:10px;font-weight:800;white-space:nowrap}
+.pm-dashboard-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.pm-dashboard-kpis article{min-width:0;padding:13px 14px;border:1px solid #e7edf5;border-radius:12px;background:rgba(255,255,255,.9)}
+.pm-dashboard-kpis article>small{display:block;min-height:24px;color:#7f8da1;font-size:9px;font-weight:750;line-height:1.4}
+.pm-dashboard-kpis article>b{display:block;margin:7px 0 4px;color:#233e61;font:850 21px/1.15 Manrope,sans-serif;font-variant-numeric:tabular-nums}
+.pm-dashboard-kpis article>b small{display:inline;color:#8492a6;font-size:10px}
+.pm-dashboard-kpis article>em{display:block;color:#91a0b3;font-size:9px;font-style:normal}
+.pm-dashboard-kpis article>b.danger{color:#c64250}
+.pm-dashboard-meter{height:6px;margin-top:8px;overflow:hidden;border-radius:20px;background:#eaf0f7}
+.pm-dashboard-meter i{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,#3978ca,#24a17b);transition:width .55s ease}
+.pm-task-modal .pm-form-grid label small{display:block;margin-top:5px;color:#8795a8;font-size:9px;font-weight:500;line-height:1.45}
+.pm-task-modal input:disabled{background:#f1f4f8;color:#8190a4;cursor:not-allowed}
+@media(max-width:1100px){.pm-kpis-modern{grid-template-columns:repeat(3,minmax(0,1fr))}.pm-dashboard-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:760px){.pm-kpis-modern{grid-template-columns:repeat(2,minmax(0,1fr))}.pm-dashboard-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.pm-project-dashboard{padding:14px}.pm-dashboard-title h3{font-size:16px}}
+@media(max-width:390px){.pm-dashboard-kpis{grid-template-columns:1fr 1fr}.pm-kpis-modern>article{padding:12px}.pm-kpis-modern>article>b{font-size:21px}}
+@media(prefers-reduced-motion:reduce){.pm-kpis-modern>article,.pm-dashboard-meter i{transition:none}}
