@@ -29,7 +29,7 @@ async function buildLiveContext(client: any, companyId: string, question: string
     client.from("stock_balances").select("product_id,warehouse_id,quantity_on_hand").eq("company_id", companyId).limit(stockIntent ? 1000 : 100)
   ]);
   const warehouses = warehouseRes.data || [];
-  const balances = balanceRes.data || [];
+  let balances = balanceRes.data || [];
   if (warehouseRes.error) console.error("AI warehouse lookup failed", warehouseRes.error.message);
   if (balanceRes.error) console.error("AI stock balance lookup failed", balanceRes.error.message);
   result.warehouses = warehouses;
@@ -52,7 +52,14 @@ async function buildLiveContext(client: any, companyId: string, question: string
     detailRows=dRes.data||[];
   }
 
-  const ids = [...new Set([...productRows.map((p:any)=>p.id),...detailRows.map((d:any)=>d.product_id),...(stockIntent?balances.map((x:any)=>x.product_id):[])].filter(Boolean))];
+  const matchedProductIds = [...new Set([...productRows.map((p:any)=>p.id),...detailRows.map((d:any)=>d.product_id)].filter(Boolean))];
+  if(matchedProductIds.length){
+    const exactBalanceRes=await client.from("stock_balances").select("product_id,warehouse_id,quantity_on_hand")
+      .eq("company_id",companyId).in("product_id",matchedProductIds).limit(500);
+    if(exactBalanceRes.error) console.error("AI exact stock balance lookup failed",exactBalanceRes.error.message);
+    else balances=exactBalanceRes.data||[];
+  }
+  const ids = [...new Set([...matchedProductIds,...(stockIntent?balances.map((x:any)=>x.product_id):[])].filter(Boolean))];
   const knownIds = new Set(productRows.map((p:any)=>p.id));
   const missingIds = ids.filter(id=>!knownIds.has(id));
   for(let i=0;i<missingIds.length;i+=100){
