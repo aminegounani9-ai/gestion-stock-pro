@@ -12,7 +12,6 @@ const labels = {
 };
 const today=()=>new Date().toISOString().slice(0,10);
 const safePct=(v:any)=>Math.max(0,Math.min(100,Number(v)||0));
-const csvCell=(v:any)=>'"'+String(v??"").replace(/"/g,'""')+'"';
 
 export default function ProjectManagementSuite({companyId,currentUserId,currentRole,members,lang,currency,projects,tasks,selectedProjectId}:Props){
  const t=labels[lang],rtl=lang==="ar";
