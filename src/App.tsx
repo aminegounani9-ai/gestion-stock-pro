@@ -291,7 +291,7 @@ export default function App() {
     if (categoryResult.error) throw categoryResult.error;
     setCategories(categoryResult.data ?? []);
     const [os,ou,ov,od,oe]=await Promise.all([
-      supabase.from("org_sites").select("id,code,name,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
+      supabase.from("org_sites").select("id,code,name,management_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
       supabase.from("org_units").select("id,code,name,site_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
       supabase.from("org_services").select("id,code,name,site_id,unit_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
       supabase.from("org_departments").select("id,code,name,site_id,unit_id,service_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
