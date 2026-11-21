@@ -75,12 +75,13 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,ro
  const permittedUnitIds=useMemo(()=>{
    if(!warehouseScoped)return orgUnits.map((x:any)=>x.id);
    const ids=new Set<string>(ownScopeIds("unit"));
-   const siteIds=new Set(ownScopeIds("site"));const serviceIds=new Set(ownScopeIds("service"));const departmentIds=new Set(ownScopeIds("department"));const equipmentIds=new Set(ownScopeIds("equipment"));
+   const siteIds=new Set(ownScopeIds("site"));const serviceIds=new Set(ownScopeIds("service"));const departmentIds=new Set(ownScopeIds("department"));const equipmentIds=new Set(ownScopeIds("equipment"));const warehouseIds=new Set(ownScopeIds("warehouse"));
+   warehouses.filter((w:any)=>warehouseIds.has(w.id)).forEach((w:any)=>{if(w.unit_id)ids.add(w.unit_id);});
    orgUnits.forEach((u:any)=>{if(siteIds.has(u.site_id)||serviceIds.has(u.service_id)||departmentIds.has(u.department_id))ids.add(u.id);});
    orgDepartments.filter((d:any)=>departmentIds.has(d.id)).forEach((d:any)=>{if(d.unit_id)ids.add(d.unit_id);});
    orgEquipment.filter((e:any)=>equipmentIds.has(e.id)&&e.unit_id).forEach((e:any)=>ids.add(e.unit_id));
    return [...ids].filter(id=>orgUnits.some((u:any)=>u.id===id));
- },[warehouseScoped,requestScopes,currentUserId,orgUnits,orgDepartments,orgEquipment]);
+ },[warehouseScoped,requestScopes,currentUserId,orgUnits,orgDepartments,orgEquipment,warehouses]);
  const permittedUnits=orgUnits.filter((x:any)=>permittedUnitIds.includes(x.id));
  const permittedSiteIds=[...new Set([...ownScopeIds("site"),...permittedUnits.map((x:any)=>x.site_id)])];
  const permittedServiceIds=[...new Set([...ownScopeIds("service"),...permittedUnits.map((x:any)=>x.service_id).filter(Boolean)])];
