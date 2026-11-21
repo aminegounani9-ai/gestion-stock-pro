@@ -305,7 +305,6 @@ export default function App() {
     if(scopeResult.error)throw scopeResult.error;
     const userScopes=scopeResult.data??[];
     setMyScopeAssignments(userScopes);
-    setMyScopeAssignments(userScopes);
     setScopePermissions({canView:userScopes.some(x=>x.can_view),canCreate:userScopes.some(x=>x.can_create),canEdit:userScopes.some(x=>x.can_edit),canDelete:userScopes.some(x=>x.can_delete),canApprove:userScopes.some(x=>x.can_approve),canIssue:userScopes.some(x=>x.can_issue),canReceive:userScopes.some(x=>x.can_receive),canTransfer:userScopes.some(x=>x.can_transfer),canInventory:userScopes.some(x=>x.can_inventory)});
     setProducts((p.data ?? []) as Product[]);
     setWarehouses(w.data ?? []);
@@ -581,9 +580,9 @@ export default function App() {
 
   async function refreshTeam(){if(!supabase||!company)return;const team=await supabase.rpc("list_company_users",{p_company_id:company.id});if(team.error)flash("error",team.error.message);else setMembers(team.data??[]);}
 
-  const accessFor = (key:string) => {const p=modulePermissions[key]||{};return {canView:isAdmin||(p.can_view??scopePermissions.canView),canCreate:isAdmin||(p.can_create??scopePermissions.canCreate),canEdit:isAdmin||(p.can_edit??scopePermissions.canEdit),canDelete:isAdmin||(p.can_delete??scopePermissions.canDelete),canApprove:isAdmin||(p.can_approve??scopePermissions.canApprove),canIssue:isAdmin||(p.can_issue??scopePermissions.canIssue),canReceive:isAdmin||(p.can_receive??scopePermissions.canReceive),canTransfer:isAdmin||(p.can_transfer??scopePermissions.canTransfer),canInventory:isAdmin||(p.can_inventory??scopePermissions.canInventory),isAdmin};};
+  const accessFor = (key:string) => {const p=modulePermissions[key]||{};return {canView:isAdmin||p.can_view===true,canCreate:isAdmin||p.can_create===true,canEdit:isAdmin||p.can_edit===true,canDelete:isAdmin||p.can_delete===true,canApprove:isAdmin||p.can_approve===true,canIssue:isAdmin||p.can_issue===true,canReceive:isAdmin||p.can_receive===true,canTransfer:isAdmin||p.can_transfer===true,canInventory:isAdmin||p.can_inventory===true,isAdmin};};
   const canManageUsers = ["owner","admin"].includes(currentRole);
-  const visibleNav = nav.filter(item=>{if(item.id==="users")return canManageUsers;if(item.id==="projects")return isAdmin||["manager","project_responsible"].includes(currentRole)||Boolean(modulePermissions.projects?.can_view);if(isAdmin)return true;if(item.id==="settings"||item.id==="organization")return false;if(item.id==="dashboard")return true;if(modulePermissions[item.id])return modulePermissions[item.id].can_view;return scopePermissions.canView||Object.values(scopePermissions).some(Boolean) ? ["spareParts","requests","stock","transfers","inventory","warehouses","locations","reports","equipment","products","categories","suppliers"].includes(item.id) : false;});
+  const visibleNav = nav.filter(item=>{if(item.id==="users")return canManageUsers;if(item.id==="organization")return isAdmin;if(item.id==="settings")return isAdmin||modulePermissions.settings?.can_view===true;if(isAdmin)return true;return modulePermissions[item.id]?.can_view===true;});
   const title = t[page];
   const money = (value:number) => new Intl.NumberFormat(lang==="en"?"en-US":lang==="ar"?"ar-DZ":"fr-DZ",{style:"currency",currency:company?.currency_code||"DZD",maximumFractionDigits:0}).format(value||0);
   const documentGross=documentLines.reduce((sum,line)=>sum+Math.max(0,Number(line.quantity||0))*Math.max(0,Number(line.unit_price||0)),0);
