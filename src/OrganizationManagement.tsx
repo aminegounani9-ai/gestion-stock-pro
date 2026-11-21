@@ -87,7 +87,6 @@ export default function OrganizationManagement({ companyId, members, currentUser
     if(kind==="equipment"){payload.equipment_tag=form.equipment_tag?.trim();payload.manufacturer=form.manufacturer?.trim()||null;payload.model=form.model?.trim()||null;payload.serial_number=form.serial_number?.trim()||null;payload.location=form.location?.trim()||null;}
     if(kind==="site")payload.address=form.address?.trim()||null;
     if(kind==="management")payload.description=form.description?.trim()||null;
-    if(["management","site","service","department"].includes(kind)&&!selectedChildIds.length){onNotice("error","Sélectionnez au moins un élément à rattacher.");return;}
     if(kind!=="equipment" && !payload.code){onNotice("error","Le code est obligatoire.");return;}
     if(kind==="equipment"){delete payload.code;if(!payload.equipment_tag){onNotice("error","Le tag équipement est obligatoire.");return;}}
     setBusy(true);
