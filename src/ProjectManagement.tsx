@@ -27,10 +27,9 @@ export default function ProjectManagement({companyId,currentUserId,currentRole,m
  const [query,setQuery]=useState(""),[statusFilter,setStatusFilter]=useState("all"),[showProjectForm,setShowProjectForm]=useState(false),[showTaskForm,setShowTaskForm]=useState(false),[editingProjectId,setEditingProjectId]=useState<string|null>(null),[editingTaskId,setEditingTaskId]=useState<string|null>(null),[busy,setBusy]=useState(false),[projectSoundEnabled,setProjectSoundEnabled]=useState(()=>localStorage.getItem("gsp_project_sound")!=="off");
  const [projectForm,setProjectForm]=useState<Record<string,string>>({project_code:"",name:"",project_type:"internal",priority:"medium",status:"planned",description:"",objectives:"",scope:"",site:"",department:"",project_manager_id:currentUserId,responsible_user_id:"",start_date:new Date().toISOString().slice(0,10),start_time:"08:00",target_end_date:"",target_end_time:"17:00",budget:"0",actual_cost:"0",risk_level:"medium",success_criteria:"",notes:""});
  const [taskForm,setTaskForm]=useState<Record<string,string>>({title:"",description:"",status:"todo",priority:"medium",assigned_to:"",parent_task_id:"",allocation_percent:"100",start_date:new Date().toISOString().slice(0,10),start_time:"08:00",due_date:new Date().toISOString().slice(0,10),end_time:"17:00",estimated_hours:"0",actual_hours:"0",progress:"0",completed_at:""});
- const canManage=["owner","admin","director","manager"].includes(currentRole);
+ const isCompanyProjectAdmin=["owner","admin","manager"].includes(currentRole);
  const playProjectSound=useCallback(()=>{if(!projectSoundEnabled||typeof window==="undefined")return;try{const AC=(window as any).AudioContext||(window as any).webkitAudioContext;if(!AC)return;const ctx=new AC(),now=ctx.currentTime;[660,830,990].forEach((hz,i)=>{const osc=ctx.createOscillator(),gain=ctx.createGain();osc.frequency.value=hz;osc.type="sine";gain.gain.setValueAtTime(.0001,now+i*.12);gain.gain.exponentialRampToValueAtTime(.10,now+i*.12+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+i*.12+.17);osc.connect(gain);gain.connect(ctx.destination);osc.start(now+i*.12);osc.stop(now+i*.12+.19);});window.setTimeout(()=>void ctx.close(),800);}catch(e){console.warn("Project sound unavailable",e);}},[projectSoundEnabled]);
- const canEdit=canManage||currentRole==="project_responsible";
- const money=(v:number)=>new Intl.NumberFormat(lang==="en"?"en-US":lang==="ar"?"ar-DZ":"fr-DZ",{style:"currency",currency:currency||"DZD",maximumFractionDigits:0}).format(v||0);
+  const money=(v:number)=>new Intl.NumberFormat(lang==="en"?"en-US":lang==="ar"?"ar-DZ":"fr-DZ",{style:"currency",currency:currency||"DZD",maximumFractionDigits:0}).format(v||0);
  const load=useCallback(async()=>{
   const client=supabase;if(!client)return;
   const [p,tasksResult,n]=await Promise.all([
@@ -53,6 +52,8 @@ export default function ProjectManagement({companyId,currentUserId,currentRole,m
  const selectedProject=projects.find(p=>p.id===selected)||projects[0]||null;
  useEffect(()=>{if(!selected&&projects.length)setSelected(projects[0].id);},[projects,selected]);
  const projectTasks=useMemo(()=>tasks.filter(x=>x.project_id===selectedProject?.id),[tasks,selectedProject?.id]);
+ const canManage=isCompanyProjectAdmin||selectedProject?.project_manager_id===currentUserId;
+ const canEdit=canManage||selectedProject?.responsible_user_id===currentUserId||projectTasks.some(x=>x.assigned_to===currentUserId);
  const selectedRoots=projectTasks.filter(x=>!x.parent_task_id),selectedSubtasks=projectTasks.filter(x=>!!x.parent_task_id),selectedDone=projectTasks.filter(x=>x.status==="done").length,selectedLate=projectTasks.filter(x=>x.due_date&&x.due_date<new Date().toISOString().slice(0,10)&&!["done","cancelled"].includes(x.status)).length,selectedBlocked=projectTasks.filter(x=>x.status==="blocked").length;
  const selectedOnTrack=selectedRoots.length?Math.round(selectedRoots.filter(x=>x.status==="done"||(x.due_date&&x.due_date>=new Date().toISOString().slice(0,10))).length/selectedRoots.length*100):0;
  const selectedCompliance=selectedRoots.length?Math.round(selectedRoots.reduce((sum,x)=>{if(!x.start_date||!x.due_date)return sum+100;const st=new Date(x.start_date+"T"+String(x.start_time||"08:00").slice(0,5)+":00").getTime(),en=new Date(x.due_date+"T"+String(x.end_time||"17:00").slice(0,5)+":00").getTime(),expected=Math.max(0,Math.min(100,(Date.now()-st)/Math.max(1,en-st)*100));return sum+(expected<1?100:Math.max(0,Math.min(100,Number(x.progress||0)/expected*100)));},0)/selectedRoots.length):0;
@@ -86,7 +87,7 @@ export default function ProjectManagement({companyId,currentUserId,currentRole,m
  const roleLabel=(id:string)=>members.find(m=>m.user_id===id)?.email||"—";
  async function log(projectId:string,message:string,taskId?:string){await supabase?.from("project_activity").insert({company_id:companyId,project_id:projectId,task_id:taskId||null,actor_user_id:currentUserId,activity_type:"update",message});}
  async function saveProject(e:React.FormEvent){
-  e.preventDefault();if(!supabase||(!canManage&&!editingProjectId))return;setBusy(true);
+  e.preventDefault();if(!supabase||(!isCompanyProjectAdmin&&(!editingProjectId||selectedProject?.project_manager_id!==currentUserId)))return;setBusy(true);
   try{
    const dateOrNull=(value:string)=>{const v=String(value??"").trim();return /^\d{4}-\d{2}-\d{2}$/.test(v)?v:null;};
    const plannedStart=projectForm.start_date?new Date(projectForm.start_date+"T"+(projectForm.start_time||"08:00")):null,plannedEnd=projectForm.target_end_date?new Date(projectForm.target_end_date+"T"+(projectForm.target_end_time||"17:00")):null;
@@ -128,7 +129,7 @@ export default function ProjectManagement({companyId,currentUserId,currentRole,m
   }catch(err:any){alert(err.message||"Erreur lors de l'enregistrement de la tâche.");}finally{setBusy(false);}
  }
  async function deleteTask(task:Task){if(!supabase||!canEdit)return;if(!window.confirm("Supprimer définitivement cette tâche ?"))return;const {error}=await supabase.from("project_tasks").delete().eq("id",task.id).eq("company_id",companyId);if(error){alert(error.message);return;}await recalculateProjectProgress(task.project_id);await log(task.project_id,"Tâche supprimée : "+task.title);await load();}
- async function deleteProject(project:Project){if(!supabase||!canManage)return;if(!window.confirm("Supprimer le projet « "+project.name+" » ? Cette action peut également supprimer ses tâches associées selon les relations de la base."))return;const {error}=await supabase.from("projects").delete().eq("id",project.id).eq("company_id",companyId);if(error){alert("Suppression impossible : "+error.message);return;}setSelected("");await load();}
+ async function deleteProject(project:Project){if(!supabase||!isCompanyProjectAdmin)return;if(!window.confirm("Supprimer le projet « "+project.name+" » ? Cette action peut également supprimer ses tâches associées selon les relations de la base."))return;const {error}=await supabase.from("projects").delete().eq("id",project.id).eq("company_id",companyId);if(error){alert("Suppression impossible : "+error.message);return;}setSelected("");await load();}
  async function updateTask(task:Task,patch:Record<string,any>){
   if(!supabase||!canEdit)return;const next:Record<string,any>={...patch,updated_at:new Date().toISOString()};
   if(patch.status==="done"){next.progress=100;next.completed_at=new Date().toISOString();}else if(patch.status&&patch.status!=="done")next.completed_at=null;
