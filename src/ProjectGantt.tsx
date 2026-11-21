@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight, Clock3, GanttChartSquare, ListChecks } from "lucide-react";
 import "./project-gantt.css";
 type Task=Record<string,any>&{id:string;project_id:string;title:string;status:string;progress:number};type Project=Record<string,any>&{id:string;name:string;project_code:string};type Props={tasks:Task[];projects:Project[];lang:"fr"|"en"|"ar";onOpenTask:(task:Task)=>void};
-const clamp=(v:number)=>Math.max(0,Math.min(100,v));const key=(d:Date)=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");const at=(d:string,t:string)=>new Date(d+"T"+(t||"08:00")+":00");
+const clamp=(v:number)=>Math.max(0,Math.min(100,v));const key=(d:Date)=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");const at=(d:string,t:string)=>new Date(d+"T"+String(t||"08:00").slice(0,5)+":00");
 const color=(t:Task,late:boolean)=>late?"#dc5964":t.status==="done"||Number(t.progress)>=100?"#159b78":t.status==="blocked"?"#d78a32":t.status==="on_hold"?"#8794a8":t.status==="review"?"#8c70d4":"#477bd0";
 export default function ProjectGantt({tasks,projects,lang,onOpenTask}:Props){
  const [cursor,setCursor]=useState(()=>new Date()),[mode,setMode]=useState<"month"|"week">("month"),rtl=lang==="ar";
