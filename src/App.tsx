@@ -149,6 +149,7 @@ export default function App() {
   const [orgDepartments,setOrgDepartments]=useState<any[]>([]);
   const [orgEquipment,setOrgEquipment]=useState<any[]>([]);
   const [modulePermissions,setModulePermissions]=useState<Record<string,any>>({});
+  const [hasProjectAccess,setHasProjectAccess]=useState(false);
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [movements, setMovements] = useState<any[]>([]);
@@ -393,6 +394,13 @@ export default function App() {
       if(moduleError)throw moduleError;
       const permissionMap=Object.fromEntries((moduleRows??[]).map((row:any)=>[row.module_key,row]));
       setModulePermissions(permissionMap);
+      const [teamProjectResult,leadProjectResult]=await Promise.all([
+        supabase.from("project_team_members").select("id").eq("company_id",chosen.id).eq("user_id",userId).limit(1),
+        supabase.from("projects").select("id").eq("company_id",chosen.id).or("project_manager_id.eq."+userId+",responsible_user_id.eq."+userId).limit(1)
+      ]);
+      if(teamProjectResult.error)throw teamProjectResult.error;
+      if(leadProjectResult.error)throw leadProjectResult.error;
+      setHasProjectAccess(!!teamProjectResult.data?.length||!!leadProjectResult.data?.length);
       if(chosenIsAdmin||Object.values(permissionMap).some((p:any)=>p.can_view)){
         await loadWorkspace(chosen.id);
       }else{
@@ -417,7 +425,7 @@ export default function App() {
     });
     const {data:{subscription}} = supabase.auth.onAuthStateChange((_event,next) => {
       setSession(next);
-      if (!next) { setCompanies([]); setCompany(null); setProducts([]); setModulePermissions({}); }
+      if (!next) { setCompanies([]); setCompany(null); setProducts([]); setModulePermissions({});setHasProjectAccess(false); }
     });
     return () => subscription.unsubscribe();
   }, [loadCompanies]);
@@ -587,9 +595,9 @@ export default function App() {
 
   const accessFor = (key:string) => {const p=modulePermissions[key]||{};const canView=isAdmin||p.can_view===true;const allowed=(permission:string)=>isAdmin||(canView&&p[permission]===true);return {canView,canCreate:allowed("can_create"),canEdit:allowed("can_edit"),canDelete:allowed("can_delete"),canApprove:allowed("can_approve"),canIssue:allowed("can_issue"),canReceive:allowed("can_receive"),canTransfer:allowed("can_transfer"),canInventory:allowed("can_inventory"),isAdmin};};
   const canManageUsers = ["owner","admin","manager","supervisor"].includes(currentRole);
-  const visibleNav = nav.filter(item=>{if(item.id==="users")return canManageUsers;if(item.id==="organization")return isAdmin;if(item.id==="settings")return isAdmin||modulePermissions.settings?.can_view===true;if(isAdmin)return true;return modulePermissions[item.id]?.can_view===true;});
+  const visibleNav = nav.filter(item=>{if(item.id==="users")return canManageUsers;if(item.id==="organization")return isAdmin;if(item.id==="projects")return isAdmin||modulePermissions.projects?.can_view===true||hasProjectAccess;if(item.id==="settings")return isAdmin||modulePermissions.settings?.can_view===true;if(isAdmin)return true;return modulePermissions[item.id]?.can_view===true;});
   const visiblePageIds=visibleNav.map(item=>item.id).join("|");
-  useEffect(()=>{if(company&&!visibleNav.some(item=>item.id===page)){setPage((visibleNav[0]?.id||"dashboard") as Page);}},[company?.id,page,visiblePageIds]);
+  useEffect(()=>{if(company&&!visibleNav.some(item=>item.id===page)){setPage((visibleNav[0]?.id||"dashboard") as Page);}},[company?.id,page,visiblePageIds,hasProjectAccess]);
   const title = t[page];
   const money = (value:number) => new Intl.NumberFormat(lang==="en"?"en-US":lang==="ar"?"ar-DZ":"fr-DZ",{style:"currency",currency:company?.currency_code||"DZD",maximumFractionDigits:0}).format(value||0);
   const documentGross=documentLines.reduce((sum,line)=>sum+Math.max(0,Number(line.quantity||0))*Math.max(0,Number(line.unit_price||0)),0);
