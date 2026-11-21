@@ -53,7 +53,8 @@ export default function ProjectManagement({companyId,currentUserId,currentRole,m
  useEffect(()=>{if(!selected&&projects.length)setSelected(projects[0].id);},[projects,selected]);
  const projectTasks=useMemo(()=>tasks.filter(x=>x.project_id===selectedProject?.id),[tasks,selectedProject?.id]);
  const canManage=isCompanyProjectAdmin||selectedProject?.project_manager_id===currentUserId;
- const canEdit=canManage||selectedProject?.responsible_user_id===currentUserId||projectTasks.some(x=>x.assigned_to===currentUserId);
+ const canManageTasks=canManage||selectedProject?.responsible_user_id===currentUserId;
+ const canEdit=canManageTasks||projectTasks.some(x=>x.assigned_to===currentUserId);
  const selectedRoots=projectTasks.filter(x=>!x.parent_task_id),selectedSubtasks=projectTasks.filter(x=>!!x.parent_task_id),selectedDone=projectTasks.filter(x=>x.status==="done").length,selectedLate=projectTasks.filter(x=>x.due_date&&x.due_date<new Date().toISOString().slice(0,10)&&!["done","cancelled"].includes(x.status)).length,selectedBlocked=projectTasks.filter(x=>x.status==="blocked").length;
  const selectedOnTrack=selectedRoots.length?Math.round(selectedRoots.filter(x=>x.status==="done"||(x.due_date&&x.due_date>=new Date().toISOString().slice(0,10))).length/selectedRoots.length*100):0;
  const selectedCompliance=selectedRoots.length?Math.round(selectedRoots.reduce((sum,x)=>{if(!x.start_date||!x.due_date)return sum+100;const st=new Date(x.start_date+"T"+String(x.start_time||"08:00").slice(0,5)+":00").getTime(),en=new Date(x.due_date+"T"+String(x.end_time||"17:00").slice(0,5)+":00").getTime(),expected=Math.max(0,Math.min(100,(Date.now()-st)/Math.max(1,en-st)*100));return sum+(expected<1?100:Math.max(0,Math.min(100,Number(x.progress||0)/expected*100)));},0)/selectedRoots.length):0;
@@ -115,7 +116,7 @@ export default function ProjectManagement({companyId,currentUserId,currentRole,m
   if(updated.error)throw updated.error;
  }
  async function saveTask(e:React.FormEvent){
-  e.preventDefault();if(!supabase||!selectedProject||!canEdit)return;setBusy(true);
+  e.preventDefault();if(!supabase||!selectedProject||!canEdit||(!editingTaskId&&!canManageTasks))return;setBusy(true);
   try{
    const start=taskForm.start_date?new Date(taskForm.start_date+"T"+(taskForm.start_time||"08:00")):null,finish=taskForm.due_date?new Date(taskForm.due_date+"T"+(taskForm.end_time||"17:00")):null;
    if(start&&finish&&finish<=start)throw new Error(lang==="en"?"Planned end must be after start.":lang==="ar"?"يجب أن يكون تاريخ النهاية المتوقع بعد تاريخ البداية.":"La date de fin prévue doit être après la date de début.");
