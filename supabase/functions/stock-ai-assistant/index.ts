@@ -47,42 +47,41 @@ Deno.serve(async (req: Request) => {
       parts: [{ text: String(m.content || "").slice(0, 5000) }]
     }));
 
-    // Gemini can temporarily return 503 during demand spikes. Retry once and
-    // fall back to the current stable Flash model without exposing provider details.
-    const models = ["gemini-3.8-flash", "gemini-3.6-flash"];
+    // Prefer the lighter, low-latency Flash-Lite model. Bound every provider call
+    // so a busy Gemini region cannot keep the Edge Function alive until Supabase
+    // terminates it. Move to the next model immediately on 429/5xx or timeout.
+    const models = ["gemini-3.5-flash-lite", "gemini-3.6-flash"];
     let lastStatus = 0;
     for (const model of models) {
-      for (let attempt = 0; attempt < 2; attempt++) {
-        let response: Response;
-        try {
-          response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-            body: JSON.stringify({
-              system_instruction: { parts: [{ text: systemInstruction }] },
-              contents,
-              generationConfig: { temperature: 0.45, maxOutputTokens: 900 }
-            })
-          });
-        } catch (error) {
-          console.error("Gemini network error", model, String(error).slice(0, 180));
-          lastStatus = 0;
-          break;
-        }
+      let response: Response;
+      try {
+        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+          signal: AbortSignal.timeout(7500),
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: systemInstruction }] },
+            contents,
+            generationConfig: { temperature: 0.45, maxOutputTokens: 900 }
+          })
+        });
+      } catch (error) {
+        console.error("Gemini request timed out or failed", model, String(error).slice(0, 140));
+        lastStatus = 0;
+        continue;
+      }
 
-        const result = await response.json().catch(() => ({}));
-        if (response.ok) {
-          const answer = (result?.candidates?.[0]?.content?.parts || []).map((part: any) => part.text || "").join("").trim();
-          if (!answer) return Response.json({ error: "EMPTY_AI_RESPONSE" }, { status: 502, headers: corsHeaders });
-          return Response.json({ answer, model }, { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-        }
+      const result = await response.json().catch(() => ({}));
+      if (response.ok) {
+        const answer = (result?.candidates?.[0]?.content?.parts || []).map((part: any) => part.text || "").join("").trim();
+        if (!answer) return Response.json({ error: "EMPTY_AI_RESPONSE" }, { status: 502, headers: corsHeaders });
+        return Response.json({ answer, model }, { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
 
-        lastStatus = response.status;
-        console.error("Gemini API error", model, response.status, result?.error?.message || "unknown");
-        if (response.status !== 429 && response.status < 500) {
-          return Response.json({ error: "AI_PROVIDER_ERROR", providerStatus: response.status }, { status: 502, headers: corsHeaders });
-        }
-        if (attempt === 0) await new Promise(resolve => setTimeout(resolve, 700));
+      lastStatus = response.status;
+      console.error("Gemini API error", model, response.status, result?.error?.message || "unknown");
+      if (response.status !== 429 && response.status < 500) {
+        return Response.json({ error: "AI_PROVIDER_ERROR", providerStatus: response.status }, { status: 502, headers: corsHeaders });
       }
     }
 
