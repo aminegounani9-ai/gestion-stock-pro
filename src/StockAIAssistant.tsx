@@ -25,7 +25,7 @@ export default function StockAIAssistant({ companyName, companyId, lang, page, r
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [listening, setListening] = useState(false);
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [error, setError] = useState("");
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -47,9 +47,9 @@ export default function StockAIAssistant({ companyName, companyId, lang, page, r
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     const lower = text.toLowerCase();
-    if (/[\\u0600-\\u06ff]/.test(text)) utterance.lang = "ar-DZ";
-    else if (/\\b(wach|wesh|kifach|kifeh|3lach|chhal|rani|rah|rahi|nheb|bghit|baghi|ndir|dirli|ta3|m3a|hada|hadi)\\b/i.test(lower)) utterance.lang = "ar-DZ";
-    else if (/\\b(what|how|why|where|when|please|hello|thanks|product|warehouse|inventory|purchase|sales|report)\\b/i.test(lower)) utterance.lang = "en-US";
+    if (/[\u0600-\u06FF]/.test(text)) utterance.lang = "ar-DZ";
+    else if (/\b(wach|wesh|kifach|kifeh|3lach|chhal|rani|rah|rahi|nheb|bghit|baghi|ndir|dirli|ta3|m3a|hada|hadi|machi|mazal|wella)\b/i.test(lower)) utterance.lang = "ar-DZ";
+    else if (/\b(what|how|why|where|when|please|hello|thanks|product|warehouse|inventory|purchase|sales|report)\b/i.test(lower)) utterance.lang = "en-US";
     else utterance.lang = "fr-FR";
     utterance.rate = 1;
     window.speechSynthesis.speak(utterance);
