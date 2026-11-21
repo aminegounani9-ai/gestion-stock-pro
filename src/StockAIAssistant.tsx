@@ -46,7 +46,11 @@ export default function StockAIAssistant({ companyName, companyId, lang, page, r
     if (!voiceEnabled || !("speechSynthesis" in window)) return;
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = lang === "ar" ? "ar-DZ" : lang === "en" ? "en-US" : "fr-FR";
+    const lower = text.toLowerCase();
+    if (/[\\u0600-\\u06ff]/.test(text)) utterance.lang = "ar-DZ";
+    else if (/\\b(wach|wesh|kifach|kifeh|3lach|chhal|rani|rah|rahi|nheb|bghit|baghi|ndir|dirli|ta3|m3a|hada|hadi)\\b/i.test(lower)) utterance.lang = "ar-DZ";
+    else if (/\\b(what|how|why|where|when|please|hello|thanks|product|warehouse|inventory|purchase|sales|report)\\b/i.test(lower)) utterance.lang = "en-US";
+    else utterance.lang = "fr-FR";
     utterance.rate = 1;
     window.speechSynthesis.speak(utterance);
   };
