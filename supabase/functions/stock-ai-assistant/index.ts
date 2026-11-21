@@ -13,7 +13,7 @@ Deno.serve(async (req: Request) => {
 
   try {
     const authHeader = req.headers.get("Authorization") || "";
-    const token = authHeader.replace(/^Bearer\s+/i, "");
+    const token = authHeader.replace(/^Bearer\\s+/i, "");
     if (!token) return Response.json({ error: "UNAUTHORIZED" }, { status: 401, headers: corsHeaders });
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -47,23 +47,47 @@ Deno.serve(async (req: Request) => {
       parts: [{ text: String(m.content || "").slice(0, 5000) }]
     }));
 
-    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=" + encodeURIComponent(apiKey), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: systemInstruction }] },
-        contents,
-        generationConfig: { temperature: 0.45, maxOutputTokens: 900 }
-      })
-    });
-    const result = await response.json();
-    if (!response.ok) {
-      console.error("Gemini API error", response.status, result?.error?.message || "unknown");
-      return Response.json({ error: "AI_PROVIDER_ERROR", message: "Le service IA a retourné une erreur." }, { status: 502, headers: corsHeaders });
+    // Gemini can temporarily return 503 during demand spikes. Retry once and
+    // fall back to the current stable Flash model without exposing provider details.
+    const models = ["gemini-3.8-flash", "gemini-3.6-flash"];
+    let lastStatus = 0;
+    for (const model of models) {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        let response: Response;
+        try {
+          response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+            body: JSON.stringify({
+              system_instruction: { parts: [{ text: systemInstruction }] },
+              contents,
+              generationConfig: { temperature: 0.45, maxOutputTokens: 900 }
+            })
+          });
+        } catch (error) {
+          console.error("Gemini network error", model, String(error).slice(0, 180));
+          lastStatus = 0;
+          break;
+        }
+
+        const result = await response.json().catch(() => ({}));
+        if (response.ok) {
+          const answer = (result?.candidates?.[0]?.content?.parts || []).map((part: any) => part.text || "").join("").trim();
+          if (!answer) return Response.json({ error: "EMPTY_AI_RESPONSE" }, { status: 502, headers: corsHeaders });
+          return Response.json({ answer, model }, { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+
+        lastStatus = response.status;
+        console.error("Gemini API error", model, response.status, result?.error?.message || "unknown");
+        if (response.status !== 429 && response.status < 500) {
+          return Response.json({ error: "AI_PROVIDER_ERROR", providerStatus: response.status }, { status: 502, headers: corsHeaders });
+        }
+        if (attempt === 0) await new Promise(resolve => setTimeout(resolve, 700));
+      }
     }
-    const answer = (result?.candidates?.[0]?.content?.parts || []).map((part: any) => part.text || "").join("").trim();
-    if (!answer) return Response.json({ error: "EMPTY_AI_RESPONSE" }, { status: 502, headers: corsHeaders });
-    return Response.json({ answer }, { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+    console.error("All Gemini models unavailable", lastStatus);
+    return Response.json({ error: "AI_TEMPORARILY_UNAVAILABLE" }, { status: 503, headers: corsHeaders });
   } catch (error) {
     console.error("stock-ai-assistant error", error);
     return Response.json({ error: "INTERNAL_ERROR" }, { status: 500, headers: corsHeaders });
