@@ -273,8 +273,23 @@ export default function App() {
     window.setTimeout(() => setNotice(null), 4200);
   };
 
-  const loadWorkspace = useCallback(async (companyId: string) => {
+  const loadWorkspace = useCallback(async (companyId: string, mode:"full"|"scopes"="full") => {
     if (!supabase) return;
+    if(mode==="scopes"){
+      const {data:{user:scopeUser}}=await supabase.auth.getUser();
+      const [os,ou,ov,od,oe,wh,scopeResult]=await Promise.all([
+        supabase.from("org_sites").select("id,code,name,management_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
+        supabase.from("org_units").select("id,code,name,site_id,service_id,department_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
+        supabase.from("org_services").select("id,code,name,site_id,unit_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
+        supabase.from("org_departments").select("id,code,name,site_id,unit_id,service_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
+        supabase.from("org_equipment").select("id,equipment_tag,name,site_id,unit_id,service_id,department_id,status").eq("company_id",companyId).eq("status","active").order("name"),
+        supabase.from("warehouses").select("id,code,name,site_id,unit_id,service_id,department_id,equipment_id,is_active").eq("company_id",companyId).order("name"),
+        scopeUser?supabase.from("user_scope_assignments").select("scope_type,scope_id,job_title,can_view,can_create,can_edit,can_delete,can_approve,can_issue,can_receive,can_transfer,can_inventory").eq("company_id",companyId).eq("user_id",scopeUser.id):Promise.resolve({data:[],error:null} as any)
+      ]);
+      const error=[os,ou,ov,od,oe,wh,scopeResult].find(x=>x.error)?.error;if(error)throw error;
+      setOrgSites(os.data??[]);setOrgUnits(ou.data??[]);setOrgServices(ov.data??[]);setOrgDepartments(od.data??[]);setOrgEquipment((oe.data??[]).map(x=>({...x,is_active:true})));setWarehouses(wh.data??[]);setMyScopeAssignments(scopeResult.data??[]);
+      return;
+    }
     setProductCategoryFilter("all");
     const [p,w,s,c,m,b,po,sa] = await Promise.all([
       supabase.from("products").select("*").eq("company_id",companyId).order("created_at",{ascending:false}),
@@ -293,7 +308,7 @@ export default function App() {
     setCategories(categoryResult.data ?? []);
     const [os,ou,ov,od,oe]=await Promise.all([
       supabase.from("org_sites").select("id,code,name,management_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
-      supabase.from("org_units").select("id,code,name,site_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
+      supabase.from("org_units").select("id,code,name,site_id,service_id,department_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
       supabase.from("org_services").select("id,code,name,site_id,unit_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
       supabase.from("org_departments").select("id,code,name,site_id,unit_id,service_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
       supabase.from("org_equipment").select("id,equipment_tag,name,site_id,unit_id,service_id,department_id,status").eq("company_id",companyId).eq("status","active").order("name")
@@ -403,6 +418,9 @@ export default function App() {
       setHasProjectAccess(!!teamProjectResult.data?.length||!!leadProjectResult.data?.length);
       if(chosenIsAdmin||Object.values(permissionMap).some((p:any)=>p.can_view)){
         await loadWorkspace(chosen.id);
+      }else if(["manager","supervisor"].includes(chosenRole)){
+        await loadWorkspace(chosen.id,"scopes");
+        setProducts([]);setSuppliers([]);setCustomers([]);setMovements([]);setPurchases([]);setSales([]);setCategories([]);
       }else{
         setProducts([]);setWarehouses([]);setSuppliers([]);setCustomers([]);setMovements([]);setPurchases([]);setSales([]);setCategories([]);
         setOrgSites([]);setOrgUnits([]);setOrgServices([]);setOrgDepartments([]);setOrgEquipment([]);setMyScopeAssignments([]);
