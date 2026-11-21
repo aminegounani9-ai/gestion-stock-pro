@@ -35,7 +35,7 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,ro
   const [rq,user,users,sites,units,services,depts,equipment,locations]=await Promise.all([
    supabase!.from("spare_part_requests").select("*").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100),
    supabase!.auth.getUser(),supabase!.rpc("list_spare_part_requesters",{p_company_id:companyId}),
-   supabase!.from("org_sites").select("id,code,name").eq("company_id",companyId).eq("is_active",true).order("name"),
+   supabase!.from("org_sites").select("id,code,name,management_id").eq("company_id",companyId).eq("is_active",true).order("name"),
    supabase!.from("org_units").select("id,code,name,site_id,service_id,department_id").eq("company_id",companyId).eq("is_active",true).order("name"),
    supabase!.from("org_services").select("id,code,name,site_id,unit_id").eq("company_id",companyId).eq("is_active",true).order("name"),
    supabase!.from("org_departments").select("id,code,name,site_id,unit_id,service_id").eq("company_id",companyId).eq("is_active",true).order("name"),
@@ -73,19 +73,31 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,ro
  const ownScopeIds=(type:string)=>ownScopeRows.filter((x:any)=>x.scope_type===type&&x.can_view!==false).map((x:any)=>x.scope_id);
  const warehouseScoped=role==="warehouse"&&!access?.isAdmin;
  const permittedUnitIds=useMemo(()=>{
-   if(!warehouseScoped)return orgUnits.map((x:any)=>x.id);
-   const ids=new Set<string>(ownScopeIds("unit"));
-   const siteIds=new Set(ownScopeIds("site"));const serviceIds=new Set(ownScopeIds("service"));const departmentIds=new Set(ownScopeIds("department"));const equipmentIds=new Set(ownScopeIds("equipment"));const warehouseIds=new Set(ownScopeIds("warehouse"));
-   warehouses.filter((w:any)=>warehouseIds.has(w.id)).forEach((w:any)=>{if(w.unit_id)ids.add(w.unit_id);});
-   orgUnits.forEach((u:any)=>{if(siteIds.has(u.site_id)||serviceIds.has(u.service_id)||departmentIds.has(u.department_id))ids.add(u.id);});
-   orgDepartments.filter((d:any)=>departmentIds.has(d.id)).forEach((d:any)=>{if(d.unit_id)ids.add(d.unit_id);else if(d.service_id)orgUnits.filter((u:any)=>u.service_id===d.service_id).forEach((u:any)=>ids.add(u.id));});
-   orgEquipment.filter((e:any)=>equipmentIds.has(e.id)&&e.unit_id).forEach((e:any)=>ids.add(e.unit_id));
-   return [...ids].filter(id=>orgUnits.some((u:any)=>u.id===id));
- },[warehouseScoped,requestScopes,currentUserId,orgUnits,orgDepartments,orgEquipment,warehouses]);
- const permittedUnits=orgUnits.filter((x:any)=>permittedUnitIds.includes(x.id));
+    if(!warehouseScoped)return orgUnits.map((x:any)=>x.id);
+    const ids=new Set<string>(ownScopeIds("unit"));
+    const managementIds=new Set(ownScopeIds("management"));
+    const siteIds=new Set(ownScopeIds("site"));
+    const serviceIds=new Set(ownScopeIds("service"));
+    const departmentIds=new Set(ownScopeIds("department"));
+    const equipmentIds=new Set(ownScopeIds("equipment"));
+    const warehouseIds=new Set(ownScopeIds("warehouse"));
+    orgSites.filter((x:any)=>managementIds.has(x.management_id)).forEach((x:any)=>siteIds.add(x.id));
+    orgServices.filter((x:any)=>siteIds.has(x.site_id)).forEach((x:any)=>serviceIds.add(x.id));
+    orgDepartments.filter((x:any)=>serviceIds.has(x.service_id)).forEach((x:any)=>departmentIds.add(x.id));
+    orgUnits.filter((x:any)=>departmentIds.has(x.department_id)||siteIds.has(x.site_id)).forEach((x:any)=>ids.add(x.id));
+    warehouses.filter((w:any)=>warehouseIds.has(w.id)).forEach((w:any)=>{
+      if(w.unit_id)ids.add(w.unit_id);
+      if(w.department_id)orgUnits.filter((u:any)=>u.department_id===w.department_id).forEach((u:any)=>ids.add(u.id));
+      if(w.service_id)orgDepartments.filter((d:any)=>d.service_id===w.service_id).forEach((d:any)=>orgUnits.filter((u:any)=>u.department_id===d.id).forEach((u:any)=>ids.add(u.id)));
+      if(w.site_id)orgUnits.filter((u:any)=>u.site_id===w.site_id).forEach((u:any)=>ids.add(u.id));
+    });
+    orgEquipment.filter((e:any)=>equipmentIds.has(e.id)&&e.unit_id).forEach((e:any)=>ids.add(e.unit_id));
+    return [...ids].filter(id=>orgUnits.some((u:any)=>u.id===id));
+  },[warehouseScoped,requestScopes,currentUserId,orgUnits,orgDepartments,orgServices,orgSites,orgEquipment,warehouses]);
+  const permittedUnits=orgUnits.filter((x:any)=>permittedUnitIds.includes(x.id));
  const permittedSiteIds=[...new Set([...ownScopeIds("site"),...permittedUnits.map((x:any)=>x.site_id)])];
- const permittedServiceIds=[...new Set([...ownScopeIds("service"),...permittedUnits.map((x:any)=>x.service_id).filter(Boolean)])];
- const permittedDepartmentIds=[...new Set([...ownScopeIds("department"),...permittedUnits.map((x:any)=>x.department_id).filter(Boolean),...orgDepartments.filter((d:any)=>permittedUnitIds.includes(d.unit_id)).map((d:any)=>d.id)])];
+ const permittedServiceIds=[...new Set([...ownScopeIds("service"),...orgDepartments.filter((d:any)=>orgUnits.some((u:any)=>u.department_id===d.id&&permittedUnitIds.includes(u.id))).map((d:any)=>d.service_id).filter(Boolean)])];
+ const permittedDepartmentIds=[...new Set([...ownScopeIds("department"),...permittedUnits.map((x:any)=>x.department_id).filter(Boolean),...orgDepartments.filter((d:any)=>orgUnits.some((u:any)=>u.department_id===d.id&&permittedUnitIds.includes(u.id))).map((d:any)=>d.id)])];
  const permittedEquipmentIds=[...new Set([...ownScopeIds("equipment"),...orgEquipment.filter((e:any)=>permittedUnitIds.includes(e.unit_id)).map((e:any)=>e.id)])];
  const permittedWarehouseIds=ownScopeIds("warehouse");
  const visibleSites=warehouseScoped?orgSites.filter((x:any)=>permittedSiteIds.includes(x.id)):orgSites;
