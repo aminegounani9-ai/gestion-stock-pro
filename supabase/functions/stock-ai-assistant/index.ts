@@ -172,7 +172,8 @@ Deno.serve(async (req: Request) => {
       role: m.role === "assistant" ? "model" : "user",
       parts: [{ text: String(m.content || "").slice(0, 3500) }]
     }));
-    // Keep live evidence in the system instruction, not as a fake user turn.\n    const groundedSystemInstruction = systemInstruction + "\\n\\nLIVE APPLICATION DATA (trusted factual context; never invent beyond it): " + contextText;
+    // Keep live evidence in the system instruction, not as a fake user turn.
+    const groundedSystemInstruction = systemInstruction + "\n\nLIVE APPLICATION DATA (trusted factual context; never invent beyond it): " + contextText;
 
     const models = ["gemini-3.5-flash-lite", "gemini-3.6-flash"];
     let lastStatus = 0;
