@@ -6,7 +6,7 @@ const clamp=(v:number)=>Math.max(0,Math.min(100,v));const key=(d:Date)=>[d.getFu
 const durationLabel=(minutes:number,lang:"fr"|"en"|"ar")=>{const total=Math.max(0,Math.round(minutes)),d=Math.floor(total/1440),h=Math.floor(total%1440/60),m=total%60;const parts:string[]=[];if(d)parts.push(lang==="en"?d+"d":lang==="ar"?d+" يوم":d+" j");if(h)parts.push(lang==="en"?h+"h":lang==="ar"?h+" س":h+" h");if(m||!parts.length)parts.push(lang==="en"?m+"m":lang==="ar"?m+" د":m+" min");return parts.join(" ");};
 const complianceTone=(value:number)=>value<80?"bad":value<100?"mid":"good";
 const taskPalette=["#477bd0","#0f9f8f","#8b68c8","#d18a32","#d15b72","#398eaa","#718b3e","#a15fba","#5970a9","#b06c43"];
-const taskColor=(id:string)=>{let hash=0;for(let i=0;i<id.length;i++)hash=(hash*31+id.charCodeAt(i))>>>0;return taskPalette[hash%taskPalette.length];};
+const taskColor=(id:string)=>{let hash=0;for(let i=0;i<id.length;i++)hash=(hash*31+id.charCodeAt(i))>>>0;return `hsl(${hash%360} 64% 46%)`;};
 export default function ProjectGantt({tasks,projects,lang,onOpenTask}:Props){
  const [cursor,setCursor]=useState(()=>new Date()),[mode,setMode]=useState<"month"|"week">("month"),[projectFilter,setProjectFilter]=useState("all"),[clock,setClock]=useState(()=>Date.now()),rtl=lang==="ar";
  useEffect(()=>{const timer=window.setInterval(()=>setClock(Date.now()),30000);return()=>window.clearInterval(timer);},[]);
