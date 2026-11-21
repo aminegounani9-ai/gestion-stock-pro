@@ -33,6 +33,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
   const [editingId,setEditingId] = useState<string|null>(null);
   const [assignment,setAssignment] = useState({user_id:"",job_title:"",scope_type:"unit" as ScopeType,scope_id:"",can_view:true,can_create:false,can_edit:false,can_delete:false,can_approve:false,can_issue:false,can_receive:false,can_transfer:false,can_inventory:false});
   const [selectedScopeIds,setSelectedScopeIds] = useState<string[]>([]);
+  const [selectedChildIds,setSelectedChildIds] = useState<string[]>([]);
   const [assignmentSearch,setAssignmentSearch]=useState("");
   const [busy,setBusy] = useState(false);
   const [managementUserId,setManagementUserId] = useState("");
@@ -41,7 +42,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
   const [managementModalOpen,setManagementModalOpen]=useState(false);
   const refresh = useCallback(async () => {
     if(!supabase) return;
-    const [a,b,c,d,e,f,g,h] = await Promise.all([
+    const [a,b,c,d,e,f,g,h,p,pt] = await Promise.all([
       supabase.from("org_managements").select("*").eq("company_id",companyId).order("name"),
       supabase.from("org_sites").select("*").eq("company_id",companyId).order("name"),
       supabase.from("org_units").select("*").eq("company_id",companyId).order("name"),
@@ -49,11 +50,13 @@ export default function OrganizationManagement({ companyId, members, currentUser
       supabase.from("org_departments").select("*").eq("company_id",companyId).order("name"),
       supabase.from("org_equipment").select("*").eq("company_id",companyId).order("name"),
       supabase.from("user_scope_assignments").select("*").eq("company_id",companyId).order("created_at",{ascending:false}),
-      supabase.from("warehouses").select("id,code,name,is_active").eq("company_id",companyId).order("name")
+      supabase.from("warehouses").select("id,code,name,is_active").eq("company_id",companyId).order("name"),
+      supabase.from("projects").select("id,project_code,name,project_manager_id,responsible_user_id").eq("company_id",companyId).order("name"),
+      supabase.from("project_team_members").select("*").eq("company_id",companyId)
     ]);
-    const error=[a,b,c,d,e,f,g,h].find(x=>x.error)?.error;
+    const error=[a,b,c,d,e,f,g,h,p,pt].find(x=>x.error)?.error;
     if(error) throw error;
-    setManagements(a.data??[]);setSites(b.data??[]);setUnits(c.data??[]);setServices(d.data??[]);setDepartments(e.data??[]);setEquipment((f.data??[]).map(x=>({...x,is_active:x.status==="active"})));setAssignments(g.data??[]);setWarehouses(h.data??[]);
+    setManagements(a.data??[]);setSites(b.data??[]);setUnits(c.data??[]);setServices(d.data??[]);setDepartments(e.data??[]);setEquipment((f.data??[]).map(x=>({...x,is_active:x.status==="active"})));setAssignments(g.data??[]);setWarehouses(h.data??[]);setProjects(p.data??[]);setProjectTeamRows(pt.data??[]);
   },[companyId]);
   useEffect(()=>{void refresh().catch(e=>onNotice("error",e.message));},[refresh]);
 
@@ -61,35 +64,54 @@ export default function OrganizationManagement({ companyId, members, currentUser
   const availableScopes = scopeRows[assignment.scope_type] ?? [];
   const filteredScopeOptions=availableScopes.filter((x:Row)=>[x.code,x.name,x.equipment_tag].filter(Boolean).join(" ").toLowerCase().includes(assignmentSearch.toLowerCase()));
   function scopeContext(row:Row){
-    const site=sites.find(x=>x.id===row.site_id)?.name;
-    const unit=units.find(x=>x.id===row.unit_id)?.name;
-    const service=services.find(x=>x.id===row.service_id)?.name;
-    const department=departments.find(x=>x.id===row.department_id)?.name;
-    const management=managements.find(x=>x.id===row.management_id)?.name;
-    return [management,service,site,unit,department].filter(Boolean).join(" › ")||(assignment.scope_type==="warehouse"?"Magasin":"");
+    const unit=units.find(x=>x.id===row.unit_id);
+    const department=departments.find(x=>x.id===(row.department_id||unit?.department_id));
+    const service=services.find(x=>x.id===(row.service_id||department?.service_id));
+    const site=sites.find(x=>x.id===(row.site_id||service?.site_id));
+    const management=managements.find(x=>x.id===(row.management_id||site?.management_id));
+    return [management?.name,site?.name,service?.name,department?.name,unit?.name].filter(Boolean).join(" › ")||(assignment.scope_type==="warehouse"?"Magasin":"");
   }
   function setField(key:string,value:string){setForm(old=>({...old,[key]:value}));}
   async function createStructure(event:FormEvent){
     event.preventDefault();if(!supabase)return;
     const payload:any={company_id:companyId,code:form.code?.trim(),name:form.name?.trim()};
     if(kind==="unit"||kind==="department"||kind==="equipment") payload.site_id=form.site_id;
-    if(kind==="service"){payload.management_id=form.management_id;payload.site_id=form.site_id||null;}
-    if(kind==="site")payload.service_id=form.service_id||null;
-    if(kind==="unit")payload.service_id=form.service_id||null;
-    if(kind==="department")payload.unit_id=form.unit_id||null;
+    if(kind==="service") payload.site_id=form.site_id||null;
     if(kind==="equipment") payload.unit_id=form.unit_id||null;
-    if(kind==="department"||kind==="equipment") payload.service_id=form.service_id||null;
+    if(kind==="department") payload.service_id=null;
+    if(kind==="unit") payload.service_id=null;
     if(kind==="equipment"){payload.equipment_tag=form.equipment_tag?.trim();payload.manufacturer=form.manufacturer?.trim()||null;payload.model=form.model?.trim()||null;payload.serial_number=form.serial_number?.trim()||null;payload.location=form.location?.trim()||null;}
     if(kind==="site")payload.address=form.address?.trim()||null;
     if(kind==="management")payload.description=form.description?.trim()||null;
-    if(kind==="service"&&!payload.management_id){onNotice("error","Sélectionnez un Management.");return;}
+    if(["management","site","service","department"].includes(kind)&&!selectedChildIds.length){onNotice("error","Sélectionnez au moins un élément à rattacher.");return;}
     if(kind!=="equipment" && !payload.code){onNotice("error","Le code est obligatoire.");return;}
     if(kind==="equipment"){delete payload.code;if(!payload.equipment_tag){onNotice("error","Le tag équipement est obligatoire.");return;}}
     setBusy(true);
-    try{const result=editingId?await supabase.from(tables[kind]).update(payload).eq("id",editingId).eq("company_id",companyId):await supabase.from(tables[kind]).insert(payload);if(result.error)throw result.error;setForm({});setEditingId(null);setFormOpen(false);await refresh();onNotice("success",labels[kind]+(editingId?" modifié(e).":" ajouté(e)."));}
+    try{
+      const result=editingId?await supabase.from(tables[kind]).update(payload).eq("id",editingId).eq("company_id",companyId).select("id").single():await supabase.from(tables[kind]).insert(payload).select("id").single();
+      if(result.error)throw result.error;
+      const parentId=result.data.id;
+      const relationConfig:any={management:{table:"org_sites",column:"management_id"},site:{table:"org_services",column:"site_id"},service:{table:"org_departments",column:"service_id"},department:{table:"org_units",column:"department_id"}};
+      const relation=relationConfig[kind];
+      if(relation){
+        const clear=await supabase.from(relation.table).update({[relation.column]:null}).eq("company_id",companyId).eq(relation.column,parentId);
+        if(clear.error)throw clear.error;
+        if(selectedChildIds.length){
+          const attach=await supabase.from(relation.table).update({[relation.column]:parentId}).eq("company_id",companyId).in("id",selectedChildIds);
+          if(attach.error)throw attach.error;
+        }
+      }
+      setForm({});setEditingId(null);setFormOpen(false);setSelectedChildIds([]);await refresh();onNotice("success",labels[kind]+(editingId?" modifié(e).":" ajouté(e)."));
+    }
     catch(e:any){onNotice("error",e.message)}finally{setBusy(false)}
   }
-  function startEdit(type:ScopeType,row:Row){setKind(type);setEditingId(row.id);setForm({code:row.code||"",name:row.name||"",description:row.description||"",address:row.address||"",management_id:row.management_id||"",site_id:row.site_id||"",unit_id:row.unit_id||"",service_id:row.service_id||"",department_id:row.department_id||"",equipment_tag:row.equipment_tag||"",manufacturer:row.manufacturer||"",model:row.model||"",serial_number:row.serial_number||"",location:row.location||""});setActiveTab("structure");setFormOpen(true);}
+  function startEdit(type:ScopeType,row:Row){
+    setKind(type);setEditingId(row.id);
+    setForm({code:row.code||"",name:row.name||"",description:row.description||"",address:row.address||"",site_id:row.site_id||"",unit_id:row.unit_id||"",service_id:row.service_id||"",department_id:row.department_id||"",equipment_tag:row.equipment_tag||"",manufacturer:row.manufacturer||"",model:row.model||"",serial_number:row.serial_number||"",location:row.location||""});
+    const childRows:any={management:sites.filter(x=>x.management_id===row.id),site:services.filter(x=>x.site_id===row.id),service:departments.filter(x=>x.service_id===row.id),department:units.filter(x=>x.department_id===row.id)};
+    setSelectedChildIds((childRows[type]||[]).map((x:Row)=>x.id));
+    setActiveTab("structure");setFormOpen(true);
+  }
   async function deleteStructure(type:ScopeType,row:Row){if(!supabase||!window.confirm("Supprimer définitivement "+(row.name||row.code||row.equipment_tag||"cet élément")+" ? Les éléments liés peuvent empêcher la suppression."))return;const {error}=await supabase.from(tables[type]).delete().eq("id",row.id).eq("company_id",companyId);if(error){onNotice("error","Suppression impossible : "+error.message);return;}if(editingId===row.id){setEditingId(null);setForm({});}await refresh();onNotice("success",lang==="ar"?"تم حذف العنصر.":lang==="en"?"Item deleted.":"Élément supprimé.");}
   async function toggleActive(type:ScopeType,row:Row){
     if(!supabase)return;
@@ -142,8 +164,8 @@ export default function OrganizationManagement({ companyId, members, currentUser
     setActiveTab("assignments");
     setAssignmentModalOpen(true);
   }
-  const tabs:[ScopeType,string][]=[["management","Management"],["service",lang==="ar"?"المصالح":lang==="en"?"Services":"Services"],["site",lang==="ar"?"المواقع":lang==="en"?"Sites":"Sites"],["unit",lang==="ar"?"الوحدات":lang==="en"?"Units":"Unités"],["department",lang==="ar"?"الأقسام":lang==="en"?"Departments":"Départements"],["equipment",lang==="ar"?"المعدات":lang==="en"?"Equipment":"Équipements"]];
-  const parentOptions = kind==="unit"||kind==="department"||kind==="equipment";
+  const tabs:[ScopeType,string][]=[["management","Management"],["site",lang==="ar"?"المواقع":lang==="en"?"Sites":"Sites"],["service",lang==="ar"?"المصالح":lang==="en"?"Services":"Services"],["department",lang==="ar"?"الأقسام":lang==="en"?"Departments":"Départements"],["unit",lang==="ar"?"الوحدات":lang==="en"?"Units":"Unités"],["equipment",lang==="ar"?"المعدات":lang==="en"?"Equipment":"Équipements"]];
+  const parentOptions = kind==="equipment";
   return <div className="ops-wrap" dir={lang==="ar"?"rtl":"ltr"}>
     <section className="panel">
       <div className="panel-head"><div><h3>{t.title}</h3><p>{t.intro}</p></div><div className="row-actions"><button className="secondary-btn" type="button" onClick={()=>void refresh()}><RefreshCw size={14}/> {t.refresh}</button><button className="primary-btn" type="button" onClick={()=>{setEditingId(null);setForm({});setFormOpen(true);}}><Plus size={15}/>{t.add} {scopeLabels[kind].toLowerCase()}</button></div></div>
