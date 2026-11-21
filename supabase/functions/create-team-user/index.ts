@@ -50,7 +50,8 @@ Deno.serve(async (req: Request) => {
       .select("role,is_active").eq("company_id", companyId).eq("user_id", caller.id).maybeSingle();
     if (membershipError) throw membershipError;
     if (!membership?.is_active) return respond({ error: "Vous n'avez pas accès à cette entreprise." }, 403);
-    const isAdmin = ["owner", "admin", "director"].includes(membership.role);
+    const isAdmin = ["owner", "admin"].includes(membership.role);
+    if (!isAdmin) return respond({ error: "Seuls le propriétaire ou un administrateur peuvent gérer les utilisateurs et leurs affectations." }, 403);
     const { data: scope, error: scopeError } = await adminClient.from(allowedScopes[scopeType])
       .select("*").eq("id", scopeId).eq("company_id", companyId).eq("is_active", true).maybeSingle();
     if (scopeError) throw scopeError;
