@@ -142,12 +142,21 @@ export default function EquipmentManagement({companyId,lang,equipmentSeed,autoPr
   useEffect(()=>{if(!autoPrintReport)autoPrintedRef.current="";},[autoPrintReport]);
   useEffect(()=>{
    if(!equipmentSeed||!current||current.id!==equipmentSeed||detailReady!==current.id)return;
-   const timer=window.setTimeout(()=>{
+   let timer1=0,timer2=0,frame=0;
+   const centerEquipment=()=>{
     const hero=document.querySelector(".equipment-hero") as HTMLElement|null;
-    hero?.scrollIntoView({behavior:"smooth",block:"start"});
-    hero?.focus({preventScroll:true});
-   },180);
-   return()=>window.clearTimeout(timer);
+    if(!hero)return;
+    hero.setAttribute("tabindex","-1");
+    hero.scrollIntoView({behavior:"smooth",block:"center",inline:"nearest"});
+    hero.focus({preventScroll:true});
+    hero.classList.remove("equipment-scan-focus");
+    void hero.offsetWidth;
+    hero.classList.add("equipment-scan-focus");
+   };
+   frame=window.requestAnimationFrame(centerEquipment);
+   timer1=window.setTimeout(centerEquipment,180);
+   timer2=window.setTimeout(centerEquipment,420);
+   return()=>{window.cancelAnimationFrame(frame);window.clearTimeout(timer1);window.clearTimeout(timer2);};
   },[equipmentSeed,current?.id,detailReady]);
 
   return <div className="equipment-module" dir={lang==="ar"?"rtl":"ltr"}>
