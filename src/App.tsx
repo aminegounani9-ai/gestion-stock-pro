@@ -279,8 +279,10 @@ export default function App() {
 
   const loadWorkspace = useCallback(async (companyId: string, mode:"full"|"scopes"="full") => {
     if (!supabase) return;
-    if(mode==="scopes"){
-      const {data:{user:scopeUser}}=await supabase.auth.getUser();
+    const {data:{user:scopeUser}}=await supabase.auth.getUser();
+    const {data:membership}=scopeUser?await supabase.from("company_members").select("role").eq("company_id",companyId).eq("user_id",scopeUser.id).maybeSingle():{data:null};
+    const forceScoped=mode==="scopes"||!["owner","admin"].includes(membership?.role||"");
+    if(forceScoped){
       const [os,ou,ov,od,oe,wh,scopeResult,productsResult,categoriesResult,movementsResult,balancesResult,purchasesResult,suppliersResult,salesResult,customersResult]=await Promise.all([
         supabase.from("org_sites").select("id,code,name,management_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
         supabase.from("org_units").select("id,code,name,site_id,service_id,department_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
