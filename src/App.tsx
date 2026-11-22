@@ -703,7 +703,7 @@ export default function App() {
     if(!productMatch){
       let d=await supabase.from("spare_part_details").select("product_id").eq("company_id",company.id).eq("part_number",scanned).maybeSingle();
       if(!d.data)d=await supabase.from("spare_part_details").select("product_id").eq("company_id",company.id).eq("manufacturer_reference",scanned).maybeSingle();
-      if(d.data?.product_id)productMatch=(products||[]).find((p:any)=>p.id===d.data.product_id)||null;
+      const scannedProductId=d.data?.product_id;if(scannedProductId)productMatch=(products||[]).find((p:any)=>p.id===scannedProductId)||null;
     }
     if(productMatch){setScanChoice({type:"spare",id:productMatch.id,code:productMatch.sku||scanned,name:productMatch.name});setScannerOpen(false);return;}
     setSearch(scanned);setPage("spareParts");setScannerOpen(false);
