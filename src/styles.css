@@ -3739,43 +3739,6 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
   border-radius: 0 0 18px 18px !important;
   background: #fff !important;
 }
-@media(max-width:760px) {
-  html body .modal-backdrop.org-form-backdrop:has(> form.org-assignment-modal) {
-    padding: max(8px,env(safe-area-inset-top)) 8px max(20px,env(safe-area-inset-bottom)) !important;
-  }
-  html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-modal {
-    width: 100% !important;
-    border-radius: 14px !important;
-  }
-  html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-modal > .modal-head {
-    padding: 17px 16px !important;
-  }
-  html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-modal > .modal-head h3 {
-    font-size: 18px !important;
-  }
-  html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-modal > .form-grid.org-assignment-body {
-    grid-template-columns: minmax(0,1fr) !important;
-    gap: 14px !important;
-    padding: 17px 16px !important;
-  }
-  html body .modal-backdrop.org-form-backdrop > form.org-assignment-modal > .org-assignment-body > .org-management-scope-picker,
-  html body .modal-backdrop.org-form-backdrop > form.org-assignment-modal > .org-assignment-body > .org-multi-scope-field,
-  html body .modal-backdrop.org-form-backdrop > form.org-assignment-modal > .org-assignment-body > .org-project-permissions,
-  html body .modal-backdrop.org-form-backdrop > form.org-assignment-modal > .org-assignment-body > .org-permissions {
-    grid-column: 1 !important;
-  }
-  html body .modal-backdrop.org-form-backdrop > form.org-assignment-modal .org-permissions {
-    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
-  }
-  html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-modal > .modal-actions {
-    padding: 14px 16px 18px !important;
-  }
-  html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-modal > .modal-actions button {
-    flex: 1 1 130px !important;
-    justify-content: center !important;
-  }
-}
-
 /* Project dashboard refresh: compact KPI row, clear all-project selector and speedometer */
 .pm-kpis-scoped{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}
 .pm-kpis-scoped article{min-height:126px;padding:13px 15px;gap:5px;align-content:start}
@@ -3834,26 +3797,6 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
   0%,100%{box-shadow:0 0 0 0 rgba(55,105,195,.08)}
   50%{box-shadow:0 0 0 7px rgba(55,105,195,.16)}
 }
-@media(max-width:760px){
-  .sp-modal-backdrop{
-    padding:calc(8px + env(safe-area-inset-top)) 7px calc(8px + env(safe-area-inset-bottom))!important;
-    align-items:center!important;
-  }
-  .sp-modal-backdrop>.sp-modal-shell{
-    width:100%!important;
-    max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 16px)!important;
-    overflow-y:auto!important;
-    overscroll-behavior:contain;
-    scroll-behavior:smooth;
-  }
-  .sp-modal-shell>.panel>.panel-head{position:sticky!important;top:0!important;z-index:5!important}
-  .sp-modal-shell .ops-line select{min-height:46px!important;font-size:16px!important}
-  .sp-modal-shell .ops-line input{min-height:46px!important;font-size:16px!important}
-  .equipment-scanned-focus{scroll-margin-top:12px}
-  .spare-scanned-highlight td{padding-top:12px!important;padding-bottom:12px!important}
-}
-
-
 /* QR scan action dialog: always centered on the visible phone screen */
 .scan-choice-backdrop{
   position:fixed!important;
@@ -3974,27 +3917,6 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
   overscroll-behavior:contain!important;
   -webkit-overflow-scrolling:touch!important;
 }
-@media(max-width:760px){
-  .sp-modal-backdrop{
-    padding:max(10px,env(safe-area-inset-top)) 8px max(10px,env(safe-area-inset-bottom))!important;
-    align-items:center!important;
-    justify-content:center!important;
-  }
-  .sp-modal-backdrop>.sp-modal-shell{
-    flex:0 1 auto!important;
-    width:100%!important;
-    max-width:560px!important;
-    max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 20px)!important;
-    margin:auto!important;
-  }
-  .sp-modal-shell>.panel>form{
-    padding:14px 12px max(18px,env(safe-area-inset-bottom))!important;
-  }
-  .sp-modal-shell .ops-line{
-    grid-template-columns:minmax(0,1fr) 86px 36px!important;
-    gap:7px!important;
-  }
-}
 @media(min-width:761px){
   .sp-modal-backdrop{
     padding:24px!important;
@@ -4013,14 +3935,6 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
 .gsp-spare-form-dialog>.panel{display:flex!important;flex:1 1 auto!important;flex-direction:column!important;min-height:0!important;max-height:inherit!important;overflow:hidden!important;margin:0!important}
 .gsp-spare-form-dialog>.panel>.panel-head{position:relative!important;top:auto!important;flex:0 0 auto!important;z-index:2!important}
 .gsp-spare-form-dialog>.panel>form{flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important}
-@media(max-width:760px){
- .gsp-spare-form-overlay{padding:max(10px,env(safe-area-inset-top)) 8px max(10px,env(safe-area-inset-bottom))!important}
- .gsp-spare-form-dialog{width:calc(100vw - 16px)!important;max-width:560px!important;max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 20px)!important;border-radius:15px!important}
- .gsp-spare-form-dialog>.panel>.panel-head{padding:13px 14px!important}
- .gsp-spare-form-dialog>.panel>form{padding:12px 12px max(18px,env(safe-area-inset-bottom))!important}
- .gsp-spare-form-dialog .ops-fields{grid-template-columns:minmax(0,1fr)!important;gap:11px!important}
- .gsp-spare-form-dialog input:not([type=checkbox]):not([type=radio]),.gsp-spare-form-dialog select{min-height:44px!important;font-size:16px!important}
-}
 @media(min-width:761px){
  .gsp-spare-form-dialog{width:min(1050px,calc(100vw - 48px))!important;max-height:calc(100dvh - 48px)!important}
  .gsp-spare-form-dialog .ops-fields{grid-template-columns:repeat(2,minmax(0,1fr))!important}
@@ -4304,6 +4218,8 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
     .gsp-modal-portal-root .pm-modal .pm-form-grid,
     .gsp-modal-portal-root .pms-modal .pms-form-grid,
     .gsp-modal-portal-root .sp-modal-shell .ops-fields,
+    .gsp-modal-portal-root .gsp-spare-form-dialog .ops-fields,
+    .gsp-modal-portal-root .org-assignment-body,
     .gsp-modal-portal-root form.org-form.form-grid {
       grid-template-columns: minmax(0, 1fr);
     }
