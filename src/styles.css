@@ -5024,3 +5024,287 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
     max-height: calc(100% - 4px) !important;
   }
 }
+
+
+/* =========================================================
+   GSP MOBILE FORMS — DESKTOP DESIGN PARITY (FINAL OVERRIDE)
+   Keep the desktop visual language on phones. Only the dialog
+   frame adapts to the available viewport; form grids, hierarchy,
+   spacing and controls retain the desktop two-column layout.
+   ========================================================= */
+@media screen and (max-width: 960px) and (pointer: coarse) {
+  .gsp-modal-portal-root {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    overflow: hidden !important;
+    z-index: 2147483000 !important;
+    pointer-events: none !important;
+  }
+
+  .gsp-modal-portal-root > .modal-backdrop,
+  .gsp-modal-portal-root > .org-form-backdrop,
+  .gsp-modal-portal-root > .pm-modal-backdrop,
+  .gsp-modal-portal-root > .pms-modal-backdrop,
+  .gsp-modal-portal-root > .scanner-backdrop,
+  .gsp-modal-portal-root > .users-create-backdrop,
+  .gsp-modal-portal-root > .sp-modal-backdrop,
+  .gsp-modal-portal-root > .gsp-spare-form-overlay,
+  .gsp-modal-portal-root > [class*="backdrop"] {
+    position: absolute !important;
+    inset: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)) !important;
+    box-sizing: border-box !important;
+    overflow: auto !important;
+    background: rgba(13, 29, 52, .64) !important;
+    backdrop-filter: blur(7px) !important;
+    -webkit-backdrop-filter: blur(7px) !important;
+    pointer-events: auto !important;
+  }
+
+  .gsp-modal-portal-root > .modal-backdrop > .modal-card,
+  .gsp-modal-portal-root > .org-form-backdrop > .modal-card,
+  .gsp-modal-portal-root > .pm-modal-backdrop > .pm-modal,
+  .gsp-modal-portal-root > .pms-modal-backdrop > .pms-modal,
+  .gsp-modal-portal-root > .scanner-backdrop > .scanner-card,
+  .gsp-modal-portal-root > .users-create-backdrop > .users-create-modal,
+  .gsp-modal-portal-root > .sp-modal-backdrop > .sp-modal-shell,
+  .gsp-modal-portal-root > .gsp-spare-form-overlay > .gsp-spare-form-dialog,
+  .gsp-modal-portal-root > [class*="backdrop"] > [class*="dialog-card"] {
+    position: relative !important;
+    inset: auto !important;
+    transform: none !important;
+    float: none !important;
+    flex: 0 0 auto !important;
+    width: min(100%, 900px) !important;
+    min-width: 0 !important;
+    max-width: 900px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: calc(100% - 2px) !important;
+    margin: auto !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    border: 1px solid #dce5f0 !important;
+    border-radius: 14px !important;
+    background: #fff !important;
+    box-shadow: 0 18px 48px rgba(8, 26, 48, .24) !important;
+  }
+
+  /* Forms that are the dialog shell: use a fixed desktop-style header,
+     a two-column desktop field grid, and a stable action footer. */
+  .gsp-modal-portal-root > .modal-backdrop > form.modal-card,
+  .gsp-modal-portal-root > .org-form-backdrop > form.modal-card,
+  .gsp-modal-portal-root > .users-create-backdrop > form.modal-card,
+  .gsp-modal-portal-root > .modal-backdrop > form.ops-form {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .gsp-modal-portal-root form.modal-card > .modal-head,
+  .gsp-modal-portal-root .pm-modal > header,
+  .gsp-modal-portal-root .pms-modal > header,
+  .gsp-modal-portal-root .sp-modal-shell > .panel > .panel-head,
+  .gsp-modal-portal-root .gsp-spare-form-dialog .panel-head {
+    display: flex !important;
+    flex: 0 0 auto !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 14px !important;
+    min-height: 64px !important;
+    margin: 0 !important;
+    padding: 16px 20px !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    background: #f7f9fc !important;
+    position: relative !important;
+    top: auto !important;
+  }
+
+  .gsp-modal-portal-root .modal-head h2,
+  .gsp-modal-portal-root .modal-head h3,
+  .gsp-modal-portal-root .pm-modal header h3,
+  .gsp-modal-portal-root .pms-modal header h3 {
+    margin: 0 !important;
+    font-size: 18px !important;
+    line-height: 1.35 !important;
+    font-weight: 750 !important;
+    color: #1e3554 !important;
+  }
+
+  .gsp-modal-portal-root form.modal-card > .form-grid,
+  .gsp-modal-portal-root form.modal-card > .org-form,
+  .gsp-modal-portal-root form.modal-card > .users-create-form,
+  .gsp-modal-portal-root form.modal-card > .users-assignment-grid,
+  .gsp-modal-portal-root .pm-modal > form,
+  .gsp-modal-portal-root .pms-modal > form,
+  .gsp-modal-portal-root .pms-modal .pms-collab-form,
+  .gsp-modal-portal-root .sp-modal-shell > .panel > form,
+  .gsp-modal-portal-root .gsp-spare-form-dialog > .panel > form {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    align-content: start !important;
+    align-items: start !important;
+    gap: 16px 18px !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 20px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch !important;
+    box-sizing: border-box !important;
+  }
+
+  .gsp-modal-portal-root form.modal-card.org-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    display: grid !important;
+    max-height: calc(100% - 2px) !important;
+  }
+
+  .gsp-modal-portal-root form.modal-card.org-form > .modal-head,
+  .gsp-modal-portal-root form.modal-card.org-form > .modal-actions,
+  .gsp-modal-portal-root form.modal-card > .modal-head,
+  .gsp-modal-portal-root form.modal-card > .modal-actions,
+  .gsp-modal-portal-root .pm-modal > form > .pm-form-grid,
+  .gsp-modal-portal-root .pms-modal > form > .pms-form-grid {
+    grid-column: 1 / -1 !important;
+  }
+
+  .gsp-modal-portal-root .form-grid > .span-2,
+  .gsp-modal-portal-root .ops-fields > .span-2,
+  .gsp-modal-portal-root .pms-form-grid > .pms-wide,
+  .gsp-modal-portal-root .pm-form-grid > .pm-wide,
+  .gsp-modal-portal-root .document-lines,
+  .gsp-modal-portal-root .document-summary {
+    grid-column: 1 / -1 !important;
+  }
+
+  /* Stock Operations owns a fieldset inside the form. */
+  .gsp-modal-portal-root form.ops-form > fieldset.ops-fieldset {
+    display: block !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 20px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  .gsp-modal-portal-root form.ops-form .form-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 16px 18px !important;
+  }
+
+  .gsp-modal-portal-root form.modal-card > .modal-actions,
+  .gsp-modal-portal-root form.modal-card > .ops-actions,
+  .gsp-modal-portal-root .pm-modal > .modal-actions,
+  .gsp-modal-portal-root .pms-modal > .modal-actions {
+    display: flex !important;
+    flex: 0 0 auto !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    justify-content: flex-end !important;
+    gap: 10px !important;
+    margin: 0 !important;
+    padding: 14px 20px max(14px, env(safe-area-inset-bottom)) !important;
+    border-top: 1px solid #e2e8f0 !important;
+    background: #fff !important;
+  }
+  .gsp-modal-portal-root .modal-actions > button {
+    flex: 0 0 auto !important;
+    min-width: 112px !important;
+    min-height: 42px !important;
+  }
+
+  /* Keep desktop-like control sizing and typography on touch devices. */
+  .gsp-modal-portal-root label {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 7px !important;
+    min-width: 0 !important;
+    color: #43536a !important;
+    font-size: 12px !important;
+    font-weight: 650 !important;
+    line-height: 1.45 !important;
+  }
+  .gsp-modal-portal-root input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  .gsp-modal-portal-root select,
+  .gsp-modal-portal-root textarea {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    min-height: 42px !important;
+    padding: 9px 11px !important;
+    border: 1px solid #cfd8e4 !important;
+    border-radius: 7px !important;
+    background: #fff !important;
+    color: #26384f !important;
+    font-size: 16px !important;
+    line-height: 1.4 !important;
+    box-shadow: none !important;
+    box-sizing: border-box !important;
+  }
+  .gsp-modal-portal-root textarea {
+    min-height: 88px !important;
+    resize: vertical !important;
+  }
+  .gsp-modal-portal-root input:focus,
+  .gsp-modal-portal-root select:focus,
+  .gsp-modal-portal-root textarea:focus {
+    border-color: #6b91c5 !important;
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(68, 112, 170, .12) !important;
+  }
+  .gsp-modal-portal-root button.primary-btn,
+  .gsp-modal-portal-root button.secondary-btn {
+    min-height: 42px !important;
+    border-radius: 7px !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+  }
+
+  /* Long project forms remain scrollable without collapsing their columns. */
+  .gsp-modal-portal-root .pm-modal,
+  .gsp-modal-portal-root .pms-modal {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  .gsp-modal-portal-root .pm-modal > form,
+  .gsp-modal-portal-root .pms-modal > form {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    flex: 1 1 auto !important;
+  }
+}
+
+/* Landscape phones: same desktop form grid, wider dialog, shorter scroll area. */
+@media screen and (max-width: 960px) and (orientation: landscape) and (pointer: coarse) {
+  .gsp-modal-portal-root > [class*="backdrop"] {
+    padding: 6px 12px !important;
+  }
+  .gsp-modal-portal-root > [class*="backdrop"] > .modal-card,
+  .gsp-modal-portal-root > [class*="backdrop"] > .pm-modal,
+  .gsp-modal-portal-root > [class*="backdrop"] > .pms-modal,
+  .gsp-modal-portal-root > [class*="backdrop"] > .gsp-spare-form-dialog {
+    width: min(100%, 960px) !important;
+    max-width: 960px !important;
+    max-height: calc(100% - 2px) !important;
+  }
+}
