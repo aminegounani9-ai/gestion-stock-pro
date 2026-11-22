@@ -4467,3 +4467,189 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
     perspective:none!important;
   }
 }
+
+
+/* UNIVERSAL MOBILE DIALOG FIX v2 — final cascade override.
+   Do not use bottom-sheet alignment. Every module dialog is centered
+   against the visible viewport in portrait AND landscape. */
+@media screen and (max-width: 760px) {
+  .modal-backdrop,
+  .org-form-backdrop,
+  .scanner-backdrop,
+  .pm-modal-backdrop,
+  .pms-modal-backdrop,
+  .professional-report-backdrop,
+  .scan-choice-backdrop,
+  .sp-modal-backdrop,
+  .gsp-spare-form-overlay,
+  .users-create-backdrop,
+  [class*="dialog-backdrop"],
+  [class*="modal-backdrop"] {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    min-height: 0 !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: center !important;
+    justify-items: center !important;
+    padding:
+      max(8px, env(safe-area-inset-top))
+      max(8px, env(safe-area-inset-right))
+      max(8px, env(safe-area-inset-bottom))
+      max(8px, env(safe-area-inset-left)) !important;
+    margin: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    z-index: 2147483000 !important;
+    transform: none !important;
+  }
+
+  .modal-backdrop > .modal-card,
+  .org-form-backdrop > .modal-card,
+  .org-form-backdrop > .org-assignment-modal,
+  .scanner-backdrop > .scanner-card,
+  .pm-modal-backdrop > .pm-modal,
+  .pms-modal-backdrop > .pms-modal,
+  .professional-report-backdrop > .professional-module-report,
+  .scan-choice-backdrop > .scan-choice-card,
+  .sp-modal-backdrop > .sp-modal-shell,
+  .gsp-spare-form-overlay > .gsp-spare-form-dialog,
+  .users-create-backdrop > .users-create-modal,
+  [class*="dialog-backdrop"] > [class*="dialog-card"] {
+    position: relative !important;
+    inset: auto !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    float: none !important;
+    transform: none !important;
+    flex: 0 1 auto !important;
+    align-self: center !important;
+    width: min(100%, 560px) !important;
+    min-width: 0 !important;
+    max-width: 560px !important;
+    height: auto !important;
+    max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 16px) !important;
+    min-height: 0 !important;
+    margin: auto !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch !important;
+    border-radius: 15px !important;
+  }
+
+  /* Forms that are themselves the dialog card */
+  .modal-backdrop > form.modal-card,
+  .org-form-backdrop > form.modal-card,
+  .users-create-backdrop > form.modal-card {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 14px !important;
+  }
+
+  /* Project dialogs: form content scrolls, header stays visible */
+  .pm-modal-backdrop > .pm-modal,
+  .pms-modal-backdrop > .pms-modal {
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+  .pm-modal-backdrop > .pm-modal > form,
+  .pms-modal-backdrop > .pms-modal > form {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 13px !important;
+  }
+  .pm-modal-backdrop > .pm-modal > form > .pm-form-grid,
+  .pms-modal-backdrop > .pms-modal > form > .pms-form-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    min-width: 0 !important;
+  }
+  .pm-modal-backdrop > .pm-modal > header,
+  .pms-modal-backdrop > .pms-modal > header {
+    flex: 0 0 auto !important;
+    position: relative !important;
+    top: auto !important;
+  }
+
+  /* Other long forms: card is the scroll container, actions stay at end */
+  .modal-backdrop > form.modal-card > .modal-head,
+  .org-form-backdrop > form.modal-card > .modal-head,
+  .users-create-backdrop > form.modal-card > .modal-head {
+    flex: 0 0 auto !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 4 !important;
+    background: #fff !important;
+  }
+  .modal-backdrop > form.modal-card > .modal-actions,
+  .org-form-backdrop > form.modal-card > .modal-actions,
+  .users-create-backdrop > form.modal-card > .modal-actions {
+    flex: 0 0 auto !important;
+    position: sticky !important;
+    bottom: 0 !important;
+    z-index: 4 !important;
+    background: #fff !important;
+    padding: 10px 0 max(10px, env(safe-area-inset-bottom)) !important;
+  }
+
+  /* Never force device rotation; layouts adapt to whichever orientation
+     the phone OS/browser currently reports. */
+  html, body, #root {
+    min-height: 100% !important;
+    height: auto !important;
+    overflow-x: hidden !important;
+  }
+}
+
+/* Landscape phones: keep centered dialogs within the shorter viewport. */
+@media screen and (max-width: 960px) and (orientation: landscape) {
+  .modal-backdrop,
+  .org-form-backdrop,
+  .scanner-backdrop,
+  .pm-modal-backdrop,
+  .pms-modal-backdrop,
+  .professional-report-backdrop,
+  .scan-choice-backdrop,
+  .sp-modal-backdrop,
+  .gsp-spare-form-overlay,
+  .users-create-backdrop,
+  [class*="dialog-backdrop"],
+  [class*="modal-backdrop"] {
+    padding: max(5px, env(safe-area-inset-top)) 8px max(5px, env(safe-area-inset-bottom)) !important;
+  }
+  .modal-backdrop > .modal-card,
+  .org-form-backdrop > .modal-card,
+  .org-form-backdrop > .org-assignment-modal,
+  .scanner-backdrop > .scanner-card,
+  .pm-modal-backdrop > .pm-modal,
+  .pms-modal-backdrop > .pms-modal,
+  .professional-report-backdrop > .professional-module-report,
+  .scan-choice-backdrop > .scan-choice-card,
+  .sp-modal-backdrop > .sp-modal-shell,
+  .gsp-spare-form-overlay > .gsp-spare-form-dialog,
+  .users-create-backdrop > .users-create-modal {
+    max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 10px) !important;
+    width: min(94vw, 760px) !important;
+  }
+  .modal-backdrop > form.modal-card,
+  .org-form-backdrop > form.modal-card,
+  .users-create-backdrop > form.modal-card {
+    overflow-y: auto !important;
+  }
+}
