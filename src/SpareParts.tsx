@@ -25,7 +25,7 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
   const warehouseIds=(warehouses||[]).filter((x:any)=>x.is_active!==false).map((x:any)=>x.id);
   const empty:any={data:[],error:null};
   let detailQuery:any=supabase!.from("spare_part_details").select("*, products(id,sku,name,unit,min_stock,purchase_price,category_id), suppliers(name)").eq("company_id",companyId).order("created_at",{ascending:false}).limit(500);
-  if(!isAdmin)detailQuery=applyAssignedScopeFilter(detailQuery,myScopes.filter((x:any)=>x.scope_type!=="warehouse"),{site:"site_id",service:"service_id",department:"department_id",unit:"unit_id",equipment:"equipment_id"},"product_id");
+  if(!isAdmin)detailQuery=applyAssignedScopeFilter(detailQuery,myScopes,{management:"management_id",site:"site_id",service:"service_id",department:"department_id",unit:"unit_id",equipment:"equipment_id",warehouse:"warehouse_id"},"product_id");
   let equipmentQuery:any=supabase!.from("org_equipment").select("id,equipment_tag,name,site_id,unit_id,service_id,department_id,manufacturer,model,serial_number,location,notes,status").eq("company_id",companyId).eq("status","active").order("name").limit(1000);
   if(!isAdmin)equipmentQuery=applyAssignedScopeFilter(equipmentQuery,myScopes,{site:"site_id",service:"service_id",department:"department_id",unit:"unit_id",equipment:"id"});
   const [d,r,b,sn]=await Promise.all([
@@ -86,7 +86,7 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
  const assignedContext=useMemo(()=>resolveAssignedContext(ownScopeRows,{sites:orgSites,services:orgServices,departments:orgDepartments,units:orgUnits,equipment:orgEquipment,warehouses}),[ownScopeRows,orgSites,orgServices,orgDepartments,orgUnits,orgEquipment,warehouses]);
  const isScopeLocked=(field:string)=>!!assignedContext.locked[field];
  const ownScopeIds=(type:string)=>ownScopeRows.filter((x:any)=>x.scope_type===type&&x.can_view!==false).map((x:any)=>x.scope_id);
- const warehouseScoped=role==="warehouse"&&!access?.isAdmin;
+ const warehouseScoped=!isAdmin&&myScopes.length>0&&myScopes.every((x:any)=>x.scope_type==="warehouse");
  const permittedUnitIds=useMemo(()=>{
     if(!warehouseScoped)return orgUnits.map((x:any)=>x.id);
     const ids=new Set<string>(ownScopeIds("unit"));
