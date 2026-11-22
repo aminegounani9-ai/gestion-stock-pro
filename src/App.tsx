@@ -690,7 +690,32 @@ export default function App() {
 
   async function refreshTeam(){if(!supabase||!company)return;const team=await supabase.rpc("list_company_users_with_names",{p_company_id:company.id});if(team.error)flash("error",team.error.message);else setMembers(team.data??[]);}
 
+  function playScanFeedback(){
+    try{
+      const AudioContextCtor=window.AudioContext||(window as any).webkitAudioContext;
+      if(AudioContextCtor){
+        const ctx=new AudioContextCtor();
+        const now=ctx.currentTime;
+        [740,1040].forEach((frequency,index)=>{
+          const oscillator=ctx.createOscillator();
+          const gain=ctx.createGain();
+          const start=now+index*0.16;
+          oscillator.type="sine";
+          oscillator.frequency.setValueAtTime(frequency,start);
+          gain.gain.setValueAtTime(0.0001,start);
+          gain.gain.exponentialRampToValueAtTime(0.34,start+0.025);
+          gain.gain.exponentialRampToValueAtTime(0.0001,start+0.20);
+          oscillator.connect(gain);gain.connect(ctx.destination);
+          oscillator.start(start);oscillator.stop(start+0.22);
+        });
+        window.setTimeout(()=>{void ctx.close();},700);
+      }
+    }catch{}
+    try{if("vibrate" in navigator)navigator.vibrate([90,45,120]);}catch{}
+  }
+
   async function handleScannedCode(code:string){
+    playScanFeedback();
     let scanned=code.trim();
     try{const url=new URL(scanned,window.location.origin);scanned=url.searchParams.get("equipment")||url.searchParams.get("equipment_tag")||url.searchParams.get("product")||url.searchParams.get("sku")||url.searchParams.get("part")||url.searchParams.get("barcode")||url.pathname.split("/equipment/")[1]?.split("/")[0]||scanned;}catch{}
     try{const parsed=JSON.parse(scanned);scanned=String(parsed.equipment_id||parsed.equipmentId||parsed.equipment_tag||parsed.equipment||parsed.product_id||parsed.productId||parsed.sku||parsed.part_number||parsed.barcode||scanned);}catch{}
