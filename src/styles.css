@@ -4232,9 +4232,8 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
    Keep the desktop form components and visual rules intact.
    Only the outer dialog frame adapts to the available viewport.
    ========================================================= */
-.gsp-modal-portal-root { display: contents; }
-
 @media screen and (max-width: 960px) {
+  .gsp-modal-portal-root { display: contents; }
   .gsp-modal-portal-root > [class*="backdrop"] {
     position: fixed !important;
     inset: 0 !important;
