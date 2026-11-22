@@ -44,10 +44,9 @@ export default function StockOperations({page,companyId,currentUserId="",product
   const load=useCallback(async()=>{
     if(!supabase)return;setLoading(true);
     try {
-      const isAdmin=access?.isAdmin||["owner","admin"].includes(role);
+      const isAdmin=["owner","admin"].includes(role);
       const warehouseIds=(warehouses||[]).map((w:any)=>w.id).filter(Boolean);
       const empty:any={data:[],error:null};
-      const noWarehouse=(query:any)=>warehouseIds.length?query.in("warehouse_id",warehouseIds):query.eq("id","00000000-0000-0000-0000-000000000000");
       const transferScope=(query:any)=>warehouseIds.length?query.or("source_warehouse_id.in.("+warehouseIds.join(",")+"),destination_warehouse_id.in.("+warehouseIds.join(",")+")"):query.eq("id","00000000-0000-0000-0000-000000000000");
       if(page==="locations"){
         const r=warehouseIds.length?await supabase.from("storage_locations").select("*, warehouses(name)").eq("company_id",companyId).in("warehouse_id",warehouseIds).order("warehouse_id").order("code"):empty;
@@ -86,7 +85,7 @@ export default function StockOperations({page,companyId,currentUserId="",product
         for(const x of [b,m,tr])if(x.error)throw x.error;setReport({balances:b.data??[],movements:m.data??[],transfers:tr.data??[]});
       }
     } catch(e:any){window.alert(e.message)} finally{setLoading(false)}
-  },[page,companyId,start,end,warehouses,access,role,currentUserId,sales,purchases]);
+  },[page,companyId,start,end,warehouses,role,currentUserId,sales,purchases]);
   useEffect(()=>{void load()},[load]);
   const addLine=()=>setLines(v=>[...v,{product_id:"",quantity:"",unit_price:""}]);
   async function deleteDraft(row:any){if(!supabase||(!access?.canDelete&&!access?.isAdmin))return;const allowed=(page==="transfers"||page==="inventory")&&row.status==="draft";if(!allowed&&page!=="categories"&&page!=="locations")return;const label=page==="categories"?"cette catégorie":page==="locations"?"cet emplacement":page==="transfers"?"ce transfert brouillon":"cet inventaire brouillon";if(!window.confirm("Supprimer "+label+" ? Cette action est irréversible."))return;setBusy(true);try{let result:any;if(page==="categories")result=await supabase.from("product_categories").delete().eq("id",row.id).eq("company_id",companyId);else if(page==="locations")result=await supabase.from("storage_locations").update({is_active:false}).eq("id",row.id).eq("company_id",companyId);else if(page==="transfers")result=await supabase.from("stock_transfers").delete().eq("id",row.id).eq("company_id",companyId).eq("status","draft");else result=await supabase.from("inventory_counts").delete().eq("id",row.id).eq("company_id",companyId).eq("status","draft");if(result.error)throw result.error;setEditingId(null);reset();await load();await onSaved();}catch(e:any){window.alert("Suppression impossible : "+e.message)}finally{setBusy(false)}}
