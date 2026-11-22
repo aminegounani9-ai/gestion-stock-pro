@@ -4193,18 +4193,13 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
   .workspace-select{max-width:none!important;width:100%!important;color:#fff!important;font-size:12px!important}
   .workspace-select option{color:#172033!important}
   .sidebar-navigation{
-    display:flex!important;flex-direction:column!important;gap:7px!important;
-    width:100%!important;max-width:100%!important;overflow:visible!important;
-  }
-  .nav-group{display:flex!important;flex-direction:column!important;gap:5px!important;min-width:0!important}
-  .nav-group-title{display:none!important}
-  .sidebar-navigation .nav-group nav,.sidebar-navigation .nav-group>div:not(.nav-group-title){
-    display:flex!important;flex-direction:row!important;gap:7px!important;
+    display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;gap:7px!important;
     width:100%!important;max-width:100%!important;overflow-x:auto!important;overflow-y:hidden!important;
     padding:1px 1px 5px!important;scrollbar-width:none!important;-webkit-overflow-scrolling:touch!important;
   }
-  .sidebar-navigation .nav-group nav::-webkit-scrollbar,.sidebar-navigation .nav-group>div::-webkit-scrollbar{display:none!important}
-  .sidebar-navigation .nav-group{display:contents!important}
+  .sidebar-navigation::-webkit-scrollbar{display:none!important}
+  .nav-group{display:contents!important}
+  .nav-group-title{display:none!important}
   .sidebar-navigation .nav-item{
     display:inline-flex!important;flex:0 0 auto!important;align-items:center!important;justify-content:center!important;
     width:auto!important;min-width:max-content!important;min-height:39px!important;height:39px!important;
