@@ -4114,7 +4114,8 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
    ========================================================= */
 @media screen and (max-width: 960px) {
   .gsp-modal-portal-root { display: contents; }
-  .gsp-modal-portal-root > [class*="backdrop"] {
+  .gsp-modal-portal-root > [class*="backdrop"],
+  .gsp-modal-portal-root > .gsp-spare-form-overlay {
     position: fixed !important;
     inset: 0 !important;
     z-index: 2147483000 !important;
@@ -4194,7 +4195,8 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
 
 /* Small landscape screens: preserve centering and allow a wider dialog. */
 @media screen and (max-width: 960px) and (orientation: landscape) {
-  .gsp-modal-portal-root > [class*="backdrop"] {
+  .gsp-modal-portal-root > [class*="backdrop"],
+  .gsp-modal-portal-root > .gsp-spare-form-overlay {
     padding-top: max(6px, env(safe-area-inset-top)) !important;
     padding-bottom: max(6px, env(safe-area-inset-bottom)) !important;
   }
