@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import ModalPortal from "./ModalPortal";
 import type { FormEvent } from "react";
 import { supabase } from "./lib/supabase";
-import { resolveAssignedContext } from "./lib/assignmentScope";
+import { resolveAssignedContext, applyAssignedScopeFilter } from "./lib/assignmentScope";
 import { Search, Wrench, Package, History, Plus, X, Printer, Pencil, Trash2, RefreshCw, ClipboardList, FileDown, ChevronLeft, ChevronRight } from "lucide-react";
 
 type Props={companyId:string;lang:"fr"|"en"|"ar";equipmentSeed?:string|null;myScopes?:any[];access?:{canCreate?:boolean;isAdmin?:boolean};onRequestParts?:(equipmentId:string)=>void};
@@ -26,16 +26,22 @@ export default function EquipmentManagement({companyId,lang,equipmentSeed,myScop
  const load=async()=>{
   if(!supabase)return;
   setError("");
-  const [eq,pr,sites,units,services,departments]=await Promise.all([
-   supabase.from("org_equipment").select("id,equipment_tag,name,manufacturer,model,serial_number,location,notes,site_id,unit_id,service_id,department_id,status,created_at").eq("company_id",companyId).eq("is_active",true).order("name"),
-   supabase.from("products").select("id,sku,name,unit,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
-   supabase.from("org_sites").select("id,code,name").eq("company_id",companyId),
-   supabase.from("org_units").select("id,code,name,site_id").eq("company_id",companyId),
-   supabase.from("org_services").select("id,code,name,site_id,unit_id").eq("company_id",companyId),
-   supabase.from("org_departments").select("id,code,name,site_id,unit_id,service_id").eq("company_id",companyId)
+  const isAdmin=access?.isAdmin===true;
+  let equipmentQuery:any=supabase.from("org_equipment").select("id,equipment_tag,name,manufacturer,model,serial_number,location,notes,site_id,unit_id,service_id,department_id,status,created_at").eq("company_id",companyId).eq("is_active",true).order("name").limit(1000);
+  if(!isAdmin)equipmentQuery=applyAssignedScopeFilter(equipmentQuery,myScopes,{site:"site_id",service:"service_id",department:"department_id",unit:"unit_id",equipment:"id"});
+  const [eq,sites,units,services,departments,partScopeResult]=await Promise.all([
+   equipmentQuery,
+   supabase.from("org_sites").select("id,code,name").eq("company_id",companyId).limit(300),
+   supabase.from("org_units").select("id,code,name,site_id,service_id,department_id").eq("company_id",companyId).limit(500),
+   supabase.from("org_services").select("id,code,name,site_id,unit_id").eq("company_id",companyId).limit(300),
+   supabase.from("org_departments").select("id,code,name,site_id,unit_id,service_id").eq("company_id",companyId).limit(500),
+   isAdmin?Promise.resolve({data:[],error:null} as any):supabase.from("spare_part_details").select("product_id").eq("company_id",companyId).limit(1000)
   ]);
-  const loadError=[eq,pr,sites,units,services,departments].find(x=>x.error)?.error;
+  const loadError=[eq,sites,units,services,departments,partScopeResult].find(x=>x.error)?.error;
   if(loadError){setError(loadError.message||t.error);return;}
+  const productIds=[...new Set((partScopeResult.data||[]).map((x:any)=>x.product_id).filter(Boolean))];
+  const pr=isAdmin?await supabase.from("products").select("id,sku,name,unit,is_active").eq("company_id",companyId).eq("is_active",true).order("name").limit(500):productIds.length?await supabase.from("products").select("id,sku,name,unit,is_active").eq("company_id",companyId).in("id",productIds).eq("is_active",true).order("name").limit(500):{data:[],error:null} as any;
+  if(pr.error){setError(pr.error.message||t.error);return;}
   setEquipment((eq.data||[]) as Equipment[]);setProducts(pr.data||[]);setSites(sites.data||[]);setUnits(units.data||[]);setServices(services.data||[]);setDepartments(departments.data||[]);
   setOrgNames(Object.fromEntries([...(sites.data||[]),...(units.data||[]),...(services.data||[]),...(departments.data||[])].map((x:any)=>[x.id,[x.code,x.name].filter(Boolean).join(" · ")])));
   const preferred=(equipmentSeed&&eq.data?.some((x:any)=>x.id===equipmentSeed)?equipmentSeed:"")||(selected&&eq.data?.some((x:any)=>x.id===selected)?selected:"")||eq.data?.[0]?.id||"";
