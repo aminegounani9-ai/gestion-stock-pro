@@ -703,7 +703,7 @@ export default function App() {
     let productMatch:any=(products||[]).find((p:any)=>p.id===scanned||String(p.sku||"").toLowerCase()===scanned.toLowerCase()||String(p.barcode||"").toLowerCase()===scanned.toLowerCase());
     if(!productMatch){
       let d=await supabase.from("spare_part_details").select("product_id").eq("company_id",company.id).eq("part_number",scanned).maybeSingle();
-      if(!d.data)d=await supabase.from("spare_part_details").select("product_id").eq("company_id",company.id).eq("manufacturer_reference",scanned).maybeSingle();
+      if(!d.data?.product_id)d=await supabase.from("spare_part_details").select("product_id").eq("company_id",company.id).eq("manufacturer_reference",scanned).maybeSingle();
       const scannedProductId=d.data?.product_id;if(scannedProductId)productMatch=(products||[]).find((p:any)=>p.id===scannedProductId)||null;
     }
     if(productMatch){setScanChoice({type:"spare",id:productMatch.id,code:productMatch.sku||scanned,name:productMatch.name});setScannerOpen(false);return;}
