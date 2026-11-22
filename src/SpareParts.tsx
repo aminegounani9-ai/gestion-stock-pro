@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import ModalPortal from "./ModalPortal";
 import { AlertTriangle, Boxes, ClipboardList, PackagePlus, Search, Wrench, CheckCircle2, XCircle, PackageCheck, Printer, Trash2, X, ChevronDown, ChevronUp } from "lucide-react";
 import { supabase } from "./lib/supabase";
+import { resolveAssignedContext } from "./lib/assignmentScope";
 
 type Props = { companyId: string; products: any[]; categories:any[]; warehouses: any[]; suppliers: any[]; myScopes?:any[]; role: string; access?: {isAdmin:boolean;canView:boolean;canCreate:boolean;canEdit:boolean;canDelete:boolean;canApprove:boolean;canIssue:boolean;canReceive:boolean;canTransfer:boolean;canInventory:boolean}; lang: "fr"|"en"|"ar"; searchTerm?:string; onSaved: () => Promise<void>; view?: "parts"|"requests"; initialEquipmentId?:string|null };
 const text = {
@@ -10,27 +11,6 @@ const text = {
  ar:{title:"مخزن قطع الغيار",sub:"البيانات التقنية، التوفر، الحجوزات وصرف القطع لأعمال الصيانة.",parts:"المراجع",critical:"حرجة",low:"أقل من مخزون الأمان",reserved:"الحجوزات النشطة",search:"بحث بالمرجع أو الوصف أو المعدة...",new:"بطاقة قطعة غيار جديدة",part:"القطعة / المنتج",partNo:"رقم القطعة لدى المصنع",manufacturer:"الشركة المصنعة",manufacturerRef:"مرجع المصنع",type:"النوع",family:"عائلة المعدة",model:"طراز المعدة",tag:"رمز المعدة",criticality:"الأهمية",condition:"الصنف / المواصفات",shelfLife:"مدة التخزين (شهر)",storage:"شروط التخزين",shelf:"الموقع المقترح",alternative:"رقم بديل",drawing:"الرسم / الوثيقة التقنية",specs:"المواصفات التقنية",safety:"مخزون الأمان",supplier:"المورد المفضل",repairable:"قابلة للإصلاح",save:"حفظ البطاقة",cancel:"إلغاء",all:"الكل",consumable:"مستهلك",mechanical:"ميكانيكية",electrical:"كهربائية",instrumentation:"أجهزة قياس",pneumatic:"هوائية",hydraulic:"هيدروليكية",other:"أخرى",lowCrit:"منخفضة",medium:"متوسطة",high:"عالية",criticalLevel:"حرجة",stock:"المخزون الفعلي",available:"المتاح",warehouse:"المخزن",issue:"صرف لعملية صيانة",qty:"الكمية",wo:"رقم أمر العمل",equipment:"رمز المعدة",note:"السبب / ملاحظة",issueBtn:"تأكيد الصرف",reserve:"حجز قطعة",reservationNo:"رقم الحجز",requestedFor:"طالب القطعة / القسم",requiredDate:"تاريخ الحاجة",reserveBtn:"إنشاء الحجز",history:"الحجوزات",status:"الحالة",date:"التاريخ",empty:"لا توجد بطاقات قطع غيار.",edit:"تعديل",active:"نشط",issued:"تم الصرف",cancelled:"ملغى",stockAlert:"تنبيه",actions:"الإجراءات",permission:"يلزم صلاحية أمين المخزن أو المسؤول للتعديل."}
 };
 type Detail = Record<string, any>;
-const scopeRank:Record<string,number>={management:0,site:1,service:2,department:3,unit:4,equipment:5,warehouse:6};
-function resolveAssignedContext(scopes:any[],data:{sites:any[];services:any[];departments:any[];units:any[];equipment:any[];warehouses:any[]}) {
- const rows=(scopes||[]).filter(x=>x&&x.can_view!==false&&scopeRank[x.scope_type]!==undefined&&x.scope_type!=="management");
- const paths=rows.map(scope=>{
-  let site_id="",service_id="",department_id="",unit_id="",equipment_id="",warehouse_id="";
-  const by=(list:any[],id:string)=>list.find(x=>x.id===id);
-  if(scope.scope_type==="site")site_id=scope.scope_id;
-  if(scope.scope_type==="service"){const x=by(data.services,scope.scope_id);service_id=scope.scope_id;site_id=x?.site_id||"";}
-  if(scope.scope_type==="department"){const x=by(data.departments,scope.scope_id);department_id=scope.scope_id;service_id=x?.service_id||"";const sv=by(data.services,service_id);site_id=x?.site_id||sv?.site_id||"";unit_id=x?.unit_id||"";}
-  if(scope.scope_type==="unit"){const x=by(data.units,scope.scope_id);unit_id=scope.scope_id;department_id=x?.department_id||"";const d=by(data.departments,department_id);service_id=x?.service_id||d?.service_id||"";const sv=by(data.services,service_id);site_id=x?.site_id||d?.site_id||sv?.site_id||"";}
-  if(scope.scope_type==="equipment"){const x=by(data.equipment,scope.scope_id);equipment_id=scope.scope_id;unit_id=x?.unit_id||"";department_id=x?.department_id||by(data.units,unit_id)?.department_id||"";const d=by(data.departments,department_id);service_id=x?.service_id||d?.service_id||by(data.units,unit_id)?.service_id||"";const sv=by(data.services,service_id);site_id=x?.site_id||d?.site_id||by(data.units,unit_id)?.site_id||sv?.site_id||"";}
-  if(scope.scope_type==="warehouse"){const x=by(data.warehouses,scope.scope_id);warehouse_id=scope.scope_id;site_id=x?.site_id||"";service_id=x?.service_id||"";department_id=x?.department_id||"";unit_id=x?.unit_id||"";equipment_id=x?.equipment_id||"";if(equipment_id){const e=by(data.equipment,equipment_id);unit_id=unit_id||e?.unit_id||"";department_id=department_id||e?.department_id||"";service_id=service_id||e?.service_id||"";site_id=site_id||e?.site_id||"";}}
-  return {rank:scopeRank[scope.scope_type],site_id,service_id,department_id,unit_id,equipment_id,warehouse_id};
- });
- const fields=["site_id","service_id","department_id","unit_id","equipment_id","warehouse_id"];
- const values:any={},locked:any={};
- const broadest=paths.length?Math.min(...paths.map(x=>x.rank)):0;
- const ranks:Record<string,number>={site_id:1,service_id:2,department_id:3,unit_id:4,equipment_id:5,warehouse_id:6};
- for(const field of fields){const ids=[...new Set(paths.map(x=>x[field]).filter(Boolean))];values[field]=ids.length===1?ids[0]:"";locked[field]=ids.length===1&&broadest>=ranks[field];}
- return {values,locked,paths};
-}
 export default function SpareParts({companyId,warehouses,suppliers,categories,myScopes=[],role,access,lang,searchTerm,onSaved,view="parts",initialEquipmentId}:Props){
  const t=text[lang]; const canCreate=access?(access.isAdmin||access.canCreate):["owner","admin","director","manager","warehouse"].includes(role); const canEdit=access?(access.isAdmin||access.canEdit):["owner","admin","director","manager","warehouse"].includes(role); const canDelete=access?(access.isAdmin||access.canDelete):["owner","admin","director","manager"].includes(role); const canWrite=canCreate||canEdit; const canIssue=access?(access.isAdmin||access.canIssue):["owner","admin","director","manager","warehouse"].includes(role); const canReserve=access?(access.isAdmin||access.canCreate):["owner","admin","director","manager","warehouse"].includes(role); const canReceive=access?(access.isAdmin||access.canReceive):["owner","admin","director","manager","warehouse"].includes(role); const canRequest=["owner","admin","director","manager","warehouse","technician","staff"].includes(role)||(access?.isAdmin||access?.canCreate);
  const [details,setDetails]=useState<Detail[]>([]); const [reservations,setReservations]=useState<any[]>([]); const [balances,setBalances]=useState<any[]>([]); const [compat,setCompat]=useState<any[]>([]); const [quotes,setQuotes]=useState<any[]>([]); const [repairs,setRepairs]=useState<any[]>([]); const [serials,setSerials]=useState<any[]>([]); const [serialForm,setSerialForm]=useState<Detail>({status:"in_stock"}); const [compatForm,setCompatForm]=useState<Detail>({quantity_per_equipment:1}); const [quoteForm,setQuoteForm]=useState<Detail>({currency:"DZD",minimum_order_quantity:1}); const [repairForm,setRepairForm]=useState<Detail>({status:"sent",currency:"DZD"});
