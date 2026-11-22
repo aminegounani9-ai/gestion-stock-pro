@@ -34,7 +34,7 @@ export default function SparePartsDashboard({companyId,currency,lang,warehouses,
   const since=new Date();since.setDate(since.getDate()-89);since.setHours(0,0,0,0);
   const allowedWarehouseIds=(warehouses||[]).filter((w:any)=>w.is_active!==false).map((w:any)=>w.id);
   let detailQuery:any=supabase.from("spare_part_details").select("product_id,part_number,criticality,safety_stock,reorder_point,max_stock,unit_id,products(id,name,sku,unit,min_stock,purchase_price,is_active)").eq("company_id",companyId).order("created_at",{ascending:false}).limit(500);
-  if(!isAdmin)detailQuery=applyAssignedScopeFilter(detailQuery,myScopes.filter((x:any)=>x.scope_type!=="warehouse"),{site:"site_id",service:"service_id",department:"department_id",unit:"unit_id",equipment:"equipment_id"},"product_id");
+  if(!isAdmin)detailQuery=applyAssignedScopeFilter(detailQuery,myScopes,{management:"management_id",site:"site_id",service:"service_id",department:"department_id",unit:"unit_id",equipment:"equipment_id",warehouse:"warehouse_id"},"product_id");
   let requestQuery:any=supabase.from("spare_part_requests").select("id,status,created_at,priority").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100);
   if(!isAdmin&&myScopes.length&&!myScopes.every((x:any)=>x.scope_type==="warehouse"))requestQuery=applyAssignedScopeFilter(requestQuery,myScopes,{site:"site_id",service:"service_id",department:"department_id",unit:"unit_id",equipment:"equipment_id"});
   else if(!isAdmin&&!myScopes.length)requestQuery=requestQuery.eq("id","00000000-0000-0000-0000-000000000000");
