@@ -303,7 +303,7 @@ export default function App() {
       const firstError=[permissions,os,ou,ov,od,oe,wh,scopeResult,categoriesResult].find(x=>x.error)?.error;
       if(firstError)throw firstError;
       const moduleKeys=new Set((permissions.data||[]).filter((x:any)=>x.can_view).map((x:any)=>x.module_key));
-      const partScopeResult=(moduleKeys.has("spareParts")||moduleKeys.has("products")||moduleKeys.has("requests"))?await supabase.from("spare_part_details").select("product_id").eq("company_id",companyId).limit(1000):empty;
+      const partScopeResult=(moduleKeys.has("spareParts")||moduleKeys.has("products")||moduleKeys.has("requests")||moduleKeys.has("equipment"))?await supabase.from("spare_part_details").select("product_id").eq("company_id",companyId).limit(1000):empty;
       if(partScopeResult.error)throw partScopeResult.error;
       const warehouseIds=(wh.data||[]).map((x:any)=>x.id);
       const [movementsResult,balancesResult,purchasesResult,suppliersResult]=warehouseIds.length?await Promise.all([
