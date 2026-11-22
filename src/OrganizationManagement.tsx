@@ -173,7 +173,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
       : [...new Set(selectedScopeIds.length?selectedScopeIds:(assignment.scope_id?[assignment.scope_id]:[]))]
           .map(scope_id=>({scope_type:assignment.scope_type,scope_id}));
     if(!assignment.user_id||!scopeRowsToSave.length||(managementMode&&!selectedManagementIds.length)){onNotice("error","Sélectionnez un utilisateur, un Management et au moins un site ou service.");return;}
-    const hasAction=assignment.can_create||assignment.can_edit||assignment.can_delete||assignment.can_approve||assignment.can_issue||assignment.can_receive||assignment.can_transfer||assignment.can_inventory;
+    const hasAction=assignment.can_create||assignment.can_edit||assignment.can_delete||assignment.can_approve||assignment.can_issue||assignment.can_receive||assignment.can_transfer||assignment.can_inventory||assignment.projects_can_create||assignment.projects_can_edit||assignment.projects_can_delete||assignment.projects_can_approve;
     if(hasAction&&!assignment.can_view){onNotice("error","La permission Consulter est obligatoire avec les autres permissions.");return;}
     setBusy(true);
     try{
@@ -216,7 +216,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
       setEditingManagementAssignmentIds(group.map(a=>a.id));
       setSelectedScopeIds([]);
     }else{
-      setAssignment({user_id:row.user_id,job_title:row.job_title||"",scope_type:row.scope_type as ScopeType,scope_id:row.scope_id,can_view:!!row.can_view,can_create:!!row.can_create,can_edit:!!row.can_edit,can_delete:!!row.can_delete,can_approve:!!row.can_approve,can_issue:!!row.can_issue,can_receive:!!row.can_receive,can_transfer:!!row.can_transfer,can_inventory:!!row.can_inventory});
+      setAssignment({user_id:row.user_id,job_title:row.job_title||"",scope_type:row.scope_type as ScopeType,scope_id:row.scope_id,can_view:!!row.can_view,can_create:!!row.can_create,can_edit:!!row.can_edit,can_delete:!!row.can_delete,can_approve:!!row.can_approve,can_issue:!!row.can_issue,can_receive:!!row.can_receive,can_transfer:!!row.can_transfer,can_inventory:!!row.can_inventory,projects_can_view:row.projects_can_view??!!row.can_view,projects_can_create:row.projects_can_create??!!row.can_create,projects_can_edit:row.projects_can_edit??!!row.can_edit,projects_can_delete:row.projects_can_delete??!!row.can_delete,projects_can_approve:row.projects_can_approve??!!row.can_approve});
       setSelectedScopeIds([row.scope_id]);
       setSelectedManagementIds([]);setSelectedManagementSiteIds([]);setSelectedManagementServiceIds([]);setEditingManagementAssignmentIds([]);
     }
