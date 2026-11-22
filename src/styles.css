@@ -4779,3 +4779,168 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
   html, body { max-width: 100%; overflow-x: hidden !important; }
   .gsp-modal-portal-root { -webkit-tap-highlight-color: transparent; }
 }
+
+
+/* GSP — make every module form behave like the Spare Parts dialog on phones.
+   Covers all ModalPortal overlays (equipment, organisation, projects, stock,
+   users, scanner and nested forms), in portrait and landscape. */
+@media screen and (max-width: 960px) and (pointer: coarse) {
+  .gsp-modal-portal-root {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    overflow: visible !important;
+  }
+  .gsp-modal-portal-root > * {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    box-sizing: border-box !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: minmax(0, 1fr) !important;
+    place-items: center !important;
+    padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)) !important;
+    overflow: auto !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch !important;
+    box-sizing: border-box !important;
+    background: rgba(13, 29, 52, .64) !important;
+    backdrop-filter: blur(7px) !important;
+    -webkit-backdrop-filter: blur(7px) !important;
+  }
+
+  .gsp-modal-portal-root > * > .modal-card,
+  .gsp-modal-portal-root > * > .pm-modal,
+  .gsp-modal-portal-root > * > .pms-modal,
+  .gsp-modal-portal-root > * > .professional-module-report,
+  .gsp-modal-portal-root > * > .scan-choice-card,
+  .gsp-modal-portal-root > * > .scanner-card,
+  .gsp-modal-portal-root > * > .sp-modal-shell,
+  .gsp-modal-portal-root > * > .gsp-spare-form-dialog,
+  .gsp-modal-portal-root > * > .org-assignment-modal,
+  .gsp-modal-portal-root > * > .users-create-modal,
+  .gsp-modal-portal-root > * > [class*="dialog-card"],
+  .gsp-modal-portal-root > * > [class*="form-modal"] {
+    position: relative !important;
+    inset: auto !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    transform: none !important;
+    float: none !important;
+    justify-self: center !important;
+    align-self: center !important;
+    width: min(100%, 620px) !important;
+    min-width: 0 !important;
+    max-width: 620px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: calc(100% - 2px) !important;
+    margin: auto !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch !important;
+    border-radius: 16px !important;
+  }
+
+  /* Forms that are themselves the dialog (equipment, organisation, users,
+     stock operations): preserve their header and action row while fields scroll. */
+  .gsp-modal-portal-root > * > form.modal-card {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+  }
+  .gsp-modal-portal-root > * > form.modal-card > .form-grid,
+  .gsp-modal-portal-root > * > form.modal-card > .org-form,
+  .gsp-modal-portal-root > * > form.modal-card > .users-create-form,
+  .gsp-modal-portal-root > * > form.modal-card > .ops-form,
+  .gsp-modal-portal-root > * > form.modal-card > .span-2.form-grid {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    align-content: start !important;
+    gap: 12px !important;
+    padding: 14px !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  .gsp-modal-portal-root > * > form.modal-card > .modal-head,
+  .gsp-modal-portal-root > * > form.modal-card > header {
+    flex: 0 0 auto !important;
+    position: relative !important;
+    top: auto !important;
+  }
+  .gsp-modal-portal-root > * > form.modal-card > .modal-actions,
+  .gsp-modal-portal-root > * > form.modal-card > footer {
+    flex: 0 0 auto !important;
+    position: relative !important;
+    bottom: auto !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    padding: 12px 14px max(12px, env(safe-area-inset-bottom)) !important;
+    border-top: 1px solid #e5ecf5 !important;
+    background: #fff !important;
+  }
+  .gsp-modal-portal-root > * > form.modal-card > .modal-actions button,
+  .gsp-modal-portal-root > * > form.modal-card > footer button {
+    flex: 1 1 120px !important;
+    min-height: 44px !important;
+  }
+
+  /* Project forms have a section shell and a nested scrolling form. */
+  .gsp-modal-portal-root > * > .pm-modal,
+  .gsp-modal-portal-root > * > .pms-modal {
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+  .gsp-modal-portal-root > * > .pm-modal > form,
+  .gsp-modal-portal-root > * > .pms-modal > form {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 14px !important;
+  }
+  .gsp-modal-portal-root > * > .pm-modal > header,
+  .gsp-modal-portal-root > * > .pms-modal > header {
+    flex: 0 0 auto !important;
+    position: relative !important;
+    top: auto !important;
+  }
+}
+
+/* Landscape: use the available width but always respect the shorter height. */
+@media screen and (max-width: 960px) and (orientation: landscape) and (pointer: coarse) {
+  .gsp-modal-portal-root > * {
+    padding-top: max(5px, env(safe-area-inset-top)) !important;
+    padding-bottom: max(5px, env(safe-area-inset-bottom)) !important;
+  }
+  .gsp-modal-portal-root > * > .modal-card,
+  .gsp-modal-portal-root > * > .pm-modal,
+  .gsp-modal-portal-root > * > .pms-modal,
+  .gsp-modal-portal-root > * > .scanner-card,
+  .gsp-modal-portal-root > * > .org-assignment-modal,
+  .gsp-modal-portal-root > * > .gsp-spare-form-dialog,
+  .gsp-modal-portal-root > * > .users-create-modal {
+    width: min(100%, 820px) !important;
+    max-width: 820px !important;
+    max-height: calc(100% - 2px) !important;
+  }
+}
