@@ -23,26 +23,27 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
   if(!initialProductId||view!=="requests"||!showRequestForm)return;
   let timer1=0,timer2=0,frame=0;
   const centerAndFocus=()=>{
-   const backdrop=document.querySelector(".sp-modal-backdrop") as HTMLElement|null;
-   const shell=backdrop?.querySelector(".sp-modal-shell") as HTMLElement|null;
+   const backdrop=document.querySelector(".gsp-spare-form-overlay") as HTMLElement|null;
+   const shell=backdrop?.querySelector(".gsp-spare-form-dialog") as HTMLElement|null;
    if(!backdrop||!shell)return;
+   // Avoid focusing a select/input on mobile: it opens the virtual keyboard and shifts the visual viewport.
    backdrop.style.position="fixed";
    backdrop.style.inset="0";
-   backdrop.style.display="flex";
-   backdrop.style.alignItems="center";
-   backdrop.style.justifyContent="center";
+   backdrop.style.display="grid";
+   backdrop.style.placeItems="center";
    backdrop.style.overflowY="auto";
-   backdrop.style.zIndex="2147482000";
-   backdrop.style.padding="max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom))";
-   shell.style.alignSelf="center";
-   shell.style.flex="0 1 1050px";
+   backdrop.style.zIndex="2147483000";
    shell.style.margin="auto";
-   shell.style.width="min(1050px, 100%)";
-   shell.style.maxHeight="calc(100dvh - 24px)";
-   shell.style.overflowY="auto";
+   shell.style.width="min(1050px, calc(100vw - 32px))";
+   shell.style.maxHeight="calc(100dvh - 32px)";
+   shell.style.overflow="hidden";
    shell.scrollTop=0;
-   const firstField=(shell.querySelector(".ops-line select")||shell.querySelector("form select")||shell.querySelector("form input:not([type=hidden])")) as HTMLElement|null;
-   firstField?.focus({preventScroll:true});
+   shell.setAttribute("tabindex","-1");
+   if(window.matchMedia("(max-width: 760px)").matches){shell.focus({preventScroll:true});}
+   else{
+    const firstField=shell.querySelector("form input:not([type=hidden]), form select") as HTMLElement|null;
+    firstField?.focus({preventScroll:true});
+   }
   };
   frame=window.requestAnimationFrame(centerAndFocus);
   timer1=window.setTimeout(centerAndFocus,120);
@@ -268,7 +269,7 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
    <div className="abc-summary"><div className="abc-chip class-a"><b>A</b><span>{abcCounts.A} {abcWords.parts}</span></div><div className="abc-chip class-b"><b>B</b><span>{abcCounts.B} {abcWords.parts}</span></div><div className="abc-chip class-c"><b>C</b><span>{abcCounts.C} {abcWords.parts}</span></div></div>
    {abcRows.length?<div className="table-wrap abc-table"><table><thead><tr><th>ABC</th><th>{lang==="ar"?"المرجع":lang==="en"?"Reference":"Référence"}</th><th>{lang==="ar"?"التسمية":lang==="en"?"Description":"Désignation"}</th><th>Catégorie</th><th>{abcWords.qty}</th><th>{abcWords.unitValue}</th><th>{abcWords.share}</th></tr></thead><tbody>{abcRows.map(row=><tr key={row.product_id}><td><span className={"abc-badge abc-"+row.abcClass.toLowerCase()}>{row.abcClass}</span></td><td><b>{row.products?.sku||"—"}</b></td><td>{row.products?.name||"—"}</td><td>{categoryName(row.products?.category_id)}</td><td>{row.abcQty.toLocaleString()}</td><td>{row.abcValue.toLocaleString(lang==="ar"?"ar-DZ":lang==="en"?"en-US":"fr-DZ",{maximumFractionDigits:2})} DZD</td><td>{(row.cumulative*100).toFixed(1)}%</td></tr>)}</tbody></table></div>:<div className="ops-empty">{abcWords.empty}</div>}
   </div>
-  {(editing?canEdit:canCreate)&&<><button type="button" className="primary-btn sp-open-form" onClick={()=>{setEditing(null);setSelectedUnitIds([]);setForm({part_type:"consumable",criticality:"medium",safety_stock:"0",is_repairable:false,unit:"piece",category_id:"",initial_quantity:"0"});setShowPartForm(true);}}><PackagePlus size={16}/>{lang==="ar"?"إضافة قطعة غيار":lang==="en"?"Add spare part":"Nouvelle pièce de rechange"}</button>{showPartForm&&<ModalPortal><div className="sp-modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setShowPartForm(false);}}><div className="sp-modal-shell"><div className="panel ops-panel"><div className="panel-head"><div><h3>{editing?t.edit:t.new}</h3><p>{lang==='ar'?'بطاقة تقنية · التعيين التنظيمي · موقع التخزين':lang==='en'?'Technical record · organizational assignment · store location':'Fiche technique · rattachement organisationnel · emplacement magasin'}</p></div><Wrench size={19}/></div>
+  {(editing?canEdit:canCreate)&&<><button type="button" className="primary-btn sp-open-form" onClick={()=>{setEditing(null);setSelectedUnitIds([]);setForm({part_type:"consumable",criticality:"medium",safety_stock:"0",is_repairable:false,unit:"piece",category_id:"",initial_quantity:"0"});setShowPartForm(true);}}><PackagePlus size={16}/>{lang==="ar"?"إضافة قطعة غيار":lang==="en"?"Add spare part":"Nouvelle pièce de rechange"}</button>{showPartForm&&<ModalPortal><div className="gsp-spare-form-overlay" onMouseDown={e=>{if(e.target===e.currentTarget)setShowPartForm(false);}}><div className="gsp-spare-form-dialog"><div className="panel ops-panel"><div className="panel-head"><div><h3>{editing?t.edit:t.new}</h3><p>{lang==='ar'?'بطاقة تقنية · التعيين التنظيمي · موقع التخزين':lang==='en'?'Technical record · organizational assignment · store location':'Fiche technique · rattachement organisationnel · emplacement magasin'}</p></div><Wrench size={19}/></div>
   <form onSubmit={save}><div className="ops-fields">
    <label>Référence interne (SKU)<input required value={form.sku||""} onChange={e=>setForm({...form,sku:e.target.value})} placeholder="Ex. MNT-0001"/></label>
    <label>Désignation de la pièce<input required value={form.name||""} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Ex. Roulement 6205-2RS"/></label>
@@ -315,7 +316,7 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
      {equipmentRequestHistory.length?<div className="table-wrap"><table><thead><tr><th>Date</th><th>N° demande</th><th>OT / intervention</th><th>Pièce</th><th>Demandé</th><th>Approuvé</th><th>Sorti / remplacé</th><th>Statut</th></tr></thead><tbody>{equipmentRequestHistory.flatMap((r:any)=>(r.spare_part_request_items||[]).map((it:any)=><tr key={it.id}><td>{new Date(r.issued_at||r.created_at).toLocaleDateString()}</td><td>{r.request_number}</td><td>{r.work_order_reference||"—"}</td><td><b>{it.products?.sku||"—"}</b><small className="cell-sub">{it.products?.name||"—"}</small></td><td>{it.requested_quantity??0}</td><td>{it.approved_quantity??0}</td><td><b>{it.issued_quantity??0}</b></td><td><span className="status-pill">{r.status}</span></td></tr>))}</tbody></table></div>:<p className="ops-empty">Aucun historique de sortie enregistré pour cet équipement.</p>}
     </div>
    </section>}
-   {canRequest&&<><button type="button" className="primary-btn sp-open-form" onClick={()=>{setRequestForm({requester_id:currentUserId,...assignedContext.values,priority:"normal",warehouse_id:assignedContext.values.warehouse_id||(warehouses.length===1?warehouses[0].id:"")});setRequestLines([{product_id:"",warehouse_id:"",quantity:"1",notes:""}]);setShowRequestForm(true);}}><ClipboardList size={16}/>{lang==="ar"?"طلب قطع غيار":lang==="en"?"New parts request":"Nouvelle demande de pièces"}</button>{showRequestForm&&<ModalPortal><div className="sp-modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setShowRequestForm(false);}}><div className="sp-modal-shell"><div className="panel ops-panel"><div className="panel-head"><div><h3>{lang==='ar'?'طلب صرف قطع الغيار':lang==='en'?'New spare-part issue request':'Nouvelle demande de sortie de pièces'}</h3><p>{lang==='ar'?'يحدد الطالب القطع؛ يمكن للمشرف والمدير وأمين المخزن الموافقة أو الرفض.':lang==='en'?'The requester selects parts; Supervisor, Manager and Warehouse roles can approve or reject.':'Le demandeur saisit les pièces ; l’approbation est ouverte au Supervisor, Manager et Magasinier.'}</p></div><button type="button" className="sp-modal-close" aria-label="Fermer" onClick={()=>setShowRequestForm(false)}><X size={18}/></button></div><form onSubmit={createRequest}>
+   {canRequest&&<><button type="button" className="primary-btn sp-open-form" onClick={()=>{setRequestForm({requester_id:currentUserId,...assignedContext.values,priority:"normal",warehouse_id:assignedContext.values.warehouse_id||(warehouses.length===1?warehouses[0].id:"")});setRequestLines([{product_id:"",warehouse_id:"",quantity:"1",notes:""}]);setShowRequestForm(true);}}><ClipboardList size={16}/>{lang==="ar"?"طلب قطع غيار":lang==="en"?"New parts request":"Nouvelle demande de pièces"}</button>{showRequestForm&&<ModalPortal><div className="gsp-spare-form-overlay" onMouseDown={e=>{if(e.target===e.currentTarget)setShowRequestForm(false);}}><div className="gsp-spare-form-dialog"><div className="panel ops-panel"><div className="panel-head"><div><h3>{lang==='ar'?'طلب صرف قطع الغيار':lang==='en'?'New spare-part issue request':'Nouvelle demande de sortie de pièces'}</h3><p>{lang==='ar'?'يحدد الطالب القطع؛ يمكن للمشرف والمدير وأمين المخزن الموافقة أو الرفض.':lang==='en'?'The requester selects parts; Supervisor, Manager and Warehouse roles can approve or reject.':'Le demandeur saisit les pièces ; l’approbation est ouverte au Supervisor, Manager et Magasinier.'}</p></div><button type="button" className="sp-modal-close" aria-label="Fermer" onClick={()=>setShowRequestForm(false)}><X size={18}/></button></div><form onSubmit={createRequest}>
  <div className="ops-fields">
   <label>{lang==="ar"?"طالب القطعة":lang==="en"?"Requester":"Demandeur"}<input value={requestUsers.find(x=>x.user_id===currentUserId)?.display_name||""} readOnly disabled placeholder={lang==="ar"?"المستخدم الحالي":lang==="en"?"Current user":"Utilisateur connecté"}/><small className="field-hint">{lang==="ar"?"يتم تحديده تلقائياً حسب الحساب المتصل ولا يمكن تغييره.":lang==="en"?"Automatically set from the signed-in account and cannot be changed.":"Déterminé automatiquement selon le compte connecté et non modifiable."}</small></label>
   <label>{lang==="ar"?"الموقع":lang==="en"?"Site":"Site"}<select disabled={isScopeLocked("site_id")} value={requestForm.site_id||""} onChange={e=>setRequestForm({...requestForm,site_id:e.target.value,service_id:"",department_id:"",unit_id:"",equipment_id:""})}><option value="">{lang==="ar"?"اختر الموقع":lang==="en"?"Select a site":"Sélectionner un site"}</option>{orgSites.map(x=><option key={x.id} value={x.id}>{x.code} · {x.name}</option>)}</select></label>
