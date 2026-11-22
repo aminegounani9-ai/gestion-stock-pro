@@ -26,14 +26,15 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
   const empty:any={data:[],error:null};
   let detailQuery:any=supabase!.from("spare_part_details").select("*, products(id,sku,name,unit,min_stock,purchase_price,category_id), suppliers(name)").eq("company_id",companyId).order("created_at",{ascending:false}).limit(500);
   if(!isAdmin)detailQuery=applyAssignedScopeFilter(detailQuery,myScopes.filter((x:any)=>x.scope_type!=="warehouse"),{site:"site_id",service:"service_id",department:"department_id",unit:"unit_id",equipment:"equipment_id"},"product_id");
-  const [d,r,b,co,sn]=await Promise.all([
+  let equipmentQuery:any=supabase!.from("org_equipment").select("id,equipment_tag,name,site_id,unit_id,service_id,department_id,manufacturer,model,serial_number,location,notes,status").eq("company_id",companyId).eq("status","active").order("name").limit(1000);
+  if(!isAdmin)equipmentQuery=applyAssignedScopeFilter(equipmentQuery,myScopes,{site:"site_id",service:"service_id",department:"department_id",unit:"unit_id",equipment:"id"});
+  const [d,r,b,sn]=await Promise.all([
    detailQuery,
    warehouseIds.length?supabase!.from("spare_part_reservations").select("*, products(name,sku,category_id), warehouses(name)").eq("company_id",companyId).in("warehouse_id",warehouseIds).order("created_at",{ascending:false}).limit(100):Promise.resolve(empty),
    warehouseIds.length?supabase!.from("stock_balances").select("product_id,warehouse_id,quantity_on_hand").eq("company_id",companyId).in("warehouse_id",warehouseIds).limit(1000):Promise.resolve(empty),
-   supabase!.from("spare_part_equipment_compatibility").select("*").eq("company_id",companyId).order("created_at",{ascending:false}).limit(500),
    warehouseIds.length?supabase!.from("stock_serial_numbers").select("*, products(name,sku), warehouses(name)").eq("company_id",companyId).in("warehouse_id",warehouseIds).order("created_at",{ascending:false}).limit(200):Promise.resolve(empty)
   ]);
-  const err=[d,r,b,co,sn].find(x=>x.error);if(err)throw err.error;
+  const err=[d,r,b,sn].find(x=>x.error);if(err)throw err.error;
   const detailProductIds=[...new Set((d.data||[]).map((x:any)=>x.product_id).filter(Boolean))];
   const [qu,re]=detailProductIds.length?await Promise.all([
    supabase!.from("spare_part_supplier_quotes").select("*, suppliers(name), products(name,sku)").eq("company_id",companyId).in("product_id",detailProductIds).order("last_quoted_at",{ascending:false}).limit(500),
@@ -50,7 +51,7 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
    supabase!.from("org_units").select("id,code,name,site_id,service_id,department_id").eq("company_id",companyId).eq("is_active",true).order("name"),
    supabase!.from("org_services").select("id,code,name,site_id,unit_id").eq("company_id",companyId).eq("is_active",true).order("name"),
    supabase!.from("org_departments").select("id,code,name,site_id,unit_id,service_id").eq("company_id",companyId).eq("is_active",true).order("name"),
-   supabase!.from("org_equipment").select("id,equipment_tag,name,site_id,unit_id,service_id,department_id,manufacturer,model,serial_number,location,notes,status").eq("company_id",companyId).eq("status","active").order("name"),
+   equipmentQuery,
    warehouseIds.length?supabase!.from("storage_locations").select("id,code,name,warehouse_id").eq("company_id",companyId).in("warehouse_id",warehouseIds).eq("is_active",true).order("code"):Promise.resolve(empty)
   ]);
   if(rq.error)throw rq.error;
