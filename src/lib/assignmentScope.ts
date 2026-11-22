@@ -71,3 +71,15 @@ export function resolveAssignedContext(scopes: any[], data: AssignmentScopeData)
   }
   return { values, locked, paths };
 }
+
+export function applyAssignedScopeFilter(query: any, scopes: any[], columns: Record<string, string>) {
+  const rows = (scopes || []).filter(x => x && scopeRank[x.scope_type] !== undefined);
+  if (!rows.length) return query.eq("id", "00000000-0000-0000-0000-000000000000");
+  const broadest = Math.min(...rows.map(x => scopeRank[x.scope_type]));
+  if (broadest === 0) return query;
+  const type = rows.find(x => scopeRank[x.scope_type] === broadest)?.scope_type;
+  const column = type ? columns[type] : undefined;
+  const ids = [...new Set(rows.filter(x => x.scope_type === type).map(x => x.scope_id).filter(Boolean))];
+  if (!column || !ids.length) return query.eq("id", "00000000-0000-0000-0000-000000000000");
+  return query.in(column, ids);
+}
