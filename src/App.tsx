@@ -310,8 +310,8 @@ export default function App() {
         supabase.from("stock_movements").select("*, products(name,sku), warehouses(name)").eq("company_id",companyId).in("warehouse_id",warehouseIds).order("occurred_at",{ascending:false}).limit(100),
         supabase.from("stock_balances").select("product_id,warehouse_id,quantity_on_hand").eq("company_id",companyId).in("warehouse_id",warehouseIds).limit(1000),
         supabase.from("purchase_orders").select("*, suppliers(name)").eq("company_id",companyId).in("warehouse_id",warehouseIds).order("created_at",{ascending:false}).limit(50),
-        (moduleKeys.has("suppliers")||moduleKeys.has("stock")||moduleKeys.has("lots"))?supabase.from("suppliers").select("*").eq("company_id",companyId).order("name").limit(200):Promise.resolve(empty)
-      ]):[empty,empty,empty,(moduleKeys.has("suppliers")||moduleKeys.has("stock")||moduleKeys.has("lots"))?await supabase.from("suppliers").select("*").eq("company_id",companyId).order("name").limit(200):empty];
+        (moduleKeys.has("suppliers")||moduleKeys.has("stock")||moduleKeys.has("lots")||moduleKeys.has("reports"))?supabase.from("suppliers").select("*").eq("company_id",companyId).order("name").limit(200):Promise.resolve(empty)
+      ]):[empty,empty,empty,(moduleKeys.has("suppliers")||moduleKeys.has("stock")||moduleKeys.has("lots")||moduleKeys.has("reports"))?await supabase.from("suppliers").select("*").eq("company_id",companyId).order("name").limit(200):empty];
       const secondError=[movementsResult,balancesResult,purchasesResult,suppliersResult].find(x=>x.error)?.error;
       if(secondError)throw secondError;
       const productIds=[...new Set([
