@@ -13,7 +13,7 @@ const scopeRank: Record<string, number> = {
 
 export function resolveAssignedContext(scopes: any[], data: AssignmentScopeData) {
   const rows = (scopes || []).filter(
-    x => x && x.can_view !== false && scopeRank[x.scope_type] !== undefined && x.scope_type !== "management"
+    x => x && x.can_view === true && scopeRank[x.scope_type] !== undefined
   );
   const paths = rows.map(scope => {
     let site_id = "", service_id = "", department_id = "", unit_id = "", equipment_id = "", warehouse_id = "";
@@ -73,10 +73,10 @@ export function resolveAssignedContext(scopes: any[], data: AssignmentScopeData)
 }
 
 export function applyAssignedScopeFilter(query: any, scopes: any[], columns: Record<string, string>, emptyColumn = "id") {
-  const rows = (scopes || []).filter(x => x && scopeRank[x.scope_type] !== undefined);
+  const rows = (scopes || []).filter(x => x && x.can_view === true && scopeRank[x.scope_type] !== undefined);
   if (!rows.length) return query.eq(emptyColumn, "00000000-0000-0000-0000-000000000000");
+  if (rows.some(x => x.scope_type === "management")) return query;
   const broadest = Math.min(...rows.map(x => scopeRank[x.scope_type]));
-  if (broadest === 0) return query;
   const type = rows.find(x => scopeRank[x.scope_type] === broadest)?.scope_type;
   const column = type ? columns[type] : undefined;
   const ids = [...new Set(rows.filter(x => x.scope_type === type).map(x => x.scope_id).filter(Boolean))];
