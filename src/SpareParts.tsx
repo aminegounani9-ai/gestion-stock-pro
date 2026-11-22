@@ -21,13 +21,34 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
  useEffect(()=>{if(initialProductId){setRequestLines([{product_id:initialProductId,warehouse_id:"",quantity:"1",notes:""}]);setShowRequestForm(true);}},[initialProductId]);
  useEffect(()=>{
   if(!initialProductId||view!=="requests"||!showRequestForm)return;
-  const timer=window.setTimeout(()=>{
-   const shell=document.querySelector(".sp-modal-backdrop .sp-modal-shell") as HTMLElement|null;
-   shell?.scrollIntoView({behavior:"smooth",block:"center"});
-   const partSelect=shell?.querySelector(".ops-line select") as HTMLSelectElement|null;
-   partSelect?.focus({preventScroll:true});
-  },180);
-  return()=>window.clearTimeout(timer);
+  let timer1=0,timer2=0,frame=0;
+  const centerAndFocus=()=>{
+   const backdrop=document.querySelector(".sp-modal-backdrop") as HTMLElement|null;
+   const shell=backdrop?.querySelector(".sp-modal-shell") as HTMLElement|null;
+   if(!backdrop||!shell)return;
+   backdrop.style.position="fixed";
+   backdrop.style.inset="0";
+   backdrop.style.display="grid";
+   backdrop.style.placeItems="center";
+   backdrop.style.alignItems="center";
+   backdrop.style.justifyItems="center";
+   backdrop.style.overflowY="auto";
+   backdrop.style.zIndex="2147482000";
+   backdrop.style.padding="max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom))";
+   shell.style.alignSelf="center";
+   shell.style.justifySelf="center";
+   shell.style.margin="auto";
+   shell.style.width="min(1050px, 100%)";
+   shell.style.maxHeight="calc(100dvh - 24px)";
+   shell.style.overflowY="auto";
+   shell.scrollTop=0;
+   const firstField=(shell.querySelector(".ops-line select")||shell.querySelector("form select")||shell.querySelector("form input:not([type=hidden])")) as HTMLElement|null;
+   firstField?.focus({preventScroll:true});
+  };
+  frame=window.requestAnimationFrame(centerAndFocus);
+  timer1=window.setTimeout(centerAndFocus,120);
+  timer2=window.setTimeout(centerAndFocus,320);
+  return()=>{window.cancelAnimationFrame(frame);window.clearTimeout(timer1);window.clearTimeout(timer2);};
  },[initialProductId,view,showRequestForm]);
  useEffect(()=>{
   if(!focusProductId||view!=="parts")return;
