@@ -4129,3 +4129,23 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
     max-height:calc(100dvh - 48px)!important;
   }
 }
+
+
+/* Isolated spare-part form modal: independent from legacy modal rules. */
+.gsp-spare-form-overlay{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;z-index:2147483000!important;display:grid!important;place-items:center!important;box-sizing:border-box!important;padding:16px!important;overflow:auto!important;background:rgba(10,22,42,.66)!important;overscroll-behavior:contain!important}
+.gsp-spare-form-dialog{position:relative!important;inset:auto!important;transform:none!important;width:min(1050px,calc(100vw - 32px))!important;max-width:1050px!important;max-height:calc(100dvh - 32px)!important;min-width:0!important;margin:auto!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;border-radius:18px!important;box-sizing:border-box!important;box-shadow:0 24px 80px rgba(4,16,37,.35)!important}
+.gsp-spare-form-dialog>.panel{display:flex!important;flex:1 1 auto!important;flex-direction:column!important;min-height:0!important;max-height:inherit!important;overflow:hidden!important;margin:0!important}
+.gsp-spare-form-dialog>.panel>.panel-head{position:relative!important;top:auto!important;flex:0 0 auto!important;z-index:2!important}
+.gsp-spare-form-dialog>.panel>form{flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important}
+@media(max-width:760px){
+ .gsp-spare-form-overlay{padding:max(10px,env(safe-area-inset-top)) 8px max(10px,env(safe-area-inset-bottom))!important}
+ .gsp-spare-form-dialog{width:calc(100vw - 16px)!important;max-width:560px!important;max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 20px)!important;border-radius:15px!important}
+ .gsp-spare-form-dialog>.panel>.panel-head{padding:13px 14px!important}
+ .gsp-spare-form-dialog>.panel>form{padding:12px 12px max(18px,env(safe-area-inset-bottom))!important}
+ .gsp-spare-form-dialog .ops-fields{grid-template-columns:minmax(0,1fr)!important;gap:11px!important}
+ .gsp-spare-form-dialog input:not([type=checkbox]):not([type=radio]),.gsp-spare-form-dialog select{min-height:44px!important;font-size:16px!important}
+}
+@media(min-width:761px){
+ .gsp-spare-form-dialog{width:min(1050px,calc(100vw - 48px))!important;max-height:calc(100dvh - 48px)!important}
+ .gsp-spare-form-dialog .ops-fields{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
