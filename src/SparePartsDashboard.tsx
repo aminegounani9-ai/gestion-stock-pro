@@ -33,7 +33,6 @@ export default function SparePartsDashboard({companyId,currency,lang,warehouses,
  const load=useCallback(async()=>{if(!supabase){setError("Supabase unavailable");setLoading(false);return;}setLoading(true);setError("");try{
   const since=new Date();since.setDate(since.getDate()-89);since.setHours(0,0,0,0);
   const allowedWarehouseIds=(warehouses||[]).filter((w:any)=>w.is_active!==false).map((w:any)=>w.id);
-  const isAdmin=(myScopes||[]).some((x:any)=>x.is_admin===true);
   let detailQuery:any=supabase.from("spare_part_details").select("product_id,part_number,criticality,safety_stock,reorder_point,max_stock,unit_id,products(id,name,sku,unit,min_stock,purchase_price,is_active)").eq("company_id",companyId).order("created_at",{ascending:false}).limit(500);
   if(!isAdmin)detailQuery=applyAssignedScopeFilter(detailQuery,myScopes.filter((x:any)=>x.scope_type!=="warehouse"),{site:"site_id",service:"service_id",department:"department_id",unit:"unit_id",equipment:"equipment_id"},"product_id");
   let requestQuery:any=supabase.from("spare_part_requests").select("id,status,created_at,priority").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100);
@@ -51,7 +50,7 @@ export default function SparePartsDashboard({companyId,currency,lang,warehouses,
   const rep=productIds.length?await supabase.from("spare_part_repair_cycles").select("id,status,product_id,created_at,products(name,sku)").eq("company_id",companyId).in("product_id",productIds).order("created_at",{ascending:false}).limit(100):{data:[],error:null} as any;
   if(rep.error)throw rep.error;
   setDetails(d.data??[]);setBalances(b.data??[]);setRequests(r.data??[]);setRepairs(rep.data??[]);setMovements(m.data??[]);setWarehouseCount(allowedWarehouseIds.length);setSupplierCount(s.count??0);
- }catch(e:any){setError(e?.message||"Loading error");}finally{setLoading(false);}},[companyId]);
+ }catch(e:any){setError(e?.message||"Loading error");}finally{setLoading(false);}},[companyId,warehouses,myScopes,isAdmin]);
  useEffect(()=>{void load();},[load]);
  const metrics=useMemo(()=>{const stock=new Map<string,number>();balances.forEach(b=>stock.set(b.product_id,(stock.get(b.product_id)||0)+Number(b.quantity_on_hand||0)));
   const rows:Row[]=details.filter(x=>x.products?.is_active!==false).map(x=>{const qty=stock.get(x.product_id)||0;const threshold=Math.max(Number(x.safety_stock||0),Number(x.reorder_point||0),Number(x.products?.min_stock||0));return {...x,qty,threshold,value:qty*Number(x.products?.purchase_price||0)};});
