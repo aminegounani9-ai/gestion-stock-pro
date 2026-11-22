@@ -4674,7 +4674,7 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
     contain: none !important;
   }
 
-  .gsp-modal-portal-root > [class*="backdrop"] {
+  .gsp-modal-portal-root > * {
     position: absolute !important;
     inset: 0 !important;
     width: 100% !important;
@@ -4699,15 +4699,15 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
     transform: none !important;
   }
 
-  .gsp-modal-portal-root > [class*="backdrop"] > .modal-card,
-  .gsp-modal-portal-root > [class*="backdrop"] > .pm-modal,
-  .gsp-modal-portal-root > [class*="backdrop"] > .pms-modal,
-  .gsp-modal-portal-root > [class*="backdrop"] > .professional-module-report,
-  .gsp-modal-portal-root > [class*="backdrop"] > .scan-choice-card,
-  .gsp-modal-portal-root > [class*="backdrop"] > .scanner-card,
-  .gsp-modal-portal-root > [class*="backdrop"] > .sp-modal-shell,
-  .gsp-modal-portal-root > [class*="backdrop"] > .gsp-spare-form-dialog,
-  .gsp-modal-portal-root > [class*="backdrop"] > [class*="dialog-card"] {
+  .gsp-modal-portal-root > * > .modal-card,
+  .gsp-modal-portal-root > * > .pm-modal,
+  .gsp-modal-portal-root > * > .pms-modal,
+  .gsp-modal-portal-root > * > .professional-module-report,
+  .gsp-modal-portal-root > * > .scan-choice-card,
+  .gsp-modal-portal-root > * > .scanner-card,
+  .gsp-modal-portal-root > * > .sp-modal-shell,
+  .gsp-modal-portal-root > * > .gsp-spare-form-dialog,
+  .gsp-modal-portal-root > * > [class*="dialog-card"] {
     position: relative !important;
     inset: auto !important;
     justify-self: center !important;
@@ -4729,7 +4729,7 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
   }
 
   /* Form dialogs that are the card themselves: scroll the complete form. */
-  .gsp-modal-portal-root > [class*="backdrop"] > form.modal-card {
+  .gsp-modal-portal-root > * > form.modal-card {
     display: flex !important;
     flex-direction: column !important;
     align-items: stretch !important;
@@ -4756,17 +4756,17 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
 
   /* In landscape the short height, not the width, controls dialog sizing. */
   @media (orientation: landscape) {
-    .gsp-modal-portal-root > [class*="backdrop"] {
+    .gsp-modal-portal-root > * {
       padding: 5px max(8px, env(safe-area-inset-right)) 5px max(8px, env(safe-area-inset-left)) !important;
     }
-    .gsp-modal-portal-root > [class*="backdrop"] > .modal-card,
-    .gsp-modal-portal-root > [class*="backdrop"] > .pm-modal,
-    .gsp-modal-portal-root > [class*="backdrop"] > .pms-modal,
-    .gsp-modal-portal-root > [class*="backdrop"] > .professional-module-report,
-    .gsp-modal-portal-root > [class*="backdrop"] > .scan-choice-card,
-    .gsp-modal-portal-root > [class*="backdrop"] > .scanner-card,
-    .gsp-modal-portal-root > [class*="backdrop"] > .sp-modal-shell,
-    .gsp-modal-portal-root > [class*="backdrop"] > .gsp-spare-form-dialog {
+    .gsp-modal-portal-root > * > .modal-card,
+    .gsp-modal-portal-root > * > .pm-modal,
+    .gsp-modal-portal-root > * > .pms-modal,
+    .gsp-modal-portal-root > * > .professional-module-report,
+    .gsp-modal-portal-root > * > .scan-choice-card,
+    .gsp-modal-portal-root > * > .scanner-card,
+    .gsp-modal-portal-root > * > .sp-modal-shell,
+    .gsp-modal-portal-root > * > .gsp-spare-form-dialog {
       width: min(100%, 820px) !important;
       max-width: 820px !important;
       max-height: calc(100% - 2px) !important;
