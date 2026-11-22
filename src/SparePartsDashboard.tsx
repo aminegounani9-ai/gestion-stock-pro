@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Activity, AlertTriangle, ArrowDownToLine, ArrowRight, Boxes, Building2, CheckCircle2, ClipboardList, Package, RefreshCw, ShieldAlert, Truck, TrendingUp, Warehouse, Wrench } from "lucide-react";
 import { supabase } from "./lib/supabase";
 
-type Props = { companyId:string; currency:string; lang:"fr"|"en"|"ar"; warehouses:any[]; myScopes:any[]; onNavigate:(page:"spareParts"|"stock"|"inventory"|"requests"|"warehouses"|"reports")=>void };
+type Props = { companyId:string; currency:string; lang:"fr"|"en"|"ar"; warehouses:any[]; isAdmin:boolean; onNavigate:(page:"spareParts"|"stock"|"inventory"|"requests"|"warehouses"|"reports")=>void };
 type Row = Record<string,any>;
 type Period = 7|30|90;
 const words = {
@@ -27,7 +27,7 @@ function TrendChart({days,lang,period}:{days:Row[];lang:"fr"|"en"|"ar";period:Pe
   {days.filter((_,i)=>period===7||i===0||i===days.length-1||i%(period===30?5:15)===0).map(d=>{const i=days.findIndex(x=>x.key===d.key);return <text key={d.key} x={x(i)} y={H-9} textAnchor="middle" fill="#8f9bb0" fontSize="10">{d.label}</text>;})}
  </svg></div>;
 }
-export default function SparePartsDashboard({companyId,currency,lang,warehouses,myScopes,onNavigate}:Props){
+export default function SparePartsDashboard({companyId,currency,lang,warehouses,isAdmin,onNavigate}:Props){
  const t=words[lang];const [details,setDetails]=useState<Row[]>([]);const [balances,setBalances]=useState<Row[]>([]);const [requests,setRequests]=useState<Row[]>([]);const [repairs,setRepairs]=useState<Row[]>([]);const [movements,setMovements]=useState<Row[]>([]);const [warehouseCount,setWarehouseCount]=useState(0);const [supplierCount,setSupplierCount]=useState(0);const [loading,setLoading]=useState(true);const [error,setError]=useState("");const [period,setPeriod]=useState<Period>(30);
  const load=useCallback(async()=>{if(!supabase){setError("Supabase unavailable");setLoading(false);return;}setLoading(true);setError("");try{
   const since=new Date();since.setDate(since.getDate()-89);since.setHours(0,0,0,0);
