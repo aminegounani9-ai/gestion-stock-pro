@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Activity, AlertTriangle, ArrowDownToLine, ArrowRight, Boxes, Building2, CheckCircle2, ClipboardList, Package, RefreshCw, ShieldAlert, Truck, TrendingUp, Warehouse, Wrench } from "lucide-react";
 import { supabase } from "./lib/supabase";
 
-type Props = { companyId:string; currency:string; lang:"fr"|"en"|"ar"; onNavigate:(page:"spareParts"|"stock"|"inventory"|"requests"|"warehouses"|"reports")=>void };
+type Props = { companyId:string; currency:string; lang:"fr"|"en"|"ar"; warehouses:any[]; myScopes:any[]; onNavigate:(page:"spareParts"|"stock"|"inventory"|"requests"|"warehouses"|"reports")=>void };
 type Row = Record<string,any>;
 type Period = 7|30|90;
 const words = {
@@ -27,20 +27,21 @@ function TrendChart({days,lang,period}:{days:Row[];lang:"fr"|"en"|"ar";period:Pe
   {days.filter((_,i)=>period===7||i===0||i===days.length-1||i%(period===30?5:15)===0).map(d=>{const i=days.findIndex(x=>x.key===d.key);return <text key={d.key} x={x(i)} y={H-9} textAnchor="middle" fill="#8f9bb0" fontSize="10">{d.label}</text>;})}
  </svg></div>;
 }
-export default function SparePartsDashboard({companyId,currency,lang,onNavigate}:Props){
+export default function SparePartsDashboard({companyId,currency,lang,warehouses,myScopes,onNavigate}:Props){
  const t=words[lang];const [details,setDetails]=useState<Row[]>([]);const [balances,setBalances]=useState<Row[]>([]);const [requests,setRequests]=useState<Row[]>([]);const [repairs,setRepairs]=useState<Row[]>([]);const [movements,setMovements]=useState<Row[]>([]);const [warehouseCount,setWarehouseCount]=useState(0);const [supplierCount,setSupplierCount]=useState(0);const [loading,setLoading]=useState(true);const [error,setError]=useState("");const [period,setPeriod]=useState<Period>(30);
  const load=useCallback(async()=>{if(!supabase){setError("Supabase unavailable");setLoading(false);return;}setLoading(true);setError("");try{
   const since=new Date();since.setDate(since.getDate()-89);since.setHours(0,0,0,0);
-  const [d,b,r,rep,m,w,s]=await Promise.all([
+  const allowedWarehouseIds=(warehouses||[]).filter((w:any)=>w.is_active!==false).map((w:any)=>w.id);
+  const isAdmin=(myScopes||[]).some((x:any)=>x.is_admin===true);
+  const [d,b,r,rep,m,s]=await Promise.all([
    supabase.from("spare_part_details").select("product_id,part_number,criticality,safety_stock,reorder_point,max_stock,unit_id,products(id,name,sku,unit,min_stock,purchase_price,is_active)").eq("company_id",companyId),
-   supabase.from("stock_balances").select("product_id,warehouse_id,quantity_on_hand,warehouses(name)").eq("company_id",companyId),
-   supabase.from("spare_part_requests").select("id,status,created_at,priority").eq("company_id",companyId).order("created_at",{ascending:false}).limit(200),
-   supabase.from("spare_part_repair_cycles").select("id,status,product_id,created_at,products(name,sku)").eq("company_id",companyId).order("created_at",{ascending:false}).limit(200),
-   supabase.from("stock_movements").select("id,movement_type,quantity,occurred_at,products(name,sku),warehouses(name)").eq("company_id",companyId).gte("occurred_at",since.toISOString()).order("occurred_at",{ascending:false}).limit(3000),
-   supabase.from("warehouses").select("id",{count:"exact",head:true}).eq("company_id",companyId).eq("is_active",true),
-   supabase.from("suppliers").select("id",{count:"exact",head:true}).eq("company_id",companyId)
-  ]);const failed=[d,b,r,rep,m,w,s].find(x=>x.error);if(failed?.error)throw failed.error;
-  setDetails(d.data??[]);setBalances(b.data??[]);setRequests(r.data??[]);setRepairs(rep.data??[]);setMovements(m.data??[]);setWarehouseCount(w.count??0);setSupplierCount(s.count??0);
+   allowedWarehouseIds.length?supabase.from("stock_balances").select("product_id,warehouse_id,quantity_on_hand,warehouses(name)").eq("company_id",companyId).in("warehouse_id",allowedWarehouseIds):Promise.resolve({data:[],error:null} as any),
+   supabase.from("spare_part_requests").select("id,status,created_at,priority").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100),
+   supabase.from("spare_part_repair_cycles").select("id,status,product_id,created_at,products(name,sku)").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100),
+   allowedWarehouseIds.length?supabase.from("stock_movements").select("id,movement_type,quantity,occurred_at,products(name,sku),warehouses(name)").eq("company_id",companyId).in("warehouse_id",allowedWarehouseIds).gte("occurred_at",since.toISOString()).order("occurred_at",{ascending:false}).limit(200):Promise.resolve({data:[],error:null} as any),
+   isAdmin?supabase.from("suppliers").select("id",{count:"exact",head:true}).eq("company_id",companyId):Promise.resolve({count:0,error:null} as any)
+  ]);const failed=[d,b,r,rep,m,s].find(x=>x.error);if(failed?.error)throw failed.error;
+  setDetails(d.data??[]);setBalances(b.data??[]);setRequests(r.data??[]);setRepairs(rep.data??[]);setMovements(m.data??[]);setWarehouseCount(allowedWarehouseIds.length);setSupplierCount(s.count??0);
  }catch(e:any){setError(e?.message||"Loading error");}finally{setLoading(false);}},[companyId]);
  useEffect(()=>{void load();},[load]);
  const metrics=useMemo(()=>{const stock=new Map<string,number>();balances.forEach(b=>stock.set(b.product_id,(stock.get(b.product_id)||0)+Number(b.quantity_on_hand||0)));
