@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import ModalPortal from "./ModalPortal";
 import { Activity, AlertTriangle, Bell, CalendarDays, CheckCircle2, Clock3, FolderKanban, Plus, Search, Target, Users, Wallet, X, Pencil, Trash2, Volume2, VolumeX } from "lucide-react";
 import { supabase } from "./lib/supabase";
-import { resolveAssignedContext } from "./lib/assignmentScope";
+import { resolveAssignedContext, applyAssignedScopeFilter } from "./lib/assignmentScope";
 import ProjectManagementSuite from "./ProjectManagementSuite";
 import ProjectGantt from "./ProjectGantt";
 
@@ -39,15 +39,22 @@ export default function ProjectManagement({companyId,companyName,currentUserId,c
   const money=(v:number)=>new Intl.NumberFormat(lang==="en"?"en-US":lang==="ar"?"ar-DZ":"fr-DZ",{style:"currency",currency:currency||"DZD",maximumFractionDigits:0}).format(v||0);
  const load=useCallback(async()=>{
   const client=supabase;if(!client)return;
-  const [p,tasksResult,n]=await Promise.all([
-   client.from("projects").select("*").eq("company_id",companyId).order("created_at",{ascending:false}),
-   client.from("project_tasks").select("*").eq("company_id",companyId).order("due_date",{ascending:true}),
+  const isAdmin=["owner","admin"].includes(currentRole);
+  let projectQuery:any=client.from("projects").select("*").eq("company_id",companyId).order("created_at",{ascending:false}).limit(300);
+  if(!isAdmin)projectQuery=applyAssignedScopeFilter(projectQuery,myScopes,{site:"site_id",service:"service_id",department:"department_id",unit:"unit_id",equipment:"equipment_id"});
+  const [p,n]=await Promise.all([
+   projectQuery,
    client.from("notifications").select("id,title,message,notification_type,entity_type,entity_id,is_read,created_at").eq("company_id",companyId).eq("recipient_user_id",currentUserId).in("notification_type",["project_update","project_task"]).order("created_at",{ascending:false}).limit(100)
   ]);
-  if(p.error)console.error(p.error);else setProjects((p.data||[]) as Project[]);
-  if(tasksResult.error)console.error(tasksResult.error);else setTasks((tasksResult.data||[]) as Task[]);
+  if(p.error)console.error(p.error);else{
+   const visibleProjects=(p.data||[]) as Project[];
+   setProjects(visibleProjects);
+   const projectIds=visibleProjects.map(x=>x.id);
+   const tasksResult=projectIds.length?await client.from("project_tasks").select("*").eq("company_id",companyId).in("project_id",projectIds).order("due_date",{ascending:true}).limit(1000):{data:[],error:null} as any;
+   if(tasksResult.error)console.error(tasksResult.error);else setTasks((tasksResult.data||[]) as Task[]);
+  }
   if(!n.error)setNotifications(n.data||[]);
- },[companyId,currentUserId]);
+ },[companyId,currentUserId,currentRole,myScopes]);
  useEffect(()=>{void load();const client=supabase;if(!client)return;const channel=client.channel("project-live-"+companyId+"-"+currentUserId)
   .on("postgres_changes",{event:"*",schema:"public",table:"projects",filter:"company_id=eq."+companyId},()=>void load())
   .on("postgres_changes",{event:"*",schema:"public",table:"project_tasks",filter:"company_id=eq."+companyId},()=>void load())
