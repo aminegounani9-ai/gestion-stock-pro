@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import ModuleErrorBoundary from "./ModuleErrorBoundary";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
+import { resolveAssignedContext, applyAssignedScopeFilter } from "./lib/assignmentScope";
 import type { Company, Product } from "./lib/supabase";
 
 type Page = "dashboard" | "projects" | "requests" | "products" | "categories" | "stock" | "warehouses" | "suppliers" | "customers" | "purchases" | "sales" | "transfers" | "inventory" | "locations" | "lots" | "spareParts" | "returns" | "expenses" | "payments" | "reports" | "users" | "settings" | "organization" | "equipment";
