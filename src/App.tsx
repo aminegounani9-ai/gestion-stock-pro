@@ -390,8 +390,8 @@ export default function App() {
     if(orgError)throw orgError;
     setCategories(categoryResult.data ?? []);
     setOrgSites(os.data??[]);setOrgUnits(ou.data??[]);setOrgServices(ov.data??[]);setOrgDepartments(od.data??[]);setOrgEquipment((oe.data??[]).map(x=>({...x,is_active:true})));
-    const {data:{user:scopeUser}}=authResult;
-    const scopeResult=scopeUser?await supabase.from("user_scope_assignments").select("scope_type,scope_id,job_title,can_view,can_create,can_edit,can_delete,can_approve,can_issue,can_receive,can_transfer,can_inventory").eq("company_id",companyId).eq("user_id",scopeUser.id):{data:[],error:null};
+    const {data:{user:fullUser}}=authResult;
+    const scopeResult=fullUser?await supabase.from("user_scope_assignments").select("scope_type,scope_id,job_title,can_view,can_create,can_edit,can_delete,can_approve,can_issue,can_receive,can_transfer,can_inventory").eq("company_id",companyId).eq("user_id",fullUser.id):{data:[],error:null};
     if(scopeResult.error)throw scopeResult.error;
     const userScopes=scopeResult.data??[];
     setMyScopeAssignments(userScopes);
