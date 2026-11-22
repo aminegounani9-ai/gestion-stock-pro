@@ -29,8 +29,16 @@ export default function ProjectManagement({companyId,companyName,currentUserId,c
  const [projectForm,setProjectForm]=useState<Record<string,string>>({project_code:"",name:"",project_type:"internal",priority:"medium",status:"planned",description:"",objectives:"",scope:"",site:"",site_id:"",service_id:"",department:"",department_id:"",unit_location:"",unit_id:"",equipment_id:"",project_manager_id:currentUserId,responsible_user_id:"",start_date:new Date().toISOString().slice(0,10),start_time:"08:00",target_end_date:"",target_end_time:"17:00",budget:"0",actual_cost:"0",risk_level:"medium",success_criteria:"",notes:""});
  const [taskForm,setTaskForm]=useState<Record<string,string>>({title:"",description:"",status:"todo",priority:"medium",assigned_to:"",parent_task_id:"",allocation_percent:"100",start_date:new Date().toISOString().slice(0,10),start_time:"08:00",due_date:new Date().toISOString().slice(0,10),end_time:"17:00",estimated_hours:"0",actual_hours:"0",progress:"0",completed_at:""});
  const isCompanyProjectAdmin=["owner","admin"].includes(currentRole);
- const canCreateProject=isCompanyProjectAdmin||access?.canCreate===true;
- const canDeleteProject=isCompanyProjectAdmin||access?.canDelete===true;
+ const projectScopePermission=(project:any,permission:"view"|"create"|"edit"|"delete"|"approve")=>{
+  if(!project)return false;
+  const key=({view:"projects_can_view",create:"projects_can_create",edit:"projects_can_edit",delete:"projects_can_delete",approve:"projects_can_approve"} as const)[permission];
+  const generic=({view:"can_view",create:"can_create",edit:"can_edit",delete:"can_delete",approve:"can_approve"} as const)[permission];
+  const ids=[project.site_id,project.service_id,project.department_id,project.unit_id,project.equipment_id].filter(Boolean);
+  return myScopes.some(scope=>ids.includes(scope.scope_id)&&Boolean(scope[key]??scope[generic]));
+ };
+ const hasProjectSpecificAssignments=myScopes.some(scope=>["projects_can_view","projects_can_create","projects_can_edit","projects_can_delete","projects_can_approve"].some(key=>scope[key]!==null&&scope[key]!==undefined));
+ const canCreateProject=isCompanyProjectAdmin||(hasProjectSpecificAssignments?myScopes.some(scope=>Boolean(scope.projects_can_create??scope.can_create)):access?.canCreate===true);
+ const canDeleteProject=isCompanyProjectAdmin||(selected?projectScopePermission(projects.find(p=>p.id===selected),"delete"):false)||(!hasProjectSpecificAssignments&&access?.canDelete===true);
  const assignedContext=useMemo(()=>resolveAssignedContext(myScopes,{sites,services,departments,units,equipment,warehouses:[]}),[myScopes,sites,services,departments,units,equipment]);
  const siteName=(id:string)=>sites.find(x=>x.id===id)?.name||"";
  const departmentName=(id:string)=>departments.find(x=>x.id===id)?.name||"";
@@ -69,9 +77,9 @@ export default function ProjectManagement({companyId,companyName,currentUserId,c
  const selectedProject=projects.find(p=>p.id===selected)||projects[0]||null;
  useEffect(()=>{if(!selected&&projects.length)setSelected(projects[0].id);},[projects,selected]);
  const projectTasks=useMemo(()=>tasks.filter(x=>x.project_id===selectedProject?.id),[tasks,selectedProject?.id]);
- const canManage=isCompanyProjectAdmin||selectedProject?.project_manager_id===currentUserId||access?.canEdit===true;
+ const canManage=isCompanyProjectAdmin||selectedProject?.project_manager_id===currentUserId||(hasProjectSpecificAssignments?projectScopePermission(selectedProject,"edit"):access?.canEdit===true);
  const canManageTasks=canManage||selectedProject?.responsible_user_id===currentUserId;
- const canCreateTasks=canManageTasks&&(isCompanyProjectAdmin||access?.canCreate===true);
+ const canCreateTasks=canManageTasks&&(isCompanyProjectAdmin||(hasProjectSpecificAssignments?projectScopePermission(selectedProject,"create"):access?.canCreate===true));
  const canEdit=canManageTasks||projectTasks.some(x=>x.assigned_to===currentUserId);
  const selectedRoots=projectTasks.filter(x=>!x.parent_task_id),selectedSubtasks=projectTasks.filter(x=>!!x.parent_task_id),selectedDone=projectTasks.filter(x=>x.status==="done").length,selectedLate=projectTasks.filter(x=>x.due_date&&x.due_date<new Date().toISOString().slice(0,10)&&!["done","cancelled"].includes(x.status)).length,selectedBlocked=projectTasks.filter(x=>x.status==="blocked").length;
  const selectedOnTrack=selectedRoots.length?Math.round(selectedRoots.filter(x=>x.status==="done"||(x.due_date&&x.due_date>=new Date().toISOString().slice(0,10))).length/selectedRoots.length*100):0;
