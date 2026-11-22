@@ -3821,3 +3821,87 @@ body{color:#243550;-webkit-font-smoothing:antialiased;text-rendering:optimizeLeg
   .org-assignment-body { gap: 11px 16px !important; padding-top: 14px !important; padding-bottom: 16px !important; }
   .org-assignment-body .org-scope-picker-list { max-height: 170px !important; }
 }
+
+
+/* Assignment modal v2: make project permissions prominent and guarantee independent scroll. */
+.org-assignment-modal {
+  display: flex !important;
+  flex-direction: column !important;
+  height: min(900px, calc(100dvh - 32px)) !important;
+  max-height: calc(100dvh - 32px) !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+.org-assignment-modal > .org-assignment-body {
+  display: grid !important;
+  flex: 1 1 0 !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overscroll-behavior-y: contain !important;
+  align-content: start !important;
+}
+.org-assignment-body > .org-project-permissions {
+  display: block !important;
+  grid-column: 1 / -1 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  z-index: 1 !important;
+  padding: 18px !important;
+  margin: 0 !important;
+  border: 2px solid #9bb9e7 !important;
+  border-radius: 15px !important;
+  background: linear-gradient(135deg,#eaf2ff 0%,#ffffff 82%) !important;
+  box-shadow: 0 5px 18px rgba(39,82,145,.08) !important;
+}
+.org-assignment-body > .org-project-permissions h4 {
+  display: block !important;
+  margin: 0 0 6px !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  color: #1d3d70 !important;
+}
+.org-assignment-body > .org-project-permissions p {
+  display: block !important;
+  margin: 0 0 14px !important;
+  font-size: 11px !important;
+  line-height: 1.55 !important;
+  color: #536985 !important;
+}
+.org-assignment-body > .org-project-permissions .org-permissions {
+  display: grid !important;
+  grid-template-columns: repeat(3,minmax(0,1fr)) !important;
+  width: 100% !important;
+  gap: 9px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+.org-assignment-body > .org-project-permissions .org-permissions label {
+  min-height: 44px !important;
+  padding: 10px 12px !important;
+  background: #fff !important;
+  border: 1px solid #d8e4f4 !important;
+  color: #294568 !important;
+  font-size: 11px !important;
+}
+.org-assignment-body > .org-project-permissions .org-permissions input {
+  flex: 0 0 17px !important;
+  width: 17px !important;
+  height: 17px !important;
+  accent-color: #315fa8 !important;
+}
+.org-assignment-body > .org-permissions {
+  grid-column: 1 / -1 !important;
+}
+.org-assignment-modal > .modal-actions {
+  flex: 0 0 auto !important;
+  position: relative !important;
+  z-index: 3 !important;
+}
+@media(max-width:760px) {
+  .org-assignment-modal { height: calc(100dvh - 16px) !important; max-height: calc(100dvh - 16px) !important; }
+  .org-assignment-body > .org-project-permissions .org-permissions { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+}
