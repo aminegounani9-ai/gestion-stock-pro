@@ -28,7 +28,7 @@ export default function EquipmentManagement({companyId,lang,equipmentSeed,myScop
   setError("");
   const isAdmin=access?.isAdmin===true;
   let equipmentQuery:any=supabase.from("org_equipment").select("id,equipment_tag,name,manufacturer,model,serial_number,location,notes,site_id,unit_id,service_id,department_id,status,created_at").eq("company_id",companyId).eq("status","active").order("name").limit(1000);
-  if(!isAdmin)equipmentQuery=applyAssignedScopeFilter(equipmentQuery,myScopes,{site:"site_id",service:"service_id",department:"department_id",unit:"unit_id",equipment:"id"});
+  if(!isAdmin)equipmentQuery=applyAssignedScopeFilter(equipmentQuery,myScopes.filter((x:any)=>x.scope_type!=="warehouse"),{site:"site_id",service:"service_id",department:"department_id",unit:"unit_id",equipment:"id"});
   const [eq,sites,units,services,departments,partScopeResult]=await Promise.all([
    equipmentQuery,
    supabase.from("org_sites").select("id,code,name").eq("company_id",companyId).limit(300),
