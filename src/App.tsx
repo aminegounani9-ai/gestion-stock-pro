@@ -281,7 +281,7 @@ export default function App() {
     if (!supabase) return;
     if(mode==="scopes"){
       const {data:{user:scopeUser}}=await supabase.auth.getUser();
-      const [os,ou,ov,od,oe,wh,scopeResult,productsResult,categoriesResult,movementsResult,balancesResult,purchasesResult,suppliersResult]=await Promise.all([
+      const [os,ou,ov,od,oe,wh,scopeResult,productsResult,categoriesResult,movementsResult,balancesResult,purchasesResult,suppliersResult,salesResult,customersResult]=await Promise.all([
         supabase.from("org_sites").select("id,code,name,management_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
         supabase.from("org_units").select("id,code,name,site_id,service_id,department_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
         supabase.from("org_services").select("id,code,name,site_id,unit_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
@@ -294,12 +294,14 @@ export default function App() {
         supabase.from("stock_movements").select("*, products(name,sku), warehouses(name)").eq("company_id",companyId).order("occurred_at",{ascending:false}).limit(100),
         supabase.from("stock_balances").select("product_id,warehouse_id,quantity_on_hand").eq("company_id",companyId).limit(1000),
         supabase.from("purchase_orders").select("*, suppliers(name)").eq("company_id",companyId).order("created_at",{ascending:false}).limit(50),
-        supabase.from("suppliers").select("*").eq("company_id",companyId).order("name").limit(200)
+        supabase.from("suppliers").select("*").eq("company_id",companyId).order("name").limit(200),
+        supabase.from("sales").select("*, customers(name)").eq("company_id",companyId).order("sale_date",{ascending:false}).limit(50),
+        supabase.from("customers").select("*").eq("company_id",companyId).order("name").limit(200)
       ]);
-      const error=[os,ou,ov,od,oe,wh,scopeResult,productsResult,categoriesResult,movementsResult,balancesResult,purchasesResult,suppliersResult].find(x=>x.error)?.error;if(error)throw error;
+      const error=[os,ou,ov,od,oe,wh,scopeResult,productsResult,categoriesResult,movementsResult,balancesResult,purchasesResult,suppliersResult,salesResult,customersResult].find(x=>x.error)?.error;if(error)throw error;
       setOrgSites(os.data??[]);setOrgUnits(ou.data??[]);setOrgServices(ov.data??[]);setOrgDepartments(od.data??[]);setOrgEquipment((oe.data??[]).map(x=>({...x,is_active:true})));setWarehouses(wh.data??[]);setMyScopeAssignments(scopeResult.data??[]);
       setProducts((productsResult.data??[]) as Product[]);setCategories(categoriesResult.data??[]);setMovements(movementsResult.data??[]);setPurchases(purchasesResult.data??[]);setSuppliers(suppliersResult.data??[]);
-      setCustomers([]);setSales([]);
+      setCustomers(customersResult.data??[]);setSales(salesResult.data??[]);
       return;
     }
     setProductCategoryFilter("all");
