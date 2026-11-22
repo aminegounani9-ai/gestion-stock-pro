@@ -41,16 +41,16 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
    supabase!.from("spare_part_repair_cycles").select("*, products(name,sku)").eq("company_id",companyId).in("product_id",detailProductIds).order("created_at",{ascending:false}).limit(200)
   ]):[empty,empty];
   if(qu.error)throw qu.error;if(re.error)throw re.error;
-  setDetails(d.data||[]);setReservations(r.data||[]);setBalances(b.data||[]);setCompat(co.data||[]);setQuotes(qu.data||[]);setRepairs(re.data||[]);setSerials(sn.data||[]);
+  setDetails(d.data||[]);setReservations(r.data||[]);setBalances(b.data||[]);setQuotes(qu.data||[]);setRepairs(re.data||[]);setSerials(sn.data||[]);
   const unitAssignmentQuery=detailProductIds.length?supabase!.from("spare_part_unit_assignments").select("product_id,unit_id").eq("company_id",companyId).in("product_id",detailProductIds):Promise.resolve(empty);
   const {data:unitAssignments,error:unitAssignmentsError}=await unitAssignmentQuery;if(unitAssignmentsError)throw unitAssignmentsError;setSparePartUnitAssignments(unitAssignments||[]);
   const [rq,user,users,sites,units,services,depts,equipment,locations]=await Promise.all([
    (()=>{let q:any=supabase!.from("spare_part_requests").select("*").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100);if(!isAdmin&&myScopes.length&&!myScopes.every((x:any)=>x.scope_type==="warehouse"))q=applyAssignedScopeFilter(q,myScopes,{site:"site_id",service:"service_id",department:"department_id",unit:"unit_id",equipment:"equipment_id"});else if(!isAdmin&&!myScopes.length)q=q.eq("id","00000000-0000-0000-0000-000000000000");return q;})(),
    supabase!.auth.getUser(),supabase!.rpc("list_spare_part_requesters",{p_company_id:companyId}),
-   supabase!.from("org_sites").select("id,code,name,management_id").eq("company_id",companyId).eq("is_active",true).order("name"),
-   supabase!.from("org_units").select("id,code,name,site_id,service_id,department_id").eq("company_id",companyId).eq("is_active",true).order("name"),
-   supabase!.from("org_services").select("id,code,name,site_id,unit_id").eq("company_id",companyId).eq("is_active",true).order("name"),
-   supabase!.from("org_departments").select("id,code,name,site_id,unit_id,service_id").eq("company_id",companyId).eq("is_active",true).order("name"),
+   supabase!.from("org_sites").select("id,code,name,management_id").eq("company_id",companyId).eq("is_active",true).order("name").limit(300),
+   supabase!.from("org_units").select("id,code,name,site_id,service_id,department_id").eq("company_id",companyId).eq("is_active",true).order("name").limit(500),
+   supabase!.from("org_services").select("id,code,name,site_id,unit_id").eq("company_id",companyId).eq("is_active",true).order("name").limit(300),
+   supabase!.from("org_departments").select("id,code,name,site_id,unit_id,service_id").eq("company_id",companyId).eq("is_active",true).order("name").limit(500),
    equipmentQuery,
    warehouseIds.length?supabase!.from("storage_locations").select("id,code,name,warehouse_id").eq("company_id",companyId).in("warehouse_id",warehouseIds).eq("is_active",true).order("code"):Promise.resolve(empty)
   ]);
@@ -67,6 +67,9 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
   setRequests(requestRows.map((request:any)=>({...request,spare_part_request_items:requestItemRows.filter((item:any)=>item.request_id===request.id).map((item:any)=>({...item,products:requestProductMap.get(item.product_id)||null,warehouses:warehouses.find((w:any)=>w.id===item.warehouse_id)||null}))})));
   if(users.error)throw users.error;setRequestUsers(users.data||[]);
   for(const res of [sites,units,services,depts,equipment,locations])if(res.error)throw res.error;
+  const visibleEquipmentTags=(equipment.data||[]).map((x:any)=>x.equipment_tag).filter(Boolean);
+  const co=isAdmin?await supabase!.from("spare_part_equipment_compatibility").select("*").eq("company_id",companyId).order("created_at",{ascending:false}).limit(500):visibleEquipmentTags.length?await supabase!.from("spare_part_equipment_compatibility").select("*").eq("company_id",companyId).in("equipment_tag",visibleEquipmentTags).order("created_at",{ascending:false}).limit(500):empty;
+  if(co.error)throw co.error;setCompat(co.data||[]);
   setOrgSites(sites.data||[]);setOrgUnits(units.data||[]);setOrgServices(services.data||[]);setOrgDepartments(depts.data||[]);setOrgEquipment(equipment.data||[]);setStorageLocations(locations.data||[]);
   if(user.data.user){
    const signedInUserId=user.data.user.id;
