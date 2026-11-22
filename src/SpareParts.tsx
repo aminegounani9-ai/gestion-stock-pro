@@ -50,7 +50,7 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
    supabase!.from("org_units").select("id,code,name,site_id,service_id,department_id").eq("company_id",companyId).eq("is_active",true).order("name"),
    supabase!.from("org_services").select("id,code,name,site_id,unit_id").eq("company_id",companyId).eq("is_active",true).order("name"),
    supabase!.from("org_departments").select("id,code,name,site_id,unit_id,service_id").eq("company_id",companyId).eq("is_active",true).order("name"),
-   supabase!.from("org_equipment").select("id,equipment_tag,name,site_id,unit_id,service_id,department_id,manufacturer,model,serial_number,location,notes,status").eq("company_id",companyId).eq("is_active",true).order("name"),
+   supabase!.from("org_equipment").select("id,equipment_tag,name,site_id,unit_id,service_id,department_id,manufacturer,model,serial_number,location,notes,status").eq("company_id",companyId).eq("status","active").order("name"),
    warehouseIds.length?supabase!.from("storage_locations").select("id,code,name,warehouse_id").eq("company_id",companyId).in("warehouse_id",warehouseIds).eq("is_active",true).order("code"):Promise.resolve(empty)
   ]);
   if(rq.error)throw rq.error;
