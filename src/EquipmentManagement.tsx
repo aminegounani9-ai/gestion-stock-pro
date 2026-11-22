@@ -138,7 +138,8 @@ export default function EquipmentManagement({companyId,lang,equipmentSeed,autoPr
   w.document.write(html);w.document.close();
  }
 
- useEffect(()=>{if(autoPrintReport&&current&&detailReady===current.id&&autoPrintedRef.current!==current.id){autoPrintedRef.current=current.id;exportDossierPdf();onReportPrinted?.();}},[autoPrintReport,current?.id,detailReady,parts,history]);\n  useEffect(()=>{if(!autoPrintReport)autoPrintedRef.current="";},[autoPrintReport]);
+ useEffect(()=>{if(autoPrintReport&&current&&detailReady===current.id&&autoPrintedRef.current!==current.id){autoPrintedRef.current=current.id;exportDossierPdf();onReportPrinted?.();}},[autoPrintReport,current?.id,detailReady,parts,history]);
+  useEffect(()=>{if(!autoPrintReport)autoPrintedRef.current="";},[autoPrintReport]);
   return <div className="equipment-module" dir={lang==="ar"?"rtl":"ltr"}>
   <div className="page-heading"><div><h1>{t.title}</h1><p>{t.sub}</p></div><div className="equipment-heading-actions">{access?.isAdmin&&<button className="primary-btn" onClick={()=>{setCreateError("");setCreateOpen(true);}}><Plus size={16}/>{lang==="ar"?"إضافة معدة جديدة":lang==="en"?"Add equipment":"Ajouter un équipement"}</button>}<button className="secondary-btn" onClick={()=>void load()} title="Actualiser"><RefreshCw size={15}/></button></div></div>
   {error&&<div className="equipment-error">{error}</div>}
