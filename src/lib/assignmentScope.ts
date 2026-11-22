@@ -66,8 +66,8 @@ export function resolveAssignedContext(scopes: any[], data: AssignmentScopeData)
   };
   for (const field of fields) {
     const ids = [...new Set(paths.map(x => (x as any)[field]).filter(Boolean))];
-    values[field] = ids.length === 1 ? ids[0] : "";
     locked[field] = ids.length === 1 && broadest >= ranks[field];
+    values[field] = locked[field] ? ids[0] : "";
   }
   return { values, locked, paths };
 }
