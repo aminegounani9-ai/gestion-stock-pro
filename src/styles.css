@@ -3929,3 +3929,50 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
 .pgantt-bar{border-radius:8px;box-shadow:0 2px 7px #223b5b16}
 @media(max-width:1050px){.pm-kpis-scoped{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.pm-kpis-scoped{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.pm-kpis-scoped article{min-height:112px;padding:10px}.pm-project-list>.panel-head{align-items:stretch}.pm-select-all-btn{flex:1}.pgantt-head{align-items:stretch}.pgantt-tools{flex-wrap:wrap}.pgantt-period{font-size:10px}}
+
+
+/* Mobile QR scan focus and visual confirmation */
+.spare-scanned-highlight{
+  position:relative;
+  background:linear-gradient(90deg,#eaf2ff 0%,#f8fbff 100%)!important;
+  outline:2px solid #4d7ed0;
+  outline-offset:-2px;
+  animation:gspScanFocusPulse 1.8s ease-in-out 2;
+}
+.equipment-scanned-focus{
+  scroll-margin-top:18px;
+  outline:2px solid rgba(62,112,202,.65);
+  outline-offset:2px;
+  animation:gspScanFocusPulse 1.8s ease-in-out 2;
+}
+.sp-modal-backdrop .sp-modal-shell{
+  scroll-margin-top:12px;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+.sp-modal-backdrop .sp-modal-shell .ops-line select:focus{
+  border-color:#3268c5!important;
+  box-shadow:0 0 0 4px rgba(50,104,197,.18)!important;
+}
+@keyframes gspScanFocusPulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(55,105,195,.08)}
+  50%{box-shadow:0 0 0 7px rgba(55,105,195,.16)}
+}
+@media(max-width:760px){
+  .sp-modal-backdrop{
+    padding:calc(8px + env(safe-area-inset-top)) 7px calc(8px + env(safe-area-inset-bottom))!important;
+    align-items:center!important;
+  }
+  .sp-modal-backdrop>.sp-modal-shell{
+    width:100%!important;
+    max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 16px)!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain;
+    scroll-behavior:smooth;
+  }
+  .sp-modal-shell>.panel>.panel-head{position:sticky!important;top:0!important;z-index:5!important}
+  .sp-modal-shell .ops-line select{min-height:46px!important;font-size:16px!important}
+  .sp-modal-shell .ops-line input{min-height:46px!important;font-size:16px!important}
+  .equipment-scanned-focus{scroll-margin-top:12px}
+  .spare-scanned-highlight td{padding-top:12px!important;padding-bottom:12px!important}
+}
