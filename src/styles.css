@@ -4944,3 +4944,83 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
     max-height: calc(100% - 2px) !important;
   }
 }
+
+
+/* =========================================================
+   GSP FORM SCROLL FIX — audited real DOM structures.
+   The organisation structure form owns its .form-grid class;
+   stock operations fields are inside a fieldset. Earlier rules
+   targeted child grids that do not exist in those two forms.
+   ========================================================= */
+@media screen and (max-width: 960px) and (pointer: coarse) {
+  /* Organisation create/edit: the form itself is the grid, so
+     scroll the form as one complete dialog instead of clipping it. */
+  .gsp-modal-portal-root > .org-form-backdrop > form.modal-card.org-form {
+    display: block !important;
+    width: min(100%, 620px) !important;
+    max-height: calc(100% - 2px) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    padding: 14px !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  .gsp-modal-portal-root > .org-form-backdrop > form.modal-card.org-form > .modal-head {
+    position: relative !important;
+    top: auto !important;
+    margin-bottom: 16px !important;
+  }
+  .gsp-modal-portal-root > .org-form-backdrop > form.modal-card.org-form > .modal-actions {
+    position: relative !important;
+    bottom: auto !important;
+    flex-wrap: wrap !important;
+    margin-top: 18px !important;
+  }
+
+  /* Stock operations: fields are nested inside a fieldset, not
+     directly inside the modal form. Make that fieldset the scroll area. */
+  .gsp-modal-portal-root > .modal-backdrop > form.modal-card.ops-form {
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+  }
+  .gsp-modal-portal-root > .modal-backdrop > form.modal-card.ops-form > .modal-head {
+    flex: 0 0 auto !important;
+    padding: 14px !important;
+    margin-bottom: 0 !important;
+  }
+  .gsp-modal-portal-root > .modal-backdrop > form.modal-card.ops-form > fieldset.ops-fieldset {
+    display: block !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    padding: 14px !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  .gsp-modal-portal-root > .modal-backdrop > form.modal-card.ops-form > .modal-actions,
+  .gsp-modal-portal-root > .modal-backdrop > form.modal-card.ops-form > .ops-actions {
+    flex: 0 0 auto !important;
+    padding: 12px 14px max(12px, env(safe-area-inset-bottom)) !important;
+    margin: 0 !important;
+    background: #fff !important;
+    border-top: 1px solid #e5ecf5 !important;
+  }
+
+  /* Keep all controls usable on touch screens without horizontal overflow. */
+  .gsp-modal-portal-root input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  .gsp-modal-portal-root select,
+  .gsp-modal-portal-root textarea {
+    max-width: 100% !important;
+    min-width: 0 !important;
+    font-size: 16px !important;
+    box-sizing: border-box !important;
+  }
+}
+@media screen and (max-width: 960px) and (orientation: landscape) and (pointer: coarse) {
+  .gsp-modal-portal-root > .org-form-backdrop > form.modal-card.org-form,
+  .gsp-modal-portal-root > .modal-backdrop > form.modal-card.ops-form {
+    max-height: calc(100% - 4px) !important;
+  }
+}
