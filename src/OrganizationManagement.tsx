@@ -40,7 +40,6 @@ export default function OrganizationManagement({ companyId, members, currentUser
   const [assignment,setAssignment] = useState({user_id:"",job_title:"",scope_type:"unit" as ScopeType,scope_id:"",can_view:true,can_create:false,can_edit:false,can_delete:false,can_approve:false,can_issue:false,can_receive:false,can_transfer:false,can_inventory:false});
   const [selectedScopeIds,setSelectedScopeIds] = useState<string[]>([]);
   const [selectedChildIds,setSelectedChildIds] = useState<string[]>([]);
-  const [selectedManagementServiceIds,setSelectedManagementServiceIds] = useState<string[]>([]);
   const [selectedManagementIds,setSelectedManagementIds] = useState<string[]>([]);
   const [selectedManagementSiteIds,setSelectedManagementSiteIds] = useState<string[]>([]);
   const [selectedManagementServiceIds,setSelectedManagementServiceIds] = useState<string[]>([]);
@@ -257,7 +256,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
   return <div className="ops-wrap" dir={lang==="ar"?"rtl":"ltr"}>
     <section className="panel">
       <div className="panel-head"><div><h3>{t.title}</h3><p>{t.intro}</p></div><div className="row-actions"><button className="secondary-btn" type="button" onClick={()=>void refresh()}><RefreshCw size={14}/> {t.refresh}</button><button className="primary-btn" type="button" onClick={()=>{setEditingId(null);setForm({});setSelectedChildIds([]);setSelectedManagementServiceIds([]);setFormOpen(true);}}><Plus size={15}/>{t.add} {scopeLabels[kind].toLowerCase()}</button></div></div>
-      <div className="org-tabs">{tabs.map(([id,label])=><button type="button" key={id} className={kind===id?"active":""} onClick={()=>{setKind(id);setForm({});setEditingId(null);setSelectedChildIds([])}}>{label} <span>{scopeRows[id].length}</span></button>)}</div>
+      <div className="org-tabs">{tabs.map(([id,label])=><button type="button" key={id} className={kind===id?"active":""} onClick={()=>{setKind(id);setForm({});setEditingId(null);setSelectedChildIds([]);setSelectedManagementServiceIds([])}}>{label} <span>{scopeRows[id].length}</span></button>)}</div>
       {formOpen&&<ModalPortal><div className="modal-backdrop org-form-backdrop"><form className="modal-card form-grid org-form" onSubmit={createStructure}><div className="modal-head span-2"><div><span className="eyebrow">{editingId?t.edit:t.add}</span><h3>{editingId?scopeLabels[kind]+" · "+t.edit:scopeLabels[kind]+" · "+t.add}</h3></div><button type="button" className="ops-icon-btn" onClick={()=>{setFormOpen(false);setEditingId(null);setForm({});setSelectedChildIds([]);setSelectedManagementServiceIds([]);}}><X size={16}/></button></div>
         <label>{kind==="equipment"?t.tag:t.code}<input value={kind==="equipment"?(form.equipment_tag||""):(form.code||"")} onChange={e=>setField(kind==="equipment"?"equipment_tag":"code",e.target.value)} required/></label>
         <label>{kind==="equipment"?t.designation:t.name}<input value={form.name||""} onChange={e=>setField("name",e.target.value)} required/></label>
