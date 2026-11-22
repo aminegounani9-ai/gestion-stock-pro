@@ -3680,3 +3680,144 @@ body{color:#243550;-webkit-font-smoothing:antialiased;text-rendering:optimizeLeg
  [dir=rtl] .stock-ai-panel{right:auto;left:9px}
 }
 @media(prefers-reduced-motion:reduce){.stock-ai-fab-icon,.stock-ai-fab-pulse,.stock-ai-typing span,.stock-ai-panel,.stock-ai-tool.active{animation:none}}
+
+
+/* Assignment editor: stable viewport, independent scrolling and clear permission sections. */
+.org-form-backdrop:has(.org-assignment-modal) {
+  align-items: center !important;
+  justify-content: center !important;
+  padding: clamp(10px, 2.4vh, 26px) !important;
+  overflow: hidden !important;
+}
+.org-assignment-modal {
+  display: flex !important;
+  flex-direction: column !important;
+  width: min(980px, calc(100vw - 32px)) !important;
+  max-width: 980px !important;
+  height: auto !important;
+  max-height: calc(100dvh - 32px) !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  overscroll-behavior: contain !important;
+  border-radius: 20px !important;
+  background: #f8fafc !important;
+}
+.org-assignment-modal > .modal-head {
+  position: relative !important;
+  inset: auto !important;
+  flex: 0 0 auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  margin: 0 !important;
+  padding: 18px 24px !important;
+  background: linear-gradient(110deg,#edf3ff,#f7fafc 65%,#eef7f5) !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+.org-assignment-modal > .modal-head h3 { margin: 4px 0 3px !important; font-size: 19px !important; color: #1d2b43 !important; }
+.org-assignment-modal > .modal-head p { margin: 4px 0 0 !important; max-width: 720px !important; line-height: 1.5 !important; }
+.org-assignment-body {
+  display: grid !important;
+  grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+  align-content: start !important;
+  align-items: start !important;
+  gap: 16px 18px !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  width: 100% !important;
+  padding: 20px 24px 24px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  overscroll-behavior: contain !important;
+  scrollbar-gutter: stable !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+.org-assignment-body > label { min-width: 0 !important; display: grid !important; gap: 7px !important; }
+.org-assignment-body .org-multi-scope-field,
+.org-assignment-body .org-management-scope-picker { min-width: 0 !important; }
+.org-assignment-body .org-scope-picker-list {
+  max-height: min(28vh, 230px) !important;
+  min-height: 76px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 7px !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  background: #f1f5f9 !important;
+  scrollbar-gutter: stable !important;
+}
+.org-assignment-body .org-permissions {
+  display: grid !important;
+  grid-template-columns: repeat(3,minmax(0,1fr)) !important;
+  gap: 9px !important;
+  padding: 14px !important;
+  border: 1px solid #e1e8f1 !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+}
+.org-assignment-body .org-permissions label {
+  display: flex !important;
+  align-items: center !important;
+  min-width: 0 !important;
+  gap: 9px !important;
+  padding: 9px 10px !important;
+  border: 1px solid #edf1f6 !important;
+  border-radius: 9px !important;
+  background: #f9fbfd !important;
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+  color: #42536b !important;
+}
+.org-assignment-body .org-permissions input { flex: 0 0 16px !important; width: 16px !important; height: 16px !important; }
+.org-assignment-body .org-project-permissions {
+  min-width: 0 !important;
+  padding: 15px !important;
+  border: 1px solid #dce7f5 !important;
+  border-radius: 14px !important;
+  background: linear-gradient(135deg,#f0f5ff,#fff 75%) !important;
+}
+.org-assignment-body .org-project-permissions h4 { margin: 0 0 5px !important; color: #243c63 !important; font-size: 13px !important; }
+.org-assignment-body .org-project-permissions p { margin: 0 0 12px !important; color: #687991 !important; font-size: 10px !important; line-height: 1.5 !important; }
+.org-assignment-modal > .modal-actions {
+  position: relative !important;
+  inset: auto !important;
+  flex: 0 0 auto !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+  margin: 0 !important;
+  padding: 14px 24px max(14px,env(safe-area-inset-bottom)) !important;
+  border-top: 1px solid #e2e8f0 !important;
+  background: #fff !important;
+}
+@media (max-width: 760px) {
+  .org-form-backdrop:has(.org-assignment-modal) {
+    align-items: flex-start !important;
+    padding: max(8px,env(safe-area-inset-top)) 8px max(8px,env(safe-area-inset-bottom)) !important;
+  }
+  .org-assignment-modal {
+    width: 100% !important;
+    max-width: none !important;
+    max-height: calc(100dvh - 16px) !important;
+    border-radius: 14px !important;
+  }
+  .org-assignment-modal > .modal-head { padding: 14px 15px !important; }
+  .org-assignment-modal > .modal-head h3 { font-size: 16px !important; }
+  .org-assignment-body {
+    grid-template-columns: minmax(0,1fr) !important;
+    gap: 13px !important;
+    padding: 14px 15px 18px !important;
+  }
+  .org-assignment-body .org-permissions { grid-template-columns: repeat(2,minmax(0,1fr)) !important; padding: 10px !important; }
+  .org-assignment-body .org-scope-picker-list { max-height: 190px !important; }
+  .org-assignment-modal > .modal-actions { padding: 12px 15px max(12px,env(safe-area-inset-bottom)) !important; }
+  .org-assignment-modal > .modal-actions button { flex: 1 1 auto !important; justify-content: center !important; }
+}
+@media (max-height: 720px) and (min-width: 761px) {
+  .org-assignment-modal { max-height: calc(100dvh - 20px) !important; }
+  .org-assignment-body { gap: 11px 16px !important; padding-top: 14px !important; padding-bottom: 16px !important; }
+  .org-assignment-body .org-scope-picker-list { max-height: 170px !important; }
+}
