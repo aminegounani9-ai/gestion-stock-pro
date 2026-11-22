@@ -42,8 +42,9 @@ export default function ProjectManagement({companyId,companyName,currentUserId,c
  const assignedContext=useMemo(()=>resolveAssignedContext(myScopes,{sites,services,departments,units,equipment,warehouses:[]}),[myScopes,sites,services,departments,units,equipment]);
  const siteName=(id:string)=>sites.find(x=>x.id===id)?.name||"";
  const departmentName=(id:string)=>departments.find(x=>x.id===id)?.name||"";
- const createServiceScopeIds=myScopes.filter(x=>x?.scope_type==="service"&&x.can_create===true).map(x=>x.scope_id);
- const onlyServiceCreateScopes=myScopes.filter(x=>x?.can_create===true).length>0&&myScopes.filter(x=>x?.can_create===true).every(x=>x.scope_type==="service");
+ const createServiceScopeIds=myScopes.filter(x=>x?.scope_type==="service"&&(x.projects_can_create??x.can_create)===true).map(x=>x.scope_id);
+ const effectiveCreateScopes=myScopes.filter(x=>(x.projects_can_create??x.can_create)===true);
+ const onlyServiceCreateScopes=effectiveCreateScopes.length>0&&effectiveCreateScopes.every(x=>x.scope_type==="service");
  const projectServices=onlyServiceCreateScopes?services.filter(x=>createServiceScopeIds.includes(x.id)):services;
  useEffect(()=>{if(showProjectForm&&!editingProjectId)setProjectForm(v=>({...v,...assignedContext.values,site:siteName(assignedContext.values.site_id),department:departmentName(assignedContext.values.department_id)}));},[showProjectForm,editingProjectId,assignedContext,sites,departments]);
  const playProjectSound=useCallback(()=>{if(!projectSoundEnabled||typeof window==="undefined")return;try{const AC=(window as any).AudioContext||(window as any).webkitAudioContext;if(!AC)return;const ctx=new AC(),now=ctx.currentTime;[660,830,990].forEach((hz,i)=>{const osc=ctx.createOscillator(),gain=ctx.createGain();osc.frequency.value=hz;osc.type="sine";gain.gain.setValueAtTime(.0001,now+i*.12);gain.gain.exponentialRampToValueAtTime(.10,now+i*.12+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+i*.12+.17);osc.connect(gain);gain.connect(ctx.destination);osc.start(now+i*.12);osc.stop(now+i*.12+.19);});window.setTimeout(()=>void ctx.close(),800);}catch(e){console.warn("Project sound unavailable",e);}},[projectSoundEnabled]);
@@ -52,7 +53,7 @@ export default function ProjectManagement({companyId,companyName,currentUserId,c
   const client=supabase;if(!client)return;
   const isAdmin=["owner","admin"].includes(currentRole);
   let projectQuery:any=client.from("projects").select("*").eq("company_id",companyId).order("created_at",{ascending:false}).limit(300);
-  if(!isAdmin)projectQuery=applyAssignedScopeFilter(projectQuery,myScopes,{site:"site_id",service:"service_id",department:"department_id",unit:"unit_id",equipment:"equipment_id"});
+  if(!isAdmin){const projectViewScopes=myScopes.map(scope=>({...scope,can_view:scope.projects_can_view??scope.can_view}));projectQuery=applyAssignedScopeFilter(projectQuery,projectViewScopes,{site:"site_id",service:"service_id",department:"department_id",unit:"unit_id",equipment:"equipment_id"});}
   const [p,n]=await Promise.all([
    projectQuery,
    client.from("notifications").select("id,title,message,notification_type,entity_type,entity_id,is_read,created_at").eq("company_id",companyId).eq("recipient_user_id",currentUserId).in("notification_type",["project_update","project_task"]).order("created_at",{ascending:false}).limit(100)
@@ -117,7 +118,7 @@ export default function ProjectManagement({companyId,companyName,currentUserId,c
   e.preventDefault();if(!supabase||(editingProjectId?!(isCompanyProjectAdmin||access?.canEdit||selectedProject?.project_manager_id===currentUserId):!canCreateProject))return;setBusy(true);
   try{
    const dateOrNull=(value:string)=>{const v=String(value??"").trim();return /^\d{4}-\d{2}-\d{2}$/.test(v)?v:null;};
-   const createScopes=myScopes.filter(x=>x?.can_create===true);
+   const createScopes=myScopes.filter(x=>(x.projects_can_create??x.can_create)===true);
    if(!editingProjectId&&createScopes.length&&createScopes.every(x=>x.scope_type==="service")&&!projectForm.service_id)throw new Error(lang==="en"?"Select one of your assigned services before creating the project.":lang==="ar"?"اختر مصلحة من المصالح المعيّنة لك قبل إنشاء المشروع.":"Sélectionnez l’un de vos services affectés avant de créer le projet.");
    const plannedStart=projectForm.start_date?new Date(projectForm.start_date+"T"+(projectForm.start_time||"08:00")):null,plannedEnd=projectForm.target_end_date?new Date(projectForm.target_end_date+"T"+(projectForm.target_end_time||"17:00")):null;
    if(plannedStart&&plannedEnd&&plannedEnd<=plannedStart)throw new Error(lang==="en"?"Planned project end must be after its start.":lang==="ar"?"يجب أن يكون تاريخ ووقت نهاية المشروع بعد البداية.":"La date et l’heure de fin prévues doivent être après le début.");
