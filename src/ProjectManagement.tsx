@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ModalPortal from "./ModalPortal";
-import { Activity, AlertTriangle, Bell, CalendarDays, CheckCircle2, Clock3, FolderKanban, Plus, Search, Target, Users, Wallet, X, Pencil, Trash2, Volume2, VolumeX, Gauge, Layers3 } from "lucide-react";
+import { Activity, AlertTriangle, Bell, CalendarDays, CheckCircle2, Clock3, FolderKanban, Plus, Search, Users, X, Pencil, Trash2, Volume2, VolumeX, Gauge, Layers3 } from "lucide-react";
 import { supabase } from "./lib/supabase";
 import { resolveAssignedContext, applyAssignedScopeFilter } from "./lib/assignmentScope";
 import ProjectManagementSuite from "./ProjectManagementSuite";
