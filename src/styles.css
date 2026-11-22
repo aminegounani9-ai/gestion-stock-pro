@@ -3905,3 +3905,88 @@ body{color:#243550;-webkit-font-smoothing:antialiased;text-rendering:optimizeLeg
   .org-assignment-modal { height: calc(100dvh - 16px) !important; max-height: calc(100dvh - 16px) !important; }
   .org-assignment-body > .org-project-permissions .org-permissions { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
 }
+
+
+/* Assignment editor v3: one continuous scroll for the COMPLETE form. */
+.org-form-backdrop:has(.org-assignment-modal) {
+  display: block !important;
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  padding: 18px 12px !important;
+  box-sizing: border-box !important;
+  overscroll-behavior-y: contain !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+.org-form-backdrop:has(.org-assignment-modal) > .org-assignment-modal {
+  display: block !important;
+  width: min(980px,100%) !important;
+  max-width: 980px !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  border-radius: 18px !important;
+}
+.org-assignment-modal > .modal-head {
+  position: relative !important;
+  top: auto !important;
+  margin: 0 !important;
+}
+.org-assignment-modal > .org-assignment-body {
+  display: grid !important;
+  grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+  flex: none !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+  overflow-y: visible !important;
+  padding: 20px 24px 24px !important;
+  align-content: start !important;
+}
+.org-assignment-modal > .org-assignment-body > * {
+  min-width: 0 !important;
+}
+.org-assignment-modal > .org-assignment-body > .org-project-permissions,
+.org-assignment-modal > .org-assignment-body > .org-permissions {
+  grid-column: 1 / -1 !important;
+}
+.org-assignment-modal > .modal-actions {
+  position: relative !important;
+  bottom: auto !important;
+  margin: 0 !important;
+}
+.org-assignment-body .org-scope-picker-list {
+  max-height: 240px !important;
+  overflow-y: auto !important;
+}
+@media(max-width:760px) {
+  .org-form-backdrop:has(.org-assignment-modal) {
+    padding: 8px 7px max(8px,env(safe-area-inset-bottom)) !important;
+  }
+  .org-form-backdrop:has(.org-assignment-modal) > .org-assignment-modal {
+    width: 100% !important;
+    border-radius: 14px !important;
+  }
+  .org-assignment-modal > .org-assignment-body {
+    grid-template-columns: minmax(0,1fr) !important;
+    padding: 14px 14px 18px !important;
+    gap: 13px !important;
+  }
+  .org-assignment-modal > .org-assignment-body > .org-project-permissions,
+  .org-assignment-modal > .org-assignment-body > .org-permissions {
+    grid-column: 1 !important;
+  }
+  .org-assignment-body > .org-project-permissions .org-permissions {
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+  }
+  .org-assignment-modal > .modal-actions {
+    flex-wrap: wrap !important;
+    padding: 12px 14px max(12px,env(safe-area-inset-bottom)) !important;
+  }
+}
