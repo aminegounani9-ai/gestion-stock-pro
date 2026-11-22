@@ -691,7 +691,7 @@ export default function App() {
 
   async function handleScannedCode(code:string){
     let scanned=code.trim();
-    try{const url=new URL(scanned,window.location.origin);scanned=url.searchParams.get("equipment")||url.searchParams.get("equipment_tag")||url.searchParams.get("product")||url.searchParams.get("sku")||url.searchParams.get("part")||url.searchParams.get("barcode")||url.pathname.match(/\\/equipment\\/([^/]+)/)?.[1]||scanned;}catch{}
+    try{const url=new URL(scanned,window.location.origin);scanned=url.searchParams.get("equipment")||url.searchParams.get("equipment_tag")||url.searchParams.get("product")||url.searchParams.get("sku")||url.searchParams.get("part")||url.searchParams.get("barcode")||url.pathname.split("/equipment/")[1]?.split("/")[0]||scanned;}catch{}
     try{const parsed=JSON.parse(scanned);scanned=String(parsed.equipment_id||parsed.equipmentId||parsed.equipment_tag||parsed.equipment||parsed.product_id||parsed.productId||parsed.sku||parsed.part_number||parsed.barcode||scanned);}catch{}
     if(!company||!supabase)return;
     const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
