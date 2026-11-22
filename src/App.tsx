@@ -437,7 +437,7 @@ export default function App() {
         setOrgSites([]);setOrgUnits([]);setOrgServices([]);setOrgDepartments([]);setOrgEquipment([]);setMyScopeAssignments([]);
       }
       if (["owner","admin","manager","supervisor"].includes(chosenRole)||(["director","project_responsible"].includes(chosenRole)&&canListProjectTeam)) {
-        const {data: memberRows,error: memberError} = await supabase.rpc("list_company_users",{p_company_id:chosen.id});
+        const {data: memberRows,error: memberError} = await supabase.rpc("list_company_users_with_names",{p_company_id:chosen.id});
         if (memberError) throw memberError;
         setMembers(memberRows ?? []);
         } else { setMembers([]); }
