@@ -117,6 +117,9 @@ export default function ProjectManagement({companyId,companyName,currentUserId,c
  async function saveProject(e:React.FormEvent){
   e.preventDefault();if(!supabase||(editingProjectId?!canManage:!canCreateProject))return;setBusy(true);
   try{
+   const {data:{user:authenticatedUser},error:authUserError}=await supabase.auth.getUser();
+   if(authUserError)throw authUserError;
+   if(!authenticatedUser?.id)throw new Error(lang==="en"?"Your session has expired. Please sign in again.":lang==="ar"?"انتهت جلسة الدخول. أعد تسجيل الدخول.":"Votre session a expiré. Veuillez vous reconnecter.");
    const dateOrNull=(value:string)=>{const v=String(value??"").trim();return /^\d{4}-\d{2}-\d{2}$/.test(v)?v:null;};
    const createScopes=myScopes.filter(x=>(x.projects_can_create??x.can_create)===true);
    if(!editingProjectId&&createScopes.length&&createScopes.every(x=>x.scope_type==="service")&&!projectForm.service_id)throw new Error(lang==="en"?"Select one of your assigned services before creating the project.":lang==="ar"?"اختر مصلحة من المصالح المعيّنة لك قبل إنشاء المشروع.":"Sélectionnez l’un de vos services affectés avant de créer le projet.");
@@ -129,7 +132,7 @@ export default function ProjectManagement({companyId,companyName,currentUserId,c
    const payload={company_id:companyId,project_code:projectForm.project_code.trim(),name:projectForm.name.trim(),project_type:projectForm.project_type||"internal",priority:projectForm.priority||"medium",status:projectForm.status||"planned",description:projectForm.description||null,objectives:projectForm.objectives||null,scope:projectForm.scope||null,site:projectForm.site||null,site_id:projectForm.site_id||null,service_id:projectForm.service_id||null,department:projectForm.department||null,department_id:projectForm.department_id||null,unit_location:projectForm.unit_location?.trim()||null,unit_id:projectForm.unit_id||null,equipment_id:projectForm.equipment_id||null,project_manager_id:projectForm.project_manager_id||null,responsible_user_id:projectForm.responsible_user_id||null,start_date:dateOrNull(projectForm.start_date),start_time:projectForm.start_time||"08:00",target_end_date:dateOrNull(projectForm.target_end_date),target_end_time:projectForm.target_end_time||"17:00",actual_started_at:actualStartedAt,actual_completed_at:actualCompletedAt,budget:Number(projectForm.budget||0),actual_cost:Number(projectForm.actual_cost||0),risk_level:projectForm.risk_level||"medium",success_criteria:projectForm.success_criteria||null,notes:projectForm.notes||null,updated_at:new Date().toISOString()};
    let data:any,error:any;
    if(editingProjectId){const result=await supabase.from("projects").update(payload).eq("id",editingProjectId).eq("company_id",companyId).select().single();data=result.data;error=result.error;}
-   else{const result=await supabase.from("projects").insert({...payload,created_by:currentUserId}).select().single();data=result.data;error=result.error;}
+   else{const result=await supabase.from("projects").insert({...payload,created_by:authenticatedUser.id}).select().single();data=result.data;error=result.error;}
    if(error)throw error;
    await log(data.id,(editingProjectId?"Projet modifié : ":"Projet créé : ")+data.name);setSelected(data.id);setShowProjectForm(false);setEditingProjectId(null);setProjectForm(v=>({...v,project_code:"",name:"",description:"",objectives:"",scope:"",site:"",department:"",unit_location:"",responsible_user_id:"",target_end_date:"",budget:"0",actual_cost:"0",success_criteria:"",notes:""}));await load();
   }catch(err:any){alert(err.message||"Erreur lors de l'enregistrement du projet.");}finally{setBusy(false);}
