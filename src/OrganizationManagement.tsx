@@ -43,6 +43,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
   const [selectedManagementId,setSelectedManagementId] = useState("");
   const [selectedManagementSiteIds,setSelectedManagementSiteIds] = useState<string[]>([]);
   const [selectedManagementServiceIds,setSelectedManagementServiceIds] = useState<string[]>([]);
+  const [editingManagementAssignmentIds,setEditingManagementAssignmentIds] = useState<string[]>([]);
   const [assignmentSearch,setAssignmentSearch]=useState("");
   const [busy,setBusy] = useState(false);
   const [formOpen,setFormOpen]=useState(false);
@@ -169,7 +170,15 @@ export default function OrganizationManagement({ companyId, members, currentUser
     try{
       const rows=scopeRowsToSave.map(scope=>({company_id:companyId,user_id:assignment.user_id,job_title:assignment.job_title,scope_type:scope.scope_type,scope_id:scope.scope_id,can_view:assignment.can_view,can_create:assignment.can_create,can_edit:assignment.can_edit,can_delete:assignment.can_delete,can_approve:assignment.can_approve,can_issue:assignment.can_issue,can_receive:assignment.can_receive,can_transfer:assignment.can_transfer,can_inventory:assignment.can_inventory}));
       const {error}=await supabase.from("user_scope_assignments").upsert(rows,{onConflict:"company_id,user_id,scope_type,scope_id"});if(error)throw error;
-      await refresh();setSelectedScopeIds([]);setSelectedManagementSiteIds([]);setSelectedManagementServiceIds([]);setSelectedManagementId("");setAssignment(old=>({...old,scope_id:""}));setAssignmentModalOpen(false);onNotice("success",`${rows.length} ${t.multiScopeSaved}`);
+      if(managementMode&&editingManagementAssignmentIds.length){
+        const keep=new Set(scopeRowsToSave.map(x=>x.scope_type+":"+x.scope_id));
+        const removed=assignments.filter(a=>editingManagementAssignmentIds.includes(a.id)&&!keep.has(a.scope_type+":"+a.scope_id)).map(a=>a.id);
+        if(removed.length){
+          const deletion=await supabase.from("user_scope_assignments").delete().eq("company_id",companyId).in("id",removed);
+          if(deletion.error)throw deletion.error;
+        }
+      }
+      await refresh();setSelectedScopeIds([]);setSelectedManagementSiteIds([]);setSelectedManagementServiceIds([]);setSelectedManagementId("");setEditingManagementAssignmentIds([]);setAssignment(old=>({...old,scope_id:""}));setAssignmentModalOpen(false);onNotice("success",`${rows.length} ${t.multiScopeSaved}`);
     }catch(e:any){onNotice("error",e.message)}finally{setBusy(false)}
   }
   async function removeAssignment(id:string){
@@ -178,11 +187,30 @@ export default function OrganizationManagement({ companyId, members, currentUser
     if(error){onNotice("error",error.message);return;}await refresh();onNotice("success",lang==="ar"?"تم حذف التعيين.":lang==="en"?"Assignment removed.":"Affectation retirée.");
   }
   function editAssignment(row:any){
-    setAssignment({user_id:row.user_id,job_title:row.job_title||"",scope_type:row.scope_type as ScopeType,scope_id:row.scope_id,can_view:!!row.can_view,can_create:!!row.can_create,can_edit:!!row.can_edit,can_delete:!!row.can_delete,can_approve:!!row.can_approve,can_issue:!!row.can_issue,can_receive:!!row.can_receive,can_transfer:!!row.can_transfer,can_inventory:!!row.can_inventory});
-    setSelectedScopeIds([row.scope_id]);
-    setSelectedManagementId("");
-    setSelectedManagementSiteIds([]);
-    setSelectedManagementServiceIds([]);
+    const sameRights=(a:any)=>a.user_id===row.user_id&&a.job_title===row.job_title&&
+      ["can_view","can_create","can_edit","can_delete","can_approve","can_issue","can_receive","can_transfer","can_inventory"].every(k=>!!a[k]===!!row[k]);
+    const managementFor=(a:any)=>{
+      if(a.scope_type==="site")return sites.find(x=>x.id===a.scope_id)?.management_id||"";
+      if(a.scope_type==="service"){
+        const service=services.find(x=>x.id===a.scope_id);
+        return sites.find(x=>x.id===service?.site_id)?.management_id||"";
+      }
+      return "";
+    };
+    const managementId=["site","service"].includes(row.scope_type)?managementFor(row):"";
+    if(managementId){
+      const group=assignments.filter(a=>sameRights(a)&&["site","service"].includes(a.scope_type)&&managementFor(a)===managementId);
+      setAssignment({user_id:row.user_id,job_title:row.job_title||"",scope_type:"management",scope_id:"",can_view:!!row.can_view,can_create:!!row.can_create,can_edit:!!row.can_edit,can_delete:!!row.can_delete,can_approve:!!row.can_approve,can_issue:!!row.can_issue,can_receive:!!row.can_receive,can_transfer:!!row.can_transfer,can_inventory:!!row.can_inventory});
+      setSelectedManagementId(managementId);
+      setSelectedManagementSiteIds(group.filter(a=>a.scope_type==="site").map(a=>a.scope_id));
+      setSelectedManagementServiceIds(group.filter(a=>a.scope_type==="service").map(a=>a.scope_id));
+      setEditingManagementAssignmentIds(group.map(a=>a.id));
+      setSelectedScopeIds([]);
+    }else{
+      setAssignment({user_id:row.user_id,job_title:row.job_title||"",scope_type:row.scope_type as ScopeType,scope_id:row.scope_id,can_view:!!row.can_view,can_create:!!row.can_create,can_edit:!!row.can_edit,can_delete:!!row.can_delete,can_approve:!!row.can_approve,can_issue:!!row.can_issue,can_receive:!!row.can_receive,can_transfer:!!row.can_transfer,can_inventory:!!row.can_inventory});
+      setSelectedScopeIds([row.scope_id]);
+      setSelectedManagementId("");setSelectedManagementSiteIds([]);setSelectedManagementServiceIds([]);setEditingManagementAssignmentIds([]);
+    }
     setAssignmentSearch("");
     setActiveTab("assignments");
     setAssignmentModalOpen(true);
@@ -242,7 +270,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
       {assignmentModalOpen&&<ModalPortal><div className="modal-backdrop org-form-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget&&!busy)setAssignmentModalOpen(false);}}><form className="modal-card org-assignment-modal" onSubmit={saveAssignment}><div className="modal-head"><div><span className="eyebrow">ORGANISATION · ACCÈS</span><h3>{t.saveAssignment}</h3><p>{t.rightsIntro}</p></div><button type="button" className="icon-btn" aria-label="Fermer" onClick={()=>setAssignmentModalOpen(false)} disabled={busy}><X size={18}/></button></div><div className="form-grid org-form">
         <label>{t.user}<select required value={assignment.user_id} onChange={e=>setAssignment(old=>({...old,user_id:e.target.value}))}><option value="">{t.select}</option>{members.filter(m=>m.is_active!==false&&m.user_id!==currentUserId).map(m=><option key={m.user_id} value={m.user_id}>{m.email||m.user_id} · {m.role||"membre"}</option>)}</select></label>
         <label>{t.job}<input value={assignment.job_title} onChange={e=>setAssignment(old=>({...old,job_title:e.target.value}))} placeholder={t.jobHint}/></label>
-        <label>{t.scopeType}<select value={assignment.scope_type} onChange={e=>{setSelectedScopeIds([]);setSelectedManagementId("");setSelectedManagementSiteIds([]);setSelectedManagementServiceIds([]);setAssignmentSearch("");setAssignment(old=>({...old,scope_type:e.target.value as ScopeType,scope_id:""}));}}><optgroup label={lang==="ar"?"الهيكل التنظيمي":lang==="en"?"Organization":"Structure organisation"}><option value="management">Management</option><option value="service">{scopeLabels.service}</option><option value="site">{scopeLabels.site}</option><option value="unit">{scopeLabels.unit}</option><option value="department">{scopeLabels.department}</option></optgroup><optgroup label={lang==="ar"?"الموارد":lang==="en"?"Resources":"Ressources"}><option value="warehouse">{scopeLabels.warehouse}</option><option value="equipment">{scopeLabels.equipment}</option></optgroup></select></label>
+        <label>{t.scopeType}<select value={assignment.scope_type} onChange={e=>{setSelectedScopeIds([]);setSelectedManagementId("");setSelectedManagementSiteIds([]);setSelectedManagementServiceIds([]);setEditingManagementAssignmentIds([]);setAssignmentSearch("");setAssignment(old=>({...old,scope_type:e.target.value as ScopeType,scope_id:""}));}}><optgroup label={lang==="ar"?"الهيكل التنظيمي":lang==="en"?"Organization":"Structure organisation"}><option value="management">Management</option><option value="service">{scopeLabels.service}</option><option value="site">{scopeLabels.site}</option><option value="unit">{scopeLabels.unit}</option><option value="department">{scopeLabels.department}</option></optgroup><optgroup label={lang==="ar"?"الموارد":lang==="en"?"Resources":"Ressources"}><option value="warehouse">{scopeLabels.warehouse}</option><option value="equipment">{scopeLabels.equipment}</option></optgroup></select></label>
         {assignment.scope_type==="management"?<div className="span-2 org-management-scope-picker">
           <label>{lang==="ar"?"الإدارة":lang==="en"?"Management":"Management"}<select required value={selectedManagementId} onChange={e=>{setSelectedManagementId(e.target.value);setSelectedManagementSiteIds([]);setSelectedManagementServiceIds([]);}}><option value="">{t.select}</option>{managements.filter(x=>x.is_active!==false).map(x=><option key={x.id} value={x.id}>{x.code?x.code+" · ":""}{x.name}</option>)}</select></label>
           {selectedManagementId&&<><div className="org-multi-scope-field"><div className="org-scope-picker-head"><label>{lang==="ar"?"المواقع التابعة للإدارة":lang==="en"?"Sites under this management":"Sites rattachés à ce Management"}</label><span>{selectedManagementSiteIds.length} sélectionné(s)</span></div><div className="org-scope-picker-list">{sites.filter(x=>x.is_active!==false&&x.management_id===selectedManagementId).map(x=><label className="org-scope-choice" key={x.id}><input type="checkbox" checked={selectedManagementSiteIds.includes(x.id)} onChange={e=>setSelectedManagementSiteIds(old=>e.target.checked?[...old,x.id]:old.filter(id=>id!==x.id))}/><span><b>{x.code||"—"} · {x.name}</b></span></label>)}</div></div>
