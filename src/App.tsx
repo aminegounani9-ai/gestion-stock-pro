@@ -305,11 +305,14 @@ export default function App() {
       const moduleKeys=new Set((permissions.data||[]).filter((x:any)=>x.can_view).map((x:any)=>x.module_key));
       let partScopeResult:any=empty;
       if(moduleKeys.has("spareParts")||moduleKeys.has("products")||moduleKeys.has("requests")||moduleKeys.has("equipment")||moduleKeys.has("reports")){
-        let partScopeQuery:any=supabase.from("spare_part_details").select("product_id").eq("company_id",companyId).limit(1000);
-        if(!scopeResult.data?.some((x:any)=>x.scope_type==="management")&&!(scopeResult.data||[]).some((x:any)=>x.scope_type==="warehouse")){
-          partScopeQuery=applyAssignedScopeFilter(partScopeQuery,scopeResult.data||[],{site:"site_id",service:"service_id",department:"department_id",unit:"unit_id",equipment:"equipment_id"},"product_id");
+        const scopeRows=scopeResult.data||[];
+        const managementWide=scopeRows.some((x:any)=>x.scope_type==="management");
+        const warehouseOnly=scopeRows.length>0&&scopeRows.every((x:any)=>x.scope_type==="warehouse");
+        if(!warehouseOnly){
+          let partScopeQuery:any=supabase.from("spare_part_details").select("product_id").eq("company_id",companyId).limit(1000);
+          if(!managementWide)partScopeQuery=applyAssignedScopeFilter(partScopeQuery,scopeRows,{site:"site_id",service:"service_id",department:"department_id",unit:"unit_id",equipment:"equipment_id"},"product_id");
+          partScopeResult=await partScopeQuery;
         }
-        partScopeResult=await partScopeQuery;
       }
       if(partScopeResult.error)throw partScopeResult.error;
       const warehouseIds=(wh.data||[]).map((x:any)=>x.id);
