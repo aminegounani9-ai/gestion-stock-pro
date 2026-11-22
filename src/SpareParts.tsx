@@ -21,7 +21,7 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
  useEffect(()=>{if(initialEquipmentId&&orgEquipment.some((x:any)=>x.id===initialEquipmentId)){const eq=orgEquipment.find((x:any)=>x.id===initialEquipmentId);setRequestForm((v:any)=>({...v,equipment_id:eq.id,site_id:eq.site_id||"",unit_id:eq.unit_id||"",service_id:eq.service_id||"",department_id:eq.department_id||""}));}},[initialEquipmentId,orgEquipment]);
  const load=useCallback(async()=>{
   setLoading(true);setLoadError("");
-  const isAdmin=access?.isAdmin||["owner","admin"].includes(role);
+  const isAdmin=["owner","admin"].includes(role);
   const warehouseIds=(warehouses||[]).filter((x:any)=>x.is_active!==false).map((x:any)=>x.id);
   const empty:any={data:[],error:null};
   let detailQuery:any=supabase!.from("spare_part_details").select("*, products(id,sku,name,unit,min_stock,purchase_price,category_id), suppliers(name)").eq("company_id",companyId).order("created_at",{ascending:false}).limit(500);
@@ -75,7 +75,7 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
    setRequestForm((v:any)=>({...v,requester_id:signedInUserId,...assigned.values}));
   }
   setLoading(false);
- },[companyId,myScopes,warehouses,access,role]);
+ },[companyId,myScopes,warehouses,role]);
  useEffect(()=>{void load().catch((error:any)=>{setLoading(false);setLoadError(error?.message||"Impossible de charger les données du module.");});},[load]);
  useEffect(()=>{if(searchTerm)setSearch(searchTerm);},[searchTerm]);
  const ownScopeRows=myScopes.length?myScopes:requestScopes.filter((x:any)=>x.user_id===currentUserId);
