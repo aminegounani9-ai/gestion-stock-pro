@@ -72,14 +72,12 @@ export function resolveAssignedContext(scopes: any[], data: AssignmentScopeData)
   return { values, locked, paths };
 }
 
-export function applyAssignedScopeFilter(query: any, scopes: any[], columns: Record<string, string>, emptyColumn = "id") {
+export function applyAssignedScopeFilter(query: any, scopes: any[], _columns: Record<string, string>, emptyColumn = "id") {
   const rows = (scopes || []).filter(x => x && x.can_view === true && scopeRank[x.scope_type] !== undefined);
+  // RLS is the source of truth for hierarchical access. A frontend filter on only
+  // service_id or department_id can hide valid rows whose parent scope is stored
+  // through unit_id/equipment_id instead. Keep the company query intact and let
+  // the matching row-level policy resolve the full hierarchy.
   if (!rows.length) return query.eq(emptyColumn, "00000000-0000-0000-0000-000000000000");
-  if (rows.some(x => x.scope_type === "management")) return query;
-  const broadest = Math.min(...rows.map(x => scopeRank[x.scope_type]));
-  const type = rows.find(x => scopeRank[x.scope_type] === broadest)?.scope_type;
-  const column = type ? columns[type] : undefined;
-  const ids = [...new Set(rows.filter(x => x.scope_type === type).map(x => x.scope_id).filter(Boolean))];
-  if (!column || !ids.length) return query.eq("id", "00000000-0000-0000-0000-000000000000");
-  return query.in(column, ids);
+  return query;
 }
