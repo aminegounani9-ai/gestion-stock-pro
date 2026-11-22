@@ -4032,3 +4032,8 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
     line-height:1.35!important;
   }
 }
+
+/* QR equipment focus: bring the selected equipment card into the center of the viewport */
+.equipment-hero.equipment-scan-focus{outline:3px solid rgba(55,116,220,.55);outline-offset:5px;animation:equipmentScanFocus 1.8s ease-out 1}
+@keyframes equipmentScanFocus{0%{box-shadow:0 0 0 0 rgba(55,116,220,.45)}45%{box-shadow:0 0 0 12px rgba(55,116,220,.12)}100%{box-shadow:0 0 0 0 rgba(55,116,220,0)}}
+@media(max-width:760px){.equipment-hero.equipment-scan-focus{scroll-margin-block:35vh}}
