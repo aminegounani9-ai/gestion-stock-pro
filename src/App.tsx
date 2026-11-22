@@ -295,31 +295,37 @@ export default function App() {
       return;
     }
     setProductCategoryFilter("all");
-    const [p,w,s,c,m,b,po,sa] = await Promise.all([
-      supabase.from("products").select("*").eq("company_id",companyId).order("created_at",{ascending:false}),
-      supabase.from("warehouses").select("*").eq("company_id",companyId).order("created_at"),
-      supabase.from("suppliers").select("*").eq("company_id",companyId).order("name"),
-      supabase.from("customers").select("*").eq("company_id",companyId).order("name"),
-      supabase.from("stock_movements").select("*, products(name,sku), warehouses(name)").eq("company_id",companyId).order("occurred_at",{ascending:false}).limit(30),
-      supabase.from("stock_balances").select("product_id,warehouse_id,quantity_on_hand").eq("company_id",companyId),
-      supabase.from("purchase_orders").select("*, suppliers(name)").eq("company_id",companyId).order("created_at",{ascending:false}).limit(50),
-      supabase.from("sales").select("*, customers(name)").eq("company_id",companyId).order("sale_date",{ascending:false}).limit(50)
+    const [workspaceResults, categoryResult, orgResults, authResult] = await Promise.all([
+      Promise.all([
+        supabase.from("products").select("*").eq("company_id",companyId).order("created_at",{ascending:false}),
+        supabase.from("warehouses").select("*").eq("company_id",companyId).order("created_at"),
+        supabase.from("suppliers").select("*").eq("company_id",companyId).order("name"),
+        supabase.from("customers").select("*").eq("company_id",companyId).order("name"),
+        supabase.from("stock_movements").select("*, products(name,sku), warehouses(name)").eq("company_id",companyId).order("occurred_at",{ascending:false}).limit(30),
+        supabase.from("stock_balances").select("product_id,warehouse_id,quantity_on_hand").eq("company_id",companyId),
+        supabase.from("purchase_orders").select("*, suppliers(name)").eq("company_id",companyId).order("created_at",{ascending:false}).limit(50),
+        supabase.from("sales").select("*, customers(name)").eq("company_id",companyId).order("sale_date",{ascending:false}).limit(50)
+      ]),
+      supabase.from("product_categories").select("id,name").eq("company_id",companyId).order("name"),
+      Promise.all([
+        supabase.from("org_sites").select("id,code,name,management_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
+        supabase.from("org_units").select("id,code,name,site_id,service_id,department_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
+        supabase.from("org_services").select("id,code,name,site_id,unit_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
+        supabase.from("org_departments").select("id,code,name,site_id,unit_id,service_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
+        supabase.from("org_equipment").select("id,equipment_tag,name,site_id,unit_id,service_id,department_id,status").eq("company_id",companyId).eq("status","active").order("name")
+      ]),
+      supabase.auth.getUser()
     ]);
+    const [p,w,s,c,m,b,po,sa] = workspaceResults;
+    const [os,ou,ov,od,oe] = orgResults;
     const queryError = [p,w,s,c,m,b,po,sa].find(result => result.error);
     if (queryError?.error) throw queryError.error;
-    const categoryResult = await supabase.from("product_categories").select("id,name").eq("company_id",companyId).order("name");
     if (categoryResult.error) throw categoryResult.error;
+    const orgError=[os,ou,ov,od,oe].find(x=>x.error)?.error;
+    if(orgError)throw orgError;
     setCategories(categoryResult.data ?? []);
-    const [os,ou,ov,od,oe]=await Promise.all([
-      supabase.from("org_sites").select("id,code,name,management_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
-      supabase.from("org_units").select("id,code,name,site_id,service_id,department_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
-      supabase.from("org_services").select("id,code,name,site_id,unit_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
-      supabase.from("org_departments").select("id,code,name,site_id,unit_id,service_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
-      supabase.from("org_equipment").select("id,equipment_tag,name,site_id,unit_id,service_id,department_id,status").eq("company_id",companyId).eq("status","active").order("name")
-    ]);
-    const orgError=[os,ou,ov,od,oe].find(x=>x.error)?.error;if(orgError)throw orgError;
     setOrgSites(os.data??[]);setOrgUnits(ou.data??[]);setOrgServices(ov.data??[]);setOrgDepartments(od.data??[]);setOrgEquipment((oe.data??[]).map(x=>({...x,is_active:true})));
-    const {data:{user:scopeUser}}=await supabase.auth.getUser();
+    const {data:{user:scopeUser}}=authResult;
     const scopeResult=scopeUser?await supabase.from("user_scope_assignments").select("scope_type,scope_id,job_title,can_view,can_create,can_edit,can_delete,can_approve,can_issue,can_receive,can_transfer,can_inventory").eq("company_id",companyId).eq("user_id",scopeUser.id):{data:[],error:null};
     if(scopeResult.error)throw scopeResult.error;
     const userScopes=scopeResult.data??[];
