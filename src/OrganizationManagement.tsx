@@ -40,6 +40,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
   const [assignment,setAssignment] = useState({user_id:"",job_title:"",scope_type:"unit" as ScopeType,scope_id:"",can_view:true,can_create:false,can_edit:false,can_delete:false,can_approve:false,can_issue:false,can_receive:false,can_transfer:false,can_inventory:false});
   const [selectedScopeIds,setSelectedScopeIds] = useState<string[]>([]);
   const [selectedChildIds,setSelectedChildIds] = useState<string[]>([]);
+  const [selectedManagementServiceIds,setSelectedManagementServiceIds] = useState<string[]>([]);
   const [selectedManagementIds,setSelectedManagementIds] = useState<string[]>([]);
   const [selectedManagementSiteIds,setSelectedManagementSiteIds] = useState<string[]>([]);
   const [selectedManagementServiceIds,setSelectedManagementServiceIds] = useState<string[]>([]);
@@ -136,7 +137,15 @@ export default function OrganizationManagement({ companyId, members, currentUser
           }
         }
       }
-      setForm({});setEditingId(null);setFormOpen(false);setSelectedChildIds([]);await refresh();onNotice("success",labels[kind]+(editingId?" modifié(e).":" ajouté(e)."));
+      if(kind==="management"){
+        const clearServices=await supabase.from("org_services").update({management_id:null}).eq("company_id",companyId).eq("management_id",parentId);
+        if(clearServices.error)throw clearServices.error;
+        if(selectedManagementServiceIds.length){
+          const attachServices=await supabase.from("org_services").update({management_id:parentId}).eq("company_id",companyId).in("id",selectedManagementServiceIds);
+          if(attachServices.error)throw attachServices.error;
+        }
+      }
+      setForm({});setEditingId(null);setFormOpen(false);setSelectedChildIds([]);setSelectedManagementServiceIds([]);await refresh();onNotice("success",labels[kind]+(editingId?" modifié(e).":" ajouté(e)."));
     }
     catch(e:any){onNotice("error",e.message)}finally{setBusy(false)}
   }
@@ -145,6 +154,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
     setForm({code:row.code||"",name:row.name||"",description:row.description||"",address:row.address||"",site_id:row.site_id||"",unit_id:row.unit_id||"",service_id:row.service_id||"",department_id:row.department_id||"",equipment_tag:row.equipment_tag||"",manufacturer:row.manufacturer||"",model:row.model||"",serial_number:row.serial_number||"",location:row.location||""});
     const childRows:any={management:sites.filter(x=>x.management_id===row.id),site:services.filter(x=>x.site_id===row.id),service:departments.filter(x=>x.service_id===row.id),department:units.filter(x=>x.department_id===row.id)};
     setSelectedChildIds((childRows[type]||[]).map((x:Row)=>x.id));
+    setSelectedManagementServiceIds(type==="management"?services.filter(x=>x.management_id===row.id).map(x=>x.id):[]);
     setActiveTab("structure");setFormOpen(true);
   }
   async function deleteStructure(type:ScopeType,row:Row){if(!supabase||!window.confirm("Supprimer définitivement "+(row.name||row.code||row.equipment_tag||"cet élément")+" ? Les éléments liés peuvent empêcher la suppression."))return;const {error}=await supabase.from(tables[type]).delete().eq("id",row.id).eq("company_id",companyId);if(error){onNotice("error","Suppression impossible : "+error.message);return;}if(editingId===row.id){setEditingId(null);setForm({});}await refresh();onNotice("success",lang==="ar"?"تم حذف العنصر.":lang==="en"?"Item deleted.":"Élément supprimé.");}
@@ -246,13 +256,13 @@ export default function OrganizationManagement({ companyId, members, currentUser
   const childTitle=childType==="site"?"Sites à rattacher":childType==="service"?"Services à rattacher":childType==="department"?"Départements à rattacher":"Unités à rattacher";
   return <div className="ops-wrap" dir={lang==="ar"?"rtl":"ltr"}>
     <section className="panel">
-      <div className="panel-head"><div><h3>{t.title}</h3><p>{t.intro}</p></div><div className="row-actions"><button className="secondary-btn" type="button" onClick={()=>void refresh()}><RefreshCw size={14}/> {t.refresh}</button><button className="primary-btn" type="button" onClick={()=>{setEditingId(null);setForm({});setSelectedChildIds([]);setFormOpen(true);}}><Plus size={15}/>{t.add} {scopeLabels[kind].toLowerCase()}</button></div></div>
+      <div className="panel-head"><div><h3>{t.title}</h3><p>{t.intro}</p></div><div className="row-actions"><button className="secondary-btn" type="button" onClick={()=>void refresh()}><RefreshCw size={14}/> {t.refresh}</button><button className="primary-btn" type="button" onClick={()=>{setEditingId(null);setForm({});setSelectedChildIds([]);setSelectedManagementServiceIds([]);setFormOpen(true);}}><Plus size={15}/>{t.add} {scopeLabels[kind].toLowerCase()}</button></div></div>
       <div className="org-tabs">{tabs.map(([id,label])=><button type="button" key={id} className={kind===id?"active":""} onClick={()=>{setKind(id);setForm({});setEditingId(null);setSelectedChildIds([])}}>{label} <span>{scopeRows[id].length}</span></button>)}</div>
-      {formOpen&&<ModalPortal><div className="modal-backdrop org-form-backdrop"><form className="modal-card form-grid org-form" onSubmit={createStructure}><div className="modal-head span-2"><div><span className="eyebrow">{editingId?t.edit:t.add}</span><h3>{editingId?scopeLabels[kind]+" · "+t.edit:scopeLabels[kind]+" · "+t.add}</h3></div><button type="button" className="ops-icon-btn" onClick={()=>{setFormOpen(false);setEditingId(null);setForm({});setSelectedChildIds([]);}}><X size={16}/></button></div>
+      {formOpen&&<ModalPortal><div className="modal-backdrop org-form-backdrop"><form className="modal-card form-grid org-form" onSubmit={createStructure}><div className="modal-head span-2"><div><span className="eyebrow">{editingId?t.edit:t.add}</span><h3>{editingId?scopeLabels[kind]+" · "+t.edit:scopeLabels[kind]+" · "+t.add}</h3></div><button type="button" className="ops-icon-btn" onClick={()=>{setFormOpen(false);setEditingId(null);setForm({});setSelectedChildIds([]);setSelectedManagementServiceIds([]);}}><X size={16}/></button></div>
         <label>{kind==="equipment"?t.tag:t.code}<input value={kind==="equipment"?(form.equipment_tag||""):(form.code||"")} onChange={e=>setField(kind==="equipment"?"equipment_tag":"code",e.target.value)} required/></label>
         <label>{kind==="equipment"?t.designation:t.name}<input value={form.name||""} onChange={e=>setField("name",e.target.value)} required/></label>
         {parentOptions&&<label>{t.site}<select required value={form.site_id||""} onChange={e=>setField("site_id",e.target.value)}><option value="">{t.chooseSite}</option>{sites.filter(x=>x.is_active).map(x=><option key={x.id} value={x.id}>{x.code} · {x.name}</option>)}</select></label>}
-        {kind==="management"&&<label>Description<input value={form.description||""} onChange={e=>setField("description",e.target.value)}/></label>}
+        {kind==="management"&&<><label>Description<input value={form.description||""} onChange={e=>setField("description",e.target.value)}/></label><div className="span-2 org-multi-scope-field"><div className="org-scope-picker-head"><label>Services à rattacher au Management</label><span>{selectedManagementServiceIds.length} sélectionné(s)</span></div><div className="org-scope-picker-list">{services.filter(x=>x.is_active!==false).map(x=><label className="org-scope-choice" key={x.id}><input type="checkbox" checked={selectedManagementServiceIds.includes(x.id)} onChange={e=>setSelectedManagementServiceIds(old=>e.target.checked?[...old,x.id]:old.filter(id=>id!==x.id))}/><span><b>{x.code||"—"} · {x.name}</b><small>{sites.find(st=>st.id===x.site_id)?.name||"Service sans site"}</small></span></label>)}</div><small>Vous pouvez sélectionner plusieurs services, indépendamment des sites, pour ce Management.</small></div></>}
         {childType&&<div className="span-2 org-multi-scope-field"><div className="org-scope-picker-head"><label>{childTitle}</label><span>{selectedChildIds.length} sélectionné(s)</span></div><div className="org-scope-picker-list">{childOptions.filter(x=>x.is_active!==false).map(x=><label className="org-scope-choice" key={x.id}><input type="checkbox" checked={selectedChildIds.includes(x.id)} onChange={e=>setSelectedChildIds(old=>e.target.checked?[...old,x.id]:old.filter(id=>id!==x.id))}/><span><b>{x.code||x.equipment_tag||"—"} · {x.name}</b></span></label>)}</div><small>Vous pouvez rattacher plusieurs éléments à ce niveau.</small></div>}
         {kind==="equipment"&&<label>{t.unit}<select value={form.unit_id||""} onChange={e=>setField("unit_id",e.target.value)}><option value="">{t.noUnit}</option>{units.filter(x=>x.is_active&&(!form.site_id||x.site_id===form.site_id)).map(x=><option key={x.id} value={x.id}>{x.code} · {x.name}</option>)}</select></label>}
 
