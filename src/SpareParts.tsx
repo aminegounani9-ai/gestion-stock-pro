@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import ModalPortal from "./ModalPortal";
 import { AlertTriangle, Boxes, ClipboardList, PackagePlus, Search, Wrench, CheckCircle2, XCircle, PackageCheck, Printer, Trash2, X, ChevronDown, ChevronUp } from "lucide-react";
 import { supabase } from "./lib/supabase";
-import { resolveAssignedContext } from "./lib/assignmentScope";
+import { resolveAssignedContext, applyAssignedScopeFilter } from "./lib/assignmentScope";
 
 type Props = { companyId: string; products: any[]; categories:any[]; warehouses: any[]; suppliers: any[]; myScopes?:any[]; role: string; access?: {isAdmin:boolean;canView:boolean;canCreate:boolean;canEdit:boolean;canDelete:boolean;canApprove:boolean;canIssue:boolean;canReceive:boolean;canTransfer:boolean;canInventory:boolean}; lang: "fr"|"en"|"ar"; searchTerm?:string; onSaved: () => Promise<void>; view?: "parts"|"requests"; initialEquipmentId?:string|null };
 const text = {
@@ -12,7 +12,7 @@ const text = {
 };
 type Detail = Record<string, any>;
 export default function SpareParts({companyId,warehouses,suppliers,categories,myScopes=[],role,access,lang,searchTerm,onSaved,view="parts",initialEquipmentId}:Props){
- const t=text[lang]; const canCreate=access?(access.isAdmin||access.canCreate):["owner","admin","director","manager","warehouse"].includes(role); const canEdit=access?(access.isAdmin||access.canEdit):["owner","admin","director","manager","warehouse"].includes(role); const canDelete=access?(access.isAdmin||access.canDelete):["owner","admin","director","manager"].includes(role); const canWrite=canCreate||canEdit; const canIssue=access?(access.isAdmin||access.canIssue):["owner","admin","director","manager","warehouse"].includes(role); const canReserve=access?(access.isAdmin||access.canCreate):["owner","admin","director","manager","warehouse"].includes(role); const canReceive=access?(access.isAdmin||access.canReceive):["owner","admin","director","manager","warehouse"].includes(role); const canRequest=["owner","admin","director","manager","warehouse","technician","staff"].includes(role)||(access?.isAdmin||access?.canCreate);
+ const t=text[lang]; const canCreate=access?(access.isAdmin||access.canCreate):["owner","admin","director","manager","warehouse"].includes(role); const canEdit=access?(access.isAdmin||access.canEdit):["owner","admin","director","manager","warehouse"].includes(role); const canDelete=access?(access.isAdmin||access.canDelete):["owner","admin","director","manager"].includes(role); const canWrite=canCreate||canEdit; const canIssue=access?(access.isAdmin||access.canIssue):["owner","admin","director","manager","warehouse"].includes(role); const canReserve=access?(access.isAdmin||access.canCreate):["owner","admin","director","manager","warehouse"].includes(role); const canReceive=access?(access.isAdmin||access.canReceive):["owner","admin","director","manager","warehouse"].includes(role); const canRequest=access?(access.isAdmin||access.canCreate):["owner","admin","director","manager","warehouse","technician","staff"].includes(role);
  const [details,setDetails]=useState<Detail[]>([]); const [reservations,setReservations]=useState<any[]>([]); const [balances,setBalances]=useState<any[]>([]); const [compat,setCompat]=useState<any[]>([]); const [quotes,setQuotes]=useState<any[]>([]); const [repairs,setRepairs]=useState<any[]>([]); const [serials,setSerials]=useState<any[]>([]); const [serialForm,setSerialForm]=useState<Detail>({status:"in_stock"}); const [compatForm,setCompatForm]=useState<Detail>({quantity_per_equipment:1}); const [quoteForm,setQuoteForm]=useState<Detail>({currency:"DZD",minimum_order_quantity:1}); const [repairForm,setRepairForm]=useState<Detail>({status:"sent",currency:"DZD"});
  const [showPartForm,setShowPartForm]=useState(false); const [showRequestForm,setShowRequestForm]=useState(false); const [catalogueOpen,setCatalogueOpen]=useState(true);
  const [loading,setLoading]=useState(true); const [loadError,setLoadError]=useState(""); const [saving,setSaving]=useState(false); const [search,setSearch]=useState(""); const [editing,setEditing]=useState<string|null>(null); const [categoryFilter,setCategoryFilter]=useState("all"); const [selectedQrIds,setSelectedQrIds]=useState<string[]>([]);
@@ -21,27 +21,37 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
  useEffect(()=>{if(initialEquipmentId&&orgEquipment.some((x:any)=>x.id===initialEquipmentId)){const eq=orgEquipment.find((x:any)=>x.id===initialEquipmentId);setRequestForm((v:any)=>({...v,equipment_id:eq.id,site_id:eq.site_id||"",unit_id:eq.unit_id||"",service_id:eq.service_id||"",department_id:eq.department_id||""}));}},[initialEquipmentId,orgEquipment]);
  const load=useCallback(async()=>{
   setLoading(true);setLoadError("");
-  const [d,r,b,co,qu,re,sn]=await Promise.all([
-   supabase!.from("spare_part_details").select("*, products(id,sku,name,unit,min_stock,purchase_price,category_id), suppliers(name)").eq("company_id",companyId).order("created_at",{ascending:false}),
-   supabase!.from("spare_part_reservations").select("*, products(name,sku,category_id), warehouses(name)").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100),
-   supabase!.from("stock_balances").select("product_id,warehouse_id,quantity_on_hand").eq("company_id",companyId),
-   supabase!.from("spare_part_equipment_compatibility").select("*").eq("company_id",companyId).order("created_at",{ascending:false}),
-   supabase!.from("spare_part_supplier_quotes").select("*, suppliers(name), products(name,sku)").eq("company_id",companyId).order("last_quoted_at",{ascending:false}),
-   supabase!.from("spare_part_repair_cycles").select("*, products(name,sku)").eq("company_id",companyId).order("created_at",{ascending:false}),
-   supabase!.from("stock_serial_numbers").select("*, products(name,sku), warehouses(name)").eq("company_id",companyId).order("created_at",{ascending:false}).limit(200)
+  const isAdmin=access?.isAdmin||["owner","admin"].includes(role);
+  const warehouseIds=(warehouses||[]).filter((x:any)=>x.is_active!==false).map((x:any)=>x.id);
+  const empty:any={data:[],error:null};
+  let detailQuery:any=supabase!.from("spare_part_details").select("*, products(id,sku,name,unit,min_stock,purchase_price,category_id), suppliers(name)").eq("company_id",companyId).order("created_at",{ascending:false}).limit(500);
+  if(!isAdmin)detailQuery=applyAssignedScopeFilter(detailQuery,myScopes.filter((x:any)=>x.scope_type!=="warehouse"),{site:"site_id",service:"service_id",department:"department_id",unit:"unit_id",equipment:"equipment_id"},"product_id");
+  const [d,r,b,co,sn]=await Promise.all([
+   detailQuery,
+   warehouseIds.length?supabase!.from("spare_part_reservations").select("*, products(name,sku,category_id), warehouses(name)").eq("company_id",companyId).in("warehouse_id",warehouseIds).order("created_at",{ascending:false}).limit(100):Promise.resolve(empty),
+   warehouseIds.length?supabase!.from("stock_balances").select("product_id,warehouse_id,quantity_on_hand").eq("company_id",companyId).in("warehouse_id",warehouseIds).limit(1000):Promise.resolve(empty),
+   supabase!.from("spare_part_equipment_compatibility").select("*").eq("company_id",companyId).order("created_at",{ascending:false}).limit(500),
+   warehouseIds.length?supabase!.from("stock_serial_numbers").select("*, products(name,sku), warehouses(name)").eq("company_id",companyId).in("warehouse_id",warehouseIds).order("created_at",{ascending:false}).limit(200):Promise.resolve(empty)
   ]);
-  const err=[d,r,b,co,qu,re,sn].find(x=>x.error); if(err) throw err.error;
+  const err=[d,r,b,co,sn].find(x=>x.error);if(err)throw err.error;
+  const detailProductIds=[...new Set((d.data||[]).map((x:any)=>x.product_id).filter(Boolean))];
+  const [qu,re]=detailProductIds.length?await Promise.all([
+   supabase!.from("spare_part_supplier_quotes").select("*, suppliers(name), products(name,sku)").eq("company_id",companyId).in("product_id",detailProductIds).order("last_quoted_at",{ascending:false}).limit(500),
+   supabase!.from("spare_part_repair_cycles").select("*, products(name,sku)").eq("company_id",companyId).in("product_id",detailProductIds).order("created_at",{ascending:false}).limit(200)
+  ]):[empty,empty];
+  if(qu.error)throw qu.error;if(re.error)throw re.error;
   setDetails(d.data||[]);setReservations(r.data||[]);setBalances(b.data||[]);setCompat(co.data||[]);setQuotes(qu.data||[]);setRepairs(re.data||[]);setSerials(sn.data||[]);
-  const {data:unitAssignments,error:unitAssignmentsError}=await supabase!.from("spare_part_unit_assignments").select("product_id,unit_id").eq("company_id",companyId);if(unitAssignmentsError)throw unitAssignmentsError;setSparePartUnitAssignments(unitAssignments||[]);
+  const unitAssignmentQuery=detailProductIds.length?supabase!.from("spare_part_unit_assignments").select("product_id,unit_id").eq("company_id",companyId).in("product_id",detailProductIds):Promise.resolve(empty);
+  const {data:unitAssignments,error:unitAssignmentsError}=await unitAssignmentQuery;if(unitAssignmentsError)throw unitAssignmentsError;setSparePartUnitAssignments(unitAssignments||[]);
   const [rq,user,users,sites,units,services,depts,equipment,locations]=await Promise.all([
-   supabase!.from("spare_part_requests").select("*").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100),
+   (()=>{let q:any=supabase!.from("spare_part_requests").select("*").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100);if(!isAdmin&&myScopes.length&&!myScopes.every((x:any)=>x.scope_type==="warehouse"))q=applyAssignedScopeFilter(q,myScopes,{site:"site_id",service:"service_id",department:"department_id",unit:"unit_id",equipment:"equipment_id"});else if(!isAdmin&&!myScopes.length)q=q.eq("id","00000000-0000-0000-0000-000000000000");return q;})(),
    supabase!.auth.getUser(),supabase!.rpc("list_spare_part_requesters",{p_company_id:companyId}),
    supabase!.from("org_sites").select("id,code,name,management_id").eq("company_id",companyId).eq("is_active",true).order("name"),
    supabase!.from("org_units").select("id,code,name,site_id,service_id,department_id").eq("company_id",companyId).eq("is_active",true).order("name"),
    supabase!.from("org_services").select("id,code,name,site_id,unit_id").eq("company_id",companyId).eq("is_active",true).order("name"),
    supabase!.from("org_departments").select("id,code,name,site_id,unit_id,service_id").eq("company_id",companyId).eq("is_active",true).order("name"),
    supabase!.from("org_equipment").select("id,equipment_tag,name,site_id,unit_id,service_id,department_id,manufacturer,model,serial_number,location,notes,status").eq("company_id",companyId).eq("is_active",true).order("name"),
-   supabase!.from("storage_locations").select("id,code,name,warehouse_id").eq("company_id",companyId).eq("is_active",true).order("code")
+   warehouseIds.length?supabase!.from("storage_locations").select("id,code,name,warehouse_id").eq("company_id",companyId).in("warehouse_id",warehouseIds).eq("is_active",true).order("code"):Promise.resolve(empty)
   ]);
   if(rq.error)throw rq.error;
   const requestRows=rq.data||[];
@@ -59,15 +69,13 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
   setOrgSites(sites.data||[]);setOrgUnits(units.data||[]);setOrgServices(services.data||[]);setOrgDepartments(depts.data||[]);setOrgEquipment(equipment.data||[]);setStorageLocations(locations.data||[]);
   if(user.data.user){
    const signedInUserId=user.data.user.id;
-   const {data:sc,error:scopeError}=await supabase!.rpc("list_spare_part_requester_scopes",{p_company_id:companyId});
-   if(scopeError)throw scopeError;
-   const ownScopes=myScopes.length?myScopes:(sc||[]).filter((x:any)=>x.user_id===signedInUserId);
+   const ownScopes=myScopes;
    const assigned=resolveAssignedContext(ownScopes,{sites:sites.data||[],services:services.data||[],departments:depts.data||[],units:units.data||[],equipment:equipment.data||[],warehouses});
-   setRequestScopes(sc||[]);setCurrentUserId(signedInUserId);
+   setRequestScopes(ownScopes);setCurrentUserId(signedInUserId);
    setRequestForm((v:any)=>({...v,requester_id:signedInUserId,...assigned.values}));
   }
   setLoading(false);
- },[companyId,myScopes,warehouses]);
+ },[companyId,myScopes,warehouses,access,role]);
  useEffect(()=>{void load().catch((error:any)=>{setLoading(false);setLoadError(error?.message||"Impossible de charger les données du module.");});},[load]);
  useEffect(()=>{if(searchTerm)setSearch(searchTerm);},[searchTerm]);
  const ownScopeRows=myScopes.length?myScopes:requestScopes.filter((x:any)=>x.user_id===currentUserId);
