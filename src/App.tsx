@@ -283,25 +283,66 @@ export default function App() {
     const {data:membership}=scopeUser?await supabase.from("company_members").select("role").eq("company_id",companyId).eq("user_id",scopeUser.id).maybeSingle():{data:null};
     const forceScoped=mode==="scopes"||!["owner","admin"].includes(membership?.role||"");
     if(forceScoped){
-      const [os,ou,ov,od,oe,wh,scopeResult,productsResult,categoriesResult,movementsResult,balancesResult,purchasesResult,suppliersResult,salesResult,customersResult]=await Promise.all([
-        supabase.from("org_sites").select("id,code,name,management_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
-        supabase.from("org_units").select("id,code,name,site_id,service_id,department_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
-        supabase.from("org_services").select("id,code,name,site_id,unit_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
-        supabase.from("org_departments").select("id,code,name,site_id,unit_id,service_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
-        supabase.from("org_equipment").select("id,equipment_tag,name,site_id,unit_id,service_id,department_id,status").eq("company_id",companyId).eq("status","active").order("name"),
-        supabase.from("warehouses").select("id,code,name,site_id,unit_id,service_id,department_id,equipment_id,is_active").eq("company_id",companyId).order("name"),
-        scopeUser?supabase.from("user_scope_assignments").select("scope_type,scope_id,job_title,can_view,can_create,can_edit,can_delete,can_approve,can_issue,can_receive,can_transfer,can_inventory").eq("company_id",companyId).eq("user_id",scopeUser.id):Promise.resolve({data:[],error:null} as any),
-        supabase.from("products").select("*").eq("company_id",companyId).order("created_at",{ascending:false}).limit(500),
-        supabase.from("product_categories").select("id,name").eq("company_id",companyId).order("name"),
-        supabase.from("stock_movements").select("*, products(name,sku), warehouses(name)").eq("company_id",companyId).order("occurred_at",{ascending:false}).limit(100),
-        supabase.from("stock_balances").select("product_id,warehouse_id,quantity_on_hand").eq("company_id",companyId).limit(1000),
-        supabase.from("purchase_orders").select("*, suppliers(name)").eq("company_id",companyId).order("created_at",{ascending:false}).limit(50),
-        supabase.from("suppliers").select("*").eq("company_id",companyId).order("name").limit(200),
-        supabase.from("sales").select("*, customers(name)").eq("company_id",companyId).order("sale_date",{ascending:false}).limit(50),
-        supabase.from("customers").select("*").eq("company_id",companyId).order("name").limit(200)
+      const empty:any={data:[],error:null,count:0};
+      if(!scopeUser){
+        setProducts([]);setWarehouses([]);setSuppliers([]);setCustomers([]);setMovements([]);setPurchases([]);setSales([]);setCategories([]);
+        setOrgSites([]);setOrgUnits([]);setOrgServices([]);setOrgDepartments([]);setOrgEquipment([]);setMyScopeAssignments([]);
+        return;
+      }
+      const [permissions,os,ou,ov,od,oe,wh,scopeResult,categoriesResult,partScopeResult]=await Promise.all([
+        supabase.from("user_module_permissions").select("module_key,can_view,can_create,can_edit,can_delete,can_approve,can_issue,can_receive,can_transfer,can_inventory").eq("company_id",companyId).eq("user_id",scopeUser.id),
+        supabase.from("org_sites").select("id,code,name,management_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name").limit(300),
+        supabase.from("org_units").select("id,code,name,site_id,service_id,department_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name").limit(500),
+        supabase.from("org_services").select("id,code,name,site_id,unit_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name").limit(300),
+        supabase.from("org_departments").select("id,code,name,site_id,unit_id,service_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name").limit(500),
+        supabase.from("org_equipment").select("id,equipment_tag,name,site_id,unit_id,service_id,department_id,status").eq("company_id",companyId).eq("status","active").order("name").limit(1000),
+        supabase.from("warehouses").select("id,code,name,site_id,unit_id,service_id,department_id,equipment_id,is_active").eq("company_id",companyId).order("name").limit(300),
+        supabase.from("user_scope_assignments").select("scope_type,scope_id,job_title,can_view,can_create,can_edit,can_delete,can_approve,can_issue,can_receive,can_transfer,can_inventory").eq("company_id",companyId).eq("user_id",scopeUser.id),
+        supabase.from("product_categories").select("id,name").eq("company_id",companyId).order("name").limit(200),
+        supabase.from("spare_part_details").select("product_id").eq("company_id",companyId).limit(1000)
       ]);
-      const error=[os,ou,ov,od,oe,wh,scopeResult,productsResult,categoriesResult,movementsResult,balancesResult,purchasesResult,suppliersResult,salesResult,customersResult].find(x=>x.error)?.error;if(error)throw error;
-      setOrgSites(os.data??[]);setOrgUnits(ou.data??[]);setOrgServices(ov.data??[]);setOrgDepartments(od.data??[]);setOrgEquipment((oe.data??[]).map(x=>({...x,is_active:true})));setWarehouses(wh.data??[]);setMyScopeAssignments(scopeResult.data??[]);
+      const firstError=[permissions,os,ou,ov,od,oe,wh,scopeResult,categoriesResult,partScopeResult].find(x=>x.error)?.error;
+      if(firstError)throw firstError;
+      const moduleKeys=new Set((permissions.data||[]).filter((x:any)=>x.can_view).map((x:any)=>x.module_key));
+      const warehouseIds=(wh.data||[]).map((x:any)=>x.id);
+      const [movementsResult,balancesResult,purchasesResult,suppliersResult]=warehouseIds.length?await Promise.all([
+        supabase.from("stock_movements").select("*, products(name,sku), warehouses(name)").eq("company_id",companyId).in("warehouse_id",warehouseIds).order("occurred_at",{ascending:false}).limit(100),
+        supabase.from("stock_balances").select("product_id,warehouse_id,quantity_on_hand").eq("company_id",companyId).in("warehouse_id",warehouseIds).limit(1000),
+        supabase.from("purchase_orders").select("*, suppliers(name)").eq("company_id",companyId).in("warehouse_id",warehouseIds).order("created_at",{ascending:false}).limit(50),
+        (moduleKeys.has("suppliers")||moduleKeys.has("stock")||moduleKeys.has("lots"))?supabase.from("suppliers").select("*").eq("company_id",companyId).order("name").limit(200):Promise.resolve(empty)
+      ]):[empty,empty,empty,(moduleKeys.has("suppliers")||moduleKeys.has("stock")||moduleKeys.has("lots"))?await supabase.from("suppliers").select("*").eq("company_id",companyId).order("name").limit(200):empty];
+      const secondError=[movementsResult,balancesResult,purchasesResult,suppliersResult].find(x=>x.error)?.error;
+      if(secondError)throw secondError;
+      const productIds=[...new Set([
+        ...(partScopeResult.data||[]).map((x:any)=>x.product_id),
+        ...(movementsResult.data||[]).map((x:any)=>x.product_id),
+        ...(balancesResult.data||[]).map((x:any)=>x.product_id)
+      ].filter(Boolean))];
+      const productsResult=productIds.length?await supabase.from("products").select("*").eq("company_id",companyId).in("id",productIds).order("created_at",{ascending:false}).limit(500):empty;
+      if(productsResult.error)throw productsResult.error;
+      let salesResult:any=empty,customersResult:any=empty;
+      if(moduleKeys.has("reports")){
+        const [ownSalesResult,saleItemsResult]=await Promise.all([
+          supabase.from("sales").select("id").eq("company_id",companyId).eq("created_by",scopeUser.id).limit(200),
+          productIds.length?supabase.from("sale_items").select("sale_id").eq("company_id",companyId).in("product_id",productIds).limit(500):Promise.resolve(empty)
+        ]);
+        if(ownSalesResult.error)throw ownSalesResult.error;
+        if(saleItemsResult.error)throw saleItemsResult.error;
+        const saleIds=[...new Set([...(ownSalesResult.data||[]).map((x:any)=>x.id),...(saleItemsResult.data||[]).map((x:any)=>x.sale_id)].filter(Boolean))];
+        if(saleIds.length){
+          salesResult=await supabase.from("sales").select("*, customers(name)").eq("company_id",companyId).in("id",saleIds).order("sale_date",{ascending:false}).limit(100);
+          if(salesResult.error)throw salesResult.error;
+        }
+        const customerIds=[...new Set((salesResult.data||[]).map((x:any)=>x.customer_id).filter(Boolean))];
+        const [linkedCustomers,ownCustomers]=await Promise.all([
+          customerIds.length?supabase.from("customers").select("*").eq("company_id",companyId).in("id",customerIds).limit(200):Promise.resolve(empty),
+          supabase.from("customers").select("*").eq("company_id",companyId).eq("created_by",scopeUser.id).limit(100)
+        ]);
+        if(linkedCustomers.error)throw linkedCustomers.error;
+        if(ownCustomers.error)throw ownCustomers.error;
+        customersResult={data:[...new Map([...(linkedCustomers.data||[]),...(ownCustomers.data||[])].map((x:any)=>[x.id,x])).values()],error:null};
+      }
+      setOrgSites(os.data??[]);setOrgUnits(ou.data??[]);setOrgServices(ov.data??[]);setOrgDepartments(od.data??[]);setOrgEquipment((oe.data??[]).map((x:any)=>({...x,is_active:true})));setWarehouses(wh.data??[]);setMyScopeAssignments(scopeResult.data??[]);
       setProducts((productsResult.data??[]) as Product[]);setCategories(categoriesResult.data??[]);setMovements(movementsResult.data??[]);setPurchases(purchasesResult.data??[]);setSuppliers(suppliersResult.data??[]);
       setCustomers(customersResult.data??[]);setSales(salesResult.data??[]);
       return;
