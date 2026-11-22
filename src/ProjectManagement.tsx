@@ -115,7 +115,7 @@ export default function ProjectManagement({companyId,companyName,currentUserId,c
  const roleLabel=(id:string)=>members.find(m=>m.user_id===id)?.full_name||"Utilisateur";
  async function log(projectId:string,message:string,taskId?:string){await supabase?.from("project_activity").insert({company_id:companyId,project_id:projectId,task_id:taskId||null,actor_user_id:currentUserId,activity_type:"update",message});}
  async function saveProject(e:React.FormEvent){
-  e.preventDefault();if(!supabase||(editingProjectId?!(isCompanyProjectAdmin||access?.canEdit||selectedProject?.project_manager_id===currentUserId):!canCreateProject))return;setBusy(true);
+  e.preventDefault();if(!supabase||(editingProjectId?!canManage:!canCreateProject))return;setBusy(true);
   try{
    const dateOrNull=(value:string)=>{const v=String(value??"").trim();return /^\d{4}-\d{2}-\d{2}$/.test(v)?v:null;};
    const createScopes=myScopes.filter(x=>(x.projects_can_create??x.can_create)===true);
