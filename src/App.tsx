@@ -289,7 +289,7 @@ export default function App() {
         setOrgSites([]);setOrgUnits([]);setOrgServices([]);setOrgDepartments([]);setOrgEquipment([]);setMyScopeAssignments([]);
         return;
       }
-      const [permissions,os,ou,ov,od,oe,wh,scopeResult,categoriesResult,partScopeResult]=await Promise.all([
+      const [permissions,os,ou,ov,od,oe,wh,scopeResult,categoriesResult]=await Promise.all([
         supabase.from("user_module_permissions").select("module_key,can_view,can_create,can_edit,can_delete,can_approve,can_issue,can_receive,can_transfer,can_inventory").eq("company_id",companyId).eq("user_id",scopeUser.id),
         supabase.from("org_sites").select("id,code,name,management_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name").limit(300),
         supabase.from("org_units").select("id,code,name,site_id,service_id,department_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name").limit(500),
@@ -298,12 +298,13 @@ export default function App() {
         supabase.from("org_equipment").select("id,equipment_tag,name,site_id,unit_id,service_id,department_id,status").eq("company_id",companyId).eq("status","active").order("name").limit(1000),
         supabase.from("warehouses").select("id,code,name,site_id,unit_id,service_id,department_id,equipment_id,is_active").eq("company_id",companyId).order("name").limit(300),
         supabase.from("user_scope_assignments").select("scope_type,scope_id,job_title,can_view,can_create,can_edit,can_delete,can_approve,can_issue,can_receive,can_transfer,can_inventory").eq("company_id",companyId).eq("user_id",scopeUser.id),
-        supabase.from("product_categories").select("id,name").eq("company_id",companyId).order("name").limit(200),
-        supabase.from("spare_part_details").select("product_id").eq("company_id",companyId).limit(1000)
+        supabase.from("product_categories").select("id,name").eq("company_id",companyId).order("name").limit(200)
       ]);
-      const firstError=[permissions,os,ou,ov,od,oe,wh,scopeResult,categoriesResult,partScopeResult].find(x=>x.error)?.error;
+      const firstError=[permissions,os,ou,ov,od,oe,wh,scopeResult,categoriesResult].find(x=>x.error)?.error;
       if(firstError)throw firstError;
       const moduleKeys=new Set((permissions.data||[]).filter((x:any)=>x.can_view).map((x:any)=>x.module_key));
+      const partScopeResult=(moduleKeys.has("spareParts")||moduleKeys.has("products")||moduleKeys.has("requests"))?await supabase.from("spare_part_details").select("product_id").eq("company_id",companyId).limit(1000):empty;
+      if(partScopeResult.error)throw partScopeResult.error;
       const warehouseIds=(wh.data||[]).map((x:any)=>x.id);
       const [movementsResult,balancesResult,purchasesResult,suppliersResult]=warehouseIds.length?await Promise.all([
         supabase.from("stock_movements").select("*, products(name,sku), warehouses(name)").eq("company_id",companyId).in("warehouse_id",warehouseIds).order("occurred_at",{ascending:false}).limit(100),
