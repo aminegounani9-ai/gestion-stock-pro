@@ -3899,3 +3899,33 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
     justify-content: center !important;
   }
 }
+
+/* Project dashboard refresh: compact KPI row, clear all-project selector and speedometer */
+.pm-kpis-scoped{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.pm-kpis-scoped article{min-height:126px;padding:13px 15px;gap:5px;align-content:start}
+.pm-kpis-scoped .pm-speed-kpi{grid-template-columns:35px 1fr;grid-template-rows:auto 1fr;column-gap:10px;align-items:center}
+.pm-kpis-scoped .pm-speed-kpi>small{align-self:center}
+.pm-speedometer{grid-column:1/-1;justify-self:center;width:94px;height:52px;position:relative;border-radius:100px 100px 0 0;overflow:hidden;margin:2px auto 0}
+.pm-speedometer:after{content:"";position:absolute;inset:9px 9px 0;background:#fff;border-radius:100px 100px 0 0}
+.pm-speedometer>div{position:absolute;z-index:1;inset:20px 0 0;display:flex;align-items:center;justify-content:center;gap:3px;flex-direction:column}
+.pm-speedometer b{font-size:19px!important;line-height:1;color:#243b5b}
+.pm-speedometer small{font-size:8px!important;color:#8492a6}
+.pm-project-list>.panel-head{display:flex;flex-wrap:wrap;gap:8px}
+.pm-select-all-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:32px;padding:0 10px;border:1px solid #dbe5f5;border-radius:9px;background:#f4f7fd;color:#345eae;font-size:10px;font-weight:800;white-space:nowrap;cursor:pointer}
+.pm-select-all-btn.active{background:#2455bd;color:#fff;border-color:#2455bd;box-shadow:0 4px 12px #2455bd26}
+.pm-project-list>.panel-head select{flex:1 1 110px}
+.pm-project-item.selected{border-color:#7fa2e8;background:linear-gradient(90deg,#edf4ff,#fff)}
+.pm-dashboard-kpis{gap:9px}
+.pm-dashboard-kpis article{padding:12px;border-radius:13px}
+.pm-dashboard-kpis article>b{font-size:21px}
+.pm-analytics-grid,.pm-chart-grid{gap:12px}
+.pm-analytics-card,.pm-chart-card{border-radius:15px}
+.pgantt-panel{border:1px solid #e5ebf4;box-shadow:0 8px 24px #263d5c08}
+.pgantt-head{gap:14px;align-items:center}
+.pgantt-heading h3{font-size:15px}
+.pgantt-tools{gap:7px}
+.pgantt-project-filter select,.pgantt-switch button,.pgantt-today,.pgantt-nav{min-height:34px;border-radius:9px}
+.pgantt-row{min-height:47px}
+.pgantt-bar{border-radius:8px;box-shadow:0 2px 7px #223b5b16}
+@media(max-width:1050px){.pm-kpis-scoped{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.pm-kpis-scoped{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.pm-kpis-scoped article{min-height:112px;padding:10px}.pm-project-list>.panel-head{align-items:stretch}.pm-select-all-btn{flex:1}.pgantt-head{align-items:stretch}.pgantt-tools{flex-wrap:wrap}.pgantt-period{font-size:10px}}
