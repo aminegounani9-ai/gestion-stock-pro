@@ -8,6 +8,7 @@ type Line = { product_id: string; quantity: string; unit_price: string };
 type Props = {
   page: "categories" | "transfers" | "inventory" | "locations" | "lots" | "returns" | "expenses" | "reports" | "payments";
   companyId: string;
+  currentUserId?:string;
   products: any[];
   categories:any[];
   warehouses: any[];
@@ -26,12 +27,12 @@ const words = {
   en: { edit:"Edit",newRecord:"New record",comparison:"Operations comparison",capacityUnit:"Capacity unit",root:"Root",validation:"Approval",records:"record(s)",add:"New", save:"Save", cancel:"Cancel", empty:"No records", product:"Product", qty:"Quantity", price:"Unit price", source:"Source warehouse", dest:"Destination warehouse", warehouse:"Warehouse", location:"Location", locationCode:"Location code", locationType:"Location type", parent:"Parent location", lot:"Lot number", manufacture:"Manufacturing date", expiry:"Expiry date", onHand:"Available quantity", capacity:"Capacity", number:"Document no.", note:"Notes", date:"Date", status:"Status", category:"Category", name:"Name", desc:"Description", amount:"Amount", method:"Payment method", type:"Return type", customer:"Customer", supplier:"Supplier", reason:"Reason", count:"Counted quantity", expected:"Expected", diff:"Difference", action:"Action", addLine:"Add line", transfer:"Transfer", inventory:"Stock count", customerReturn:"Customer return", supplierReturn:"Supplier return", expense:"Expense", total:"Total", products:"Products", stockValue:"Stock value (cost)", low:"Low stock items", sales:"Sales", purchases:"Purchases", expenses:"Expenses", margin:"Estimated gross margin", period:"Period", from:"From", to:"To", noStock:"Out of stock", reportHint:"Spare-part stock levels and movements overview.", references:"Active references", totalQty:"Total quantity", movements:"Movements", transfers:"Transfers", inbound:"Inbound", outbound:"Outbound", adjustments:"Adjustments", reports:"Reports & analytics", payments:"Payments & settlements", transactionType:"Transaction type", linkedDocument:"Linked document", reference:"Reference", cash:"Cash", bankTransfer:"Bank transfer", card:"Card", cheque:"Cheque", other:"Other", customerReceipt:"Customer receipt", supplierPayment:"Supplier payment", categoryName:"Category name", choose:"Select", loading:"Loading..." },
   ar: { edit:"تعديل",newRecord:"تسجيل جديد",comparison:"مقارنة العمليات",capacityUnit:"وحدة السعة",root:"الجذر",validation:"المصادقة",records:"سجل",add:"جديد", save:"حفظ", cancel:"إلغاء", empty:"لا توجد سجلات", product:"المنتج", qty:"الكمية", price:"سعر الوحدة", source:"المخزن المصدر", dest:"المخزن الوجهة", warehouse:"المخزن", location:"الموقع", locationCode:"رمز الموقع", locationType:"نوع الموقع", parent:"الموقع الأب", lot:"رقم الدفعة", manufacture:"تاريخ التصنيع", expiry:"تاريخ الصلاحية", onHand:"الكمية المتاحة", capacity:"السعة", number:"رقم الوثيقة", note:"ملاحظات", date:"التاريخ", status:"الحالة", category:"الفئة", name:"الاسم", desc:"الوصف", amount:"المبلغ", method:"طريقة الدفع", type:"نوع الإرجاع", customer:"العميل", supplier:"المورد", reason:"السبب", count:"الكمية الفعلية", expected:"النظري", diff:"الفرق", action:"إجراء", addLine:"إضافة سطر", transfer:"تحويل", inventory:"جرد المخزون", customerReturn:"إرجاع من عميل", supplierReturn:"إرجاع إلى مورد", expense:"مصروف", total:"الإجمالي", products:"المنتجات", stockValue:"قيمة المخزون (شراء)", low:"منتجات تحت الحد", sales:"المبيعات", purchases:"المشتريات", expenses:"المصاريف", margin:"الهامش الإجمالي التقديري", period:"الفترة", from:"من", to:"إلى", noStock:"نفد المخزون", reportHint:"متابعة مستويات المخزون وحركات قطع الغيار.", references:"الأصناف النشطة", totalQty:"إجمالي الكمية", movements:"الحركات", transfers:"التحويلات", inbound:"الوارد", outbound:"الصادر", adjustments:"التسويات", reports:"التقارير والتحليلات", payments:"المدفوعات والتسويات", transactionType:"نوع العملية", linkedDocument:"الوثيقة المرتبطة", reference:"المرجع", cash:"نقداً", bankTransfer:"تحويل بنكي", card:"بطاقة", cheque:"صك", other:"أخرى", customerReceipt:"تحصيل من عميل", supplierPayment:"دفع لمورد", categoryName:"اسم الفئة", choose:"اختر", loading:"جار التحميل..." }
 };
-export default function StockOperations({page,companyId,products,categories,warehouses,suppliers,customers,purchases,sales,role,access,money,lang,onSaved}:Props) {
+export default function StockOperations({page,companyId,currentUserId="",products,categories,warehouses,suppliers,customers,purchases,sales,role,access,money,lang,onSaved}:Props) {
   const t=words[lang]; const rtl=lang==="ar"; const defaultWarehouseId=warehouses.length===1?warehouses[0].id:""; const categoryName=(id:string|null|undefined)=>categories.find((x:any)=>x.id===id)?.name||"Sans catégorie";
   const canApprove=access?access.isAdmin||access.canApprove:["owner","admin","director","manager"].includes(role);
   const canTransfer=access?access.isAdmin||access.canTransfer:["owner","admin","director","manager","warehouse"].includes(role);
   const canReceive=access?access.isAdmin||access.canReceive:["owner","admin","director","manager","warehouse"].includes(role);
-  const canWrite=access?(access.isAdmin||(page==="transfers"?access.canTransfer:page==="inventory"?access.canInventory:page==="locations"?(access.canCreate||access.canEdit||access.canDelete):page==="lots"?access.canReceive||access.canEdit:page==="returns"?access.canCreate||access.canIssue||access.canReceive:page==="payments"||page==="expenses"?["owner","admin","director","manager","sales"].includes(role):access.canCreate||access.canEdit)):((["owner","admin","director","manager"].includes(role))||(role==="warehouse"&&["transfers","inventory","returns","locations","lots"].includes(page))||(role==="sales"&&["returns","payments"].includes(page)));
+  const canWrite=access?(access.isAdmin||(page==="transfers"?access.canTransfer:page==="inventory"?access.canInventory:page==="locations"?(access.canCreate||access.canEdit||access.canDelete):page==="lots"?access.canReceive||access.canEdit:page==="returns"?access.canCreate||access.canIssue||access.canReceive:page==="payments"||page==="expenses"?(access.canCreate||access.canEdit):access.canCreate||access.canEdit)):((["owner","admin","director","manager"].includes(role))||(role==="warehouse"&&["transfers","inventory","returns","locations","lots"].includes(page))||(role==="sales"&&["returns","payments"].includes(page)));
   const [rows,setRows]=useState<any[]>([]); const [locationRows,setLocationRows]=useState<any[]>([]); const [busy,setBusy]=useState(false); const [loading,setLoading]=useState(true);
   const [form,setForm]=useState<Record<string,string>>({}); const [editingId,setEditingId]=useState<string|null>(null); const [formOpen,setFormOpen]=useState(false); const [lines,setLines]=useState<Line[]>([{product_id:"",quantity:"",unit_price:""}]);
   const [start,setStart]=useState(new Date(new Date().getFullYear(),new Date().getMonth(),1).toISOString().slice(0,10));
@@ -43,31 +44,49 @@ export default function StockOperations({page,companyId,products,categories,ware
   const load=useCallback(async()=>{
     if(!supabase)return;setLoading(true);
     try {
+      const isAdmin=access?.isAdmin||["owner","admin"].includes(role);
+      const warehouseIds=(warehouses||[]).map((w:any)=>w.id).filter(Boolean);
+      const empty:any={data:[],error:null};
+      const noWarehouse=(query:any)=>warehouseIds.length?query.in("warehouse_id",warehouseIds):query.eq("id","00000000-0000-0000-0000-000000000000");
+      const transferScope=(query:any)=>warehouseIds.length?query.or("source_warehouse_id.in.("+warehouseIds.join(",")+"),destination_warehouse_id.in.("+warehouseIds.join(",")+")"):query.eq("id","00000000-0000-0000-0000-000000000000");
       if(page==="locations"){
-        const r=await supabase.from("storage_locations").select("*, warehouses(name)").eq("company_id",companyId).order("warehouse_id").order("code");if(r.error)throw r.error;const locationData=r.data??[];const parentNames=new Map(locationData.map((x:any)=>[x.id,x.name]));setRows(locationData.map((x:any)=>({...x,parent:{name:parentNames.get(x.parent_id)||null}})));
+        const r=warehouseIds.length?await supabase.from("storage_locations").select("*, warehouses(name)").eq("company_id",companyId).in("warehouse_id",warehouseIds).order("warehouse_id").order("code"):empty;
+        if(r.error)throw r.error;const locationData=r.data??[];const parentNames=new Map(locationData.map((x:any)=>[x.id,x.name]));setRows(locationData.map((x:any)=>({...x,parent:{name:parentNames.get(x.parent_id)||null}})));
       } else if(page==="lots"){
-        const [r,loc]=await Promise.all([supabase.from("stock_lots").select("*, product:products!stock_lots_product_id_fkey(name,sku), warehouses(name), location:storage_locations!stock_lots_location_id_fkey(name,code), suppliers(name)").eq("company_id",companyId).order("expiry_date",{ascending:true,nullsFirst:false}).limit(300),supabase.from("storage_locations").select("id,warehouse_id,code,name").eq("company_id",companyId).eq("is_active",true).order("code")]);if(r.error)throw r.error;if(loc.error)throw loc.error;setRows(r.data??[]);setLocationRows(loc.data??[]);
+        const [r,loc]=warehouseIds.length?await Promise.all([
+          supabase.from("stock_lots").select("*, product:products!stock_lots_product_id_fkey(name,sku), warehouses(name), location:storage_locations!stock_lots_location_id_fkey(name,code), suppliers(name)").eq("company_id",companyId).in("warehouse_id",warehouseIds).order("expiry_date",{ascending:true,nullsFirst:false}).limit(300),
+          supabase.from("storage_locations").select("id,warehouse_id,code,name").eq("company_id",companyId).in("warehouse_id",warehouseIds).eq("is_active",true).order("code")
+        ]):[empty,empty];
+        if(r.error)throw r.error;if(loc.error)throw loc.error;setRows(r.data??[]);setLocationRows(loc.data??[]);
       } else if(page==="categories"){
-        const r=await supabase.from("product_categories").select("*").eq("company_id",companyId).order("name");if(r.error)throw r.error;setRows(r.data??[]);
+        const r=await supabase.from("product_categories").select("*").eq("company_id",companyId).order("name").limit(200);if(r.error)throw r.error;setRows(r.data??[]);
       } else if(page==="transfers"){
-        const r=await supabase.from("stock_transfers").select("*, source:warehouses!stock_transfers_source_warehouse_id_fkey(name), destination:warehouses!stock_transfers_destination_warehouse_id_fkey(name), stock_transfer_items(id,product_id,quantity,received_quantity,products:products!stock_transfer_items_company_product_fk(name,sku))").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100);if(r.error)throw r.error;setRows(r.data??[]);
+        const r=warehouseIds.length?await transferScope(supabase.from("stock_transfers").select("*, source:warehouses!stock_transfers_source_warehouse_id_fkey(name), destination:warehouses!stock_transfers_destination_warehouse_id_fkey(name), stock_transfer_items(id,product_id,quantity,received_quantity,products:products!stock_transfer_items_company_product_fk(name,sku))").eq("company_id",companyId)).order("created_at",{ascending:false}).limit(100):empty;
+        if(r.error)throw r.error;setRows(r.data??[]);
       } else if(page==="inventory"){
-        const r=await supabase.from("inventory_counts").select("*, warehouses(name), inventory_count_items!inventory_count_items_company_count_fk(count_id,product_id,expected_quantity,counted_quantity,difference,products:products!inventory_count_items_company_product_fk(name,sku))").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100);if(r.error)throw r.error;setRows(r.data??[]);
+        const r=warehouseIds.length?await supabase.from("inventory_counts").select("*, warehouses(name), inventory_count_items!inventory_count_items_company_count_fk(count_id,product_id,expected_quantity,counted_quantity,difference,products:products!inventory_count_items_company_product_fk(name,sku))").eq("company_id",companyId).in("warehouse_id",warehouseIds).order("created_at",{ascending:false}).limit(100):empty;
+        if(r.error)throw r.error;setRows(r.data??[]);
       } else if(page==="returns"){
-        const r=await supabase.from("stock_returns").select("*, warehouses(name), customers(name), suppliers(name)").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100);if(r.error)throw r.error;setRows(r.data??[]);
+        const r=warehouseIds.length?await supabase.from("stock_returns").select("*, warehouses(name), customers(name), suppliers(name)").eq("company_id",companyId).in("warehouse_id",warehouseIds).order("created_at",{ascending:false}).limit(100):empty;
+        if(r.error)throw r.error;setRows(r.data??[]);
       } else if(page==="payments"){
-        const r=await supabase.from("payment_transactions").select("*, sales(invoice_number), purchase_orders(order_number)").eq("company_id",companyId).order("transaction_date",{ascending:false}).limit(200);if(r.error)throw r.error;setRows(r.data??[]);
+        let q:any=supabase.from("payment_transactions").select("*, sales(invoice_number), purchase_orders(order_number)").eq("company_id",companyId);
+        if(!isAdmin){const filters=[currentUserId?"created_by.eq."+currentUserId:"created_by.eq.00000000-0000-0000-0000-000000000000"];const saleIds=sales.map((x:any)=>x.id).filter(Boolean);const poIds=purchases.map((x:any)=>x.id).filter(Boolean);if(saleIds.length)filters.push("sale_id.in.("+saleIds.join(",")+")");if(poIds.length)filters.push("purchase_order_id.in.("+poIds.join(",")+")");q=q.or(filters.join(","));}
+        const r=await q.order("transaction_date",{ascending:false}).limit(200);if(r.error)throw r.error;setRows(r.data??[]);
       } else if(page==="expenses"){
-        const r=await supabase.from("expenses").select("*").eq("company_id",companyId).order("expense_date",{ascending:false}).limit(200);if(r.error)throw r.error;setRows(r.data??[]);
+        let q:any=supabase.from("expenses").select("*").eq("company_id",companyId);
+        if(!isAdmin)q=q.eq("created_by",currentUserId||"00000000-0000-0000-0000-000000000000");
+        const r=await q.order("expense_date",{ascending:false}).limit(200);if(r.error)throw r.error;setRows(r.data??[]);
       } else {
-        const [b,m,tr]=await Promise.all([
-          supabase.from("stock_balances").select("product_id,warehouse_id,quantity_on_hand").eq("company_id",companyId),
-          supabase.from("stock_movements").select("movement_type,quantity,created_at").eq("company_id",companyId).gte("created_at",start+"T00:00:00").lte("created_at",end+"T23:59:59"),
-          supabase.from("stock_transfers").select("status").eq("company_id",companyId).gte("transfer_date",start).lte("transfer_date",end)
-        ]);for(const x of [b,m,tr])if(x.error)throw x.error;setReport({balances:b.data??[],movements:m.data??[],transfers:tr.data??[]});
+        const [b,m,tr]=warehouseIds.length?await Promise.all([
+          supabase.from("stock_balances").select("product_id,warehouse_id,quantity_on_hand").eq("company_id",companyId).in("warehouse_id",warehouseIds).limit(1000),
+          supabase.from("stock_movements").select("movement_type,quantity,created_at").eq("company_id",companyId).in("warehouse_id",warehouseIds).gte("created_at",start+"T00:00:00").lte("created_at",end+"T23:59:59").order("created_at",{ascending:false}).limit(1000),
+          transferScope(supabase.from("stock_transfers").select("status").eq("company_id",companyId)).gte("transfer_date",start).lte("transfer_date",end).limit(300)
+        ]):[empty,empty,empty];
+        for(const x of [b,m,tr])if(x.error)throw x.error;setReport({balances:b.data??[],movements:m.data??[],transfers:tr.data??[]});
       }
     } catch(e:any){window.alert(e.message)} finally{setLoading(false)}
-  },[page,companyId,start,end]);
+  },[page,companyId,start,end,warehouses,access,role,currentUserId,sales,purchases]);
   useEffect(()=>{void load()},[load]);
   const addLine=()=>setLines(v=>[...v,{product_id:"",quantity:"",unit_price:""}]);
   async function deleteDraft(row:any){if(!supabase||(!access?.canDelete&&!access?.isAdmin))return;const allowed=(page==="transfers"||page==="inventory")&&row.status==="draft";if(!allowed&&page!=="categories"&&page!=="locations")return;const label=page==="categories"?"cette catégorie":page==="locations"?"cet emplacement":page==="transfers"?"ce transfert brouillon":"cet inventaire brouillon";if(!window.confirm("Supprimer "+label+" ? Cette action est irréversible."))return;setBusy(true);try{let result:any;if(page==="categories")result=await supabase.from("product_categories").delete().eq("id",row.id).eq("company_id",companyId);else if(page==="locations")result=await supabase.from("storage_locations").update({is_active:false}).eq("id",row.id).eq("company_id",companyId);else if(page==="transfers")result=await supabase.from("stock_transfers").delete().eq("id",row.id).eq("company_id",companyId).eq("status","draft");else result=await supabase.from("inventory_counts").delete().eq("id",row.id).eq("company_id",companyId).eq("status","draft");if(result.error)throw result.error;setEditingId(null);reset();await load();await onSaved();}catch(e:any){window.alert("Suppression impossible : "+e.message)}finally{setBusy(false)}}
