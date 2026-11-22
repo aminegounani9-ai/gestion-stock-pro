@@ -140,6 +140,16 @@ export default function EquipmentManagement({companyId,lang,equipmentSeed,autoPr
 
  useEffect(()=>{if(autoPrintReport&&current&&detailReady===current.id&&autoPrintedRef.current!==current.id){autoPrintedRef.current=current.id;exportDossierPdf(reportWindow);onReportPrinted?.();}},[autoPrintReport,current?.id,detailReady,parts,history]);
   useEffect(()=>{if(!autoPrintReport)autoPrintedRef.current="";},[autoPrintReport]);
+  useEffect(()=>{
+   if(!equipmentSeed||!current||current.id!==equipmentSeed||detailReady!==current.id)return;
+   const timer=window.setTimeout(()=>{
+    const hero=document.querySelector(".equipment-hero") as HTMLElement|null;
+    hero?.scrollIntoView({behavior:"smooth",block:"start"});
+    hero?.focus({preventScroll:true});
+   },180);
+   return()=>window.clearTimeout(timer);
+  },[equipmentSeed,current?.id,detailReady]);
+
   return <div className="equipment-module" dir={lang==="ar"?"rtl":"ltr"}>
   <div className="page-heading"><div><h1>{t.title}</h1><p>{t.sub}</p></div><div className="equipment-heading-actions">{access?.isAdmin&&<button className="primary-btn" onClick={()=>{setCreateError("");setCreateOpen(true);}}><Plus size={16}/>{lang==="ar"?"إضافة معدة جديدة":lang==="en"?"Add equipment":"Ajouter un équipement"}</button>}<button className="secondary-btn" onClick={()=>void load()} title="Actualiser"><RefreshCw size={15}/></button></div></div>
   {error&&<div className="equipment-error">{error}</div>}
@@ -158,7 +168,7 @@ export default function EquipmentManagement({companyId,lang,equipmentSeed,autoPr
     {!filtered.length&&<p className="equipment-empty">{t.noEquipment}</p>}
    </aside>
    {current?<main className="equipment-detail">
-    <section className="panel equipment-hero"><div><span className="equipment-tag">{current.equipment_tag}</span><h2>{current.name}</h2><p>{[current.manufacturer,current.model,current.serial_number].filter(Boolean).join(" · ")}</p><small>{current.location||""}</small></div><div className="equipment-qr"><img src={qrImage} alt="QR"/><small>QR compact · {current.equipment_tag}</small><button className="secondary-btn" onClick={printQr}><Printer size={14}/>{t.print}</button></div></section>
+    <section className="panel equipment-hero equipment-scanned-focus" tabIndex={-1}><div><span className="equipment-tag">{current.equipment_tag}</span><h2>{current.name}</h2><p>{[current.manufacturer,current.model,current.serial_number].filter(Boolean).join(" · ")}</p><small>{current.location||""}</small></div><div className="equipment-qr"><img src={qrImage} alt="QR"/><small>QR compact · {current.equipment_tag}</small><button className="secondary-btn" onClick={printQr}><Printer size={14}/>{t.print}</button></div></section>
     <div className="equipment-dossier-actions"><button className="primary-btn" onClick={()=>onRequestParts?.(current.id)}><ClipboardList size={15}/>Demande de pièce</button><button className="secondary-btn" onClick={()=>exportDossierPdf()}><FileDown size={15}/>Dossier PDF</button>{access?.isAdmin&&<><button className="secondary-btn" onClick={()=>editEquipment(current)}><Pencil size={14}/>Modifier</button><button className="pm-delete-btn" onClick={()=>void deleteEquipment(current)} title="Supprimer"><Trash2 size={15}/></button></>}</div>
     <section className="panel equipment-info-panel"><div className="panel-head"><div><h3>{t.technicalInfo}</h3><p>{current.equipment_tag}</p></div></div><div className="equipment-info-grid">
      <div><small>{t.site}</small><b>{orgNames[current.site_id]||"—"}</b></div><div><small>{t.unit}</small><b>{current.unit_id?orgNames[current.unit_id]||"—":"—"}</b></div><div><small>{t.service}</small><b>{current.service_id?orgNames[current.service_id]||"—":"—"}</b></div><div><small>{t.department}</small><b>{current.department_id?orgNames[current.department_id]||"—":"—"}</b></div>
