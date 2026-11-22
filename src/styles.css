@@ -4093,40 +4093,6 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
   .pm-hero-copy h2{font-size:18px!important}
   .pm-tabs,.pms-nav{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
   .pm-tabs button,.pms-nav button{min-height:43px!important;border-radius:10px!important;font-size:11px!important}
-  /* Dialogs: centered, bounded by screen, scroll belongs to dialog content. */
-  .modal-backdrop,.org-form-backdrop,.scanner-backdrop,.pm-modal-backdrop,.pms-modal-backdrop,.professional-report-backdrop,
-  .scan-choice-backdrop,.sp-modal-backdrop,.gsp-spare-form-overlay,[class*="dialog-backdrop"]{
-    position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;
-    z-index:2147482500!important;display:flex!important;align-items:center!important;justify-content:center!important;
-    padding:max(10px,env(safe-area-inset-top)) 9px max(10px,env(safe-area-inset-bottom))!important;
-    overflow-y:auto!important;overflow-x:hidden!important;box-sizing:border-box!important;
-    background:rgba(13,29,52,.64)!important;backdrop-filter:blur(7px)!important;-webkit-backdrop-filter:blur(7px)!important;
-  }
-  .modal-card,.pm-modal,.pms-modal,.professional-module-report,.scan-choice-card,.sp-modal-shell,.gsp-spare-form-dialog,
-  .org-assignment-modal,.scanner-card,[class*="dialog-card"]{
-    position:relative!important;inset:auto!important;transform:none!important;
-    width:100%!important;max-width:560px!important;min-width:0!important;
-    max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 20px)!important;
-    margin:auto!important;border-radius:16px!important;overflow:hidden!important;
-    display:flex!important;flex-direction:column!important;box-sizing:border-box!important;
-    box-shadow:0 22px 65px rgba(7,23,44,.3)!important;
-  }
-  .modal-card>.modal-head,.modal-card>.panel-head,.pm-modal>header,.pms-modal>header,.sp-modal-shell>.panel>.panel-head{
-    position:relative!important;top:auto!important;flex:0 0 auto!important;padding:14px 15px!important;
-    background:linear-gradient(110deg,#f1f7ff,#f0fbf9)!important;border-bottom:1px solid #e2ebf5!important;
-  }
-  .modal-card>.form-grid,.modal-card>.ops-fields,.pm-modal form,.pms-modal form,.modal-card form,
-  .sp-modal-shell>.panel>form,.gsp-spare-form-dialog>.panel>form{
-    display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:12px!important;
-    flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;
-    padding:14px!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important;
-  }
-  .modal-card>.modal-actions,.pm-modal .modal-actions,.pms-modal .modal-actions{
-    position:relative!important;inset:auto!important;flex:0 0 auto!important;display:flex!important;flex-wrap:wrap!important;
-    gap:8px!important;padding:12px 14px max(14px,env(safe-area-inset-bottom))!important;
-    border-top:1px solid #e5ecf5!important;background:#fff!important;
-  }
-  .modal-card>.modal-actions button,.pm-modal .modal-actions button,.pms-modal .modal-actions button{flex:1 1 125px!important;min-height:44px!important}
   .request-kpi{min-height:82px!important;padding:11px!important;border-radius:12px!important}
   .request-kpi b{font-size:22px!important}
   .request-tracking-table{margin-top:10px!important}
