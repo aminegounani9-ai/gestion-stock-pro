@@ -167,12 +167,13 @@ export default function OrganizationManagement({ companyId, members, currentUser
     const managementMode=assignment.scope_type==="management";
     const scopeRowsToSave=managementMode
       ? [
+          ...selectedManagementIds.map(scope_id=>({scope_type:"management",scope_id})),
           ...selectedManagementSiteIds.map(scope_id=>({scope_type:"site",scope_id})),
           ...selectedManagementServiceIds.map(scope_id=>({scope_type:"service",scope_id}))
         ]
       : [...new Set(selectedScopeIds.length?selectedScopeIds:(assignment.scope_id?[assignment.scope_id]:[]))]
           .map(scope_id=>({scope_type:assignment.scope_type,scope_id}));
-    if(!assignment.user_id||!scopeRowsToSave.length||(managementMode&&!selectedManagementIds.length)){onNotice("error","Sélectionnez un utilisateur, un Management et au moins un site ou service.");return;}
+    if(!assignment.user_id||!scopeRowsToSave.length||(managementMode&&(!selectedManagementIds.length||(!selectedManagementSiteIds.length&&!selectedManagementServiceIds.length&&!assignment.projects_can_view)))){onNotice("error","Sélectionnez un utilisateur, un Management et au moins un site/service ou activez « Consulter les projets ».");return;}
     const hasAction=assignment.can_create||assignment.can_edit||assignment.can_delete||assignment.can_approve||assignment.can_issue||assignment.can_receive||assignment.can_transfer||assignment.can_inventory||assignment.projects_can_create||assignment.projects_can_edit||assignment.projects_can_delete||assignment.projects_can_approve;
     if(hasAction&&!assignment.can_view&&!assignment.projects_can_view){onNotice("error","La permission Consulter ou Consulter les projets est obligatoire avec les autres permissions.");return;}
     setBusy(true);
@@ -199,6 +200,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
     const sameRights=(a:any)=>a.user_id===row.user_id&&a.job_title===row.job_title&&
       ["can_view","can_create","can_edit","can_delete","can_approve","can_issue","can_receive","can_transfer","can_inventory","projects_can_view","projects_can_create","projects_can_edit","projects_can_delete","projects_can_approve"].every(k=>!!a[k]===!!row[k]);
     const managementFor=(a:any)=>{
+      if(a.scope_type==="management")return a.scope_id;
       if(a.scope_type==="site")return sites.find(x=>x.id===a.scope_id)?.management_id||"";
       if(a.scope_type==="service"){
         const service=services.find(x=>x.id===a.scope_id);
@@ -208,7 +210,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
     };
     const managementId=managementFor(row);
     if(managementId){
-      const group=assignments.filter(a=>sameRights(a)&&["site","service"].includes(a.scope_type)&&!!managementFor(a));
+      const group=assignments.filter(a=>sameRights(a)&&["management","site","service"].includes(a.scope_type)&&!!managementFor(a));
       setAssignment({user_id:row.user_id,job_title:row.job_title||"",scope_type:"management",scope_id:"",can_view:!!row.can_view,can_create:!!row.can_create,can_edit:!!row.can_edit,can_delete:!!row.can_delete,can_approve:!!row.can_approve,can_issue:!!row.can_issue,can_receive:!!row.can_receive,can_transfer:!!row.can_transfer,can_inventory:!!row.can_inventory,projects_can_view:row.projects_can_view??!!row.can_view,projects_can_create:row.projects_can_create??!!row.can_create,projects_can_edit:row.projects_can_edit??!!row.can_edit,projects_can_delete:row.projects_can_delete??!!row.can_delete,projects_can_approve:row.projects_can_approve??!!row.can_approve});
       setSelectedManagementIds([...new Set(group.map(managementFor))]);
       setSelectedManagementSiteIds(group.filter(a=>a.scope_type==="site").map(a=>a.scope_id));
