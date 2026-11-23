@@ -641,7 +641,6 @@ export default function App() {
     if(kind==="warehouse"){void openWarehouseEditor(row);return;}
     setEditingId(row.id);
     if(kind==="product")setForm({sku:row.sku||"",name:row.name||"",description:row.description||"",barcode:row.barcode||"",unit:row.unit||"piece",category_id:row.category_id||"",purchase_price:String(row.purchase_price??0),min_stock:String(row.min_stock??0),max_stock:String(row.max_stock??0),reorder_quantity:String(row.reorder_quantity??0),lead_time_days:String(row.lead_time_days??0),track_lots:String(row.track_lots??false),track_serial_numbers:String(row.track_serial_numbers??false),weight:String(row.weight??0),volume:String(row.volume??0)});
-    else if(kind==="warehouse")setForm({code:row.code||"",name:row.name||"",address:row.address||"",site_id:row.site_id||"",unit_id:row.unit_id||"",service_id:row.service_id||"",equipment_id:row.equipment_id||""});
     else if(kind==="supplier")setForm({name:row.name||"",contact_name:row.contact_name||"",phone:row.phone||"",email:row.email||"",address:row.address||"",tax_number:row.tax_number||"",notes:row.notes||""});
     else setForm({name:row.name||"",phone:row.phone||"",email:row.email||"",address:row.address||"",tax_number:row.tax_number||"",notes:row.notes||""});
     setModal(kind);
