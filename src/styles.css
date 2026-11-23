@@ -4352,3 +4352,21 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
 @keyframes pmRadarPulse{0%,100%{box-shadow:0 0 0 3px #19a77e18}50%{box-shadow:0 0 0 6px #19a77e08}}
 @media(max-width:760px){.pm-radar-summary{gap:6px}.pm-radar-summary>div{padding:9px 8px}.pm-radar-summary small{font-size:9px}.pm-radar-summary b{font-size:18px}.pm-radar-task-row{gap:8px;padding:10px 8px}.pm-radar-task-info>b{font-size:10px}.pm-radar-task-row>strong{font-size:11px}}
 @media(prefers-reduced-motion:reduce){.pm-radar-live i{animation:none}.pm-radar-task-row,.pm-radar-task-track i,.pm-radar-visual svg g circle{transition:none}}
+
+/* Excel actions — premium, consistent action buttons */
+.excel-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 16px;align-items:stretch}
+.excel-actions .excel-action-btn{position:relative;isolation:isolate;display:flex;align-items:center;justify-content:center;gap:10px;min-width:0;min-height:54px;padding:12px 16px;overflow:hidden;border:1px solid transparent;border-radius:13px;font-size:12px;font-weight:800;line-height:1.35;letter-spacing:.005em;text-align:center;cursor:pointer;box-shadow:0 5px 13px rgba(24,43,72,.09);transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s ease,filter .22s ease,border-color .22s ease}
+.excel-actions .excel-action-btn:before{content:"";position:absolute;z-index:-1;inset:0;background:linear-gradient(115deg,transparent 20%,rgba(255,255,255,.27) 48%,transparent 72%);transform:translateX(-130%);transition:transform .65s ease}
+.excel-actions .excel-action-btn:hover:not(:disabled){transform:translateY(-3px);box-shadow:0 10px 20px rgba(24,43,72,.16);filter:saturate(1.08)}
+.excel-actions .excel-action-btn:hover:not(:disabled):before{transform:translateX(130%)}
+.excel-actions .excel-action-btn:active:not(:disabled){transform:translateY(-1px) scale(.985)}
+.excel-actions .excel-action-btn:focus-visible{outline:3px solid rgba(59,130,246,.32);outline-offset:3px}
+.excel-actions .excel-action-btn:disabled{opacity:.58;cursor:not-allowed;filter:grayscale(.15);box-shadow:none}
+.excel-actions .excel-action-btn svg{flex:0 0 auto;stroke-width:2.25;transition:transform .22s ease}
+.excel-actions .excel-action-btn:hover:not(:disabled) svg{transform:scale(1.12) rotate(-4deg)}
+.excel-actions .excel-template-btn{color:#245b9b;background:linear-gradient(135deg,#edf5ff,#dceaff);border-color:#c6dcfa;box-shadow:0 5px 13px rgba(46,105,177,.12)}
+.excel-actions .excel-export-btn{color:#087b5c;background:linear-gradient(135deg,#e8fbf3,#cff3e4);border-color:#b9e9d5;box-shadow:0 5px 13px rgba(16,145,102,.12)}
+.excel-actions .excel-import-btn{color:#fff;background:linear-gradient(135deg,#315fc5,#654bd0);border-color:#4c60c4;box-shadow:0 6px 16px rgba(76,83,190,.25)}
+.excel-actions .excel-import-btn svg{filter:drop-shadow(0 1px 1px rgba(0,0,0,.12))}
+@media(max-width:600px){.excel-actions{grid-template-columns:1fr;gap:9px;margin:16px 0}.excel-actions .excel-action-btn{min-height:48px;padding:11px 14px;font-size:12px}}
+@media(prefers-reduced-motion:reduce){.excel-actions .excel-action-btn,.excel-actions .excel-action-btn:before,.excel-actions .excel-action-btn svg{transition:none}.excel-actions .excel-action-btn:hover:not(:disabled){transform:none}}
