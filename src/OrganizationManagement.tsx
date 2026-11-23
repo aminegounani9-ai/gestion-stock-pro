@@ -80,14 +80,15 @@ export default function OrganizationManagement({ companyId, members, currentUser
   async function createStructure(event:FormEvent){
     event.preventDefault();if(!supabase)return;
     const payload:any={company_id:companyId,code:form.code?.trim(),name:form.name?.trim()};
-    if(kind==="unit"||kind==="equipment") payload.site_id=form.site_id;
-    if(kind==="service") payload.site_id=form.site_id||null;
+    if(kind==="service"||kind==="unit"||kind==="equipment") payload.site_id=form.site_id;
     if(kind==="unit") payload.service_id=form.service_id||null;
     if(kind==="equipment"){payload.unit_id=form.unit_id||null;const parentUnit=units.find(x=>x.id===form.unit_id);payload.service_id=parentUnit?.service_id||null;payload.site_id=parentUnit?.site_id||form.site_id;}
     if(kind==="equipment"){payload.equipment_tag=form.equipment_tag?.trim();payload.manufacturer=form.manufacturer?.trim()||null;payload.model=form.model?.trim()||null;payload.serial_number=form.serial_number?.trim()||null;payload.location=form.location?.trim()||null;}
     if(kind==="site")payload.address=form.address?.trim()||null;
     if(kind==="management")payload.description=form.description?.trim()||null;
     if(kind!=="equipment" && !payload.code){onNotice("error","Le code est obligatoire.");return;}
+    if((kind==="service"||kind==="unit"||kind==="equipment")&&!form.site_id){onNotice("error","Sélectionnez un Site avant de continuer.");return;}
+    if(kind==="service"&&selectedChildIds.some(id=>!units.some(u=>u.id===id))){onNotice("error","Sélection d’unités invalide.");return;}
     if(kind==="equipment"){delete payload.code;if(!payload.equipment_tag){onNotice("error","Le tag équipement est obligatoire.");return;}}
     setBusy(true);
     try{
@@ -119,8 +120,8 @@ export default function OrganizationManagement({ companyId, members, currentUser
             const syncEquipment=await supabase.from("org_equipment").update({site_id:parentId}).eq("company_id",companyId).in("service_id",selectedChildIds);if(syncEquipment.error)throw syncEquipment.error;
           }
           if(kind==="service"){
-            const siteId=result.data.site_id||form.site_id||services.find(x=>x.id===parentId)?.site_id;
-            if(!siteId)throw new Error("Sélectionnez un Site pour ce Service avant de lui rattacher des unités.");
+            const siteId=result.data.site_id||form.site_id;
+            if(!siteId)throw new Error("Le Service doit être rattaché à un Site.");
             const syncUnits=await supabase.from("org_units").update({site_id:siteId}).eq("company_id",companyId).in("id",selectedChildIds);if(syncUnits.error)throw syncUnits.error;
             const syncEquipment=await supabase.from("org_equipment").update({site_id:siteId,service_id:parentId}).eq("company_id",companyId).in("unit_id",selectedChildIds);if(syncEquipment.error)throw syncEquipment.error;
           }
@@ -139,7 +140,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
       }
       setForm({});setEditingId(null);setFormOpen(false);setSelectedChildIds([]);setSelectedManagementServiceIds([]);await refresh();onNotice("success",labels[kind]+(editingId?" modifié(e).":" ajouté(e)."));
     }
-    catch(e:any){onNotice("error",e.message)}finally{setBusy(false)}
+    catch(e:any){await refresh().catch(()=>undefined);onNotice("error",e?.message||"Erreur lors de l’enregistrement. Vérifiez les champs et les rattachements.")}finally{setBusy(false)}
   }
   function startEdit(type:ScopeType,row:Row){
     setKind(type);setEditingId(row.id);
@@ -244,7 +245,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
     setProjectTeamIds(projectTeamRows.filter(x=>x.project_id===id&&x.assignment_role==="team_member").map(x=>x.user_id));
   }
   const tabs:[ScopeType,string][]=[["management","Management"],["site",lang==="ar"?"المواقع":lang==="en"?"Sites":"Sites"],["service",lang==="ar"?"المصالح":lang==="en"?"Services":"Services"],["unit",lang==="ar"?"الوحدات":lang==="en"?"Units":"Unités"],["equipment",lang==="ar"?"المعدات":lang==="en"?"Equipment":"Équipements"]];
-  const parentOptions = kind==="equipment"||kind==="unit";
+  const parentOptions = kind==="service"||kind==="equipment"||kind==="unit";
   const childType=kind==="management"?"site":kind==="site"?"service":kind==="service"?"unit":kind==="unit"?"equipment":null;
   const childOptions:Row[]=childType==="site"?sites:childType==="service"?services:childType==="unit"?units:childType==="equipment"?equipment:[];
   const childTitle=childType==="site"?"Sites à rattacher":childType==="service"?"Services à rattacher":childType==="unit"?"Unités à rattacher":"Équipements à rattacher";
@@ -255,9 +256,9 @@ export default function OrganizationManagement({ companyId, members, currentUser
       {formOpen&&<ModalPortal><div className="modal-backdrop org-form-backdrop"><form className="modal-card form-grid org-form" onSubmit={createStructure}><div className="modal-head span-2"><div><span className="eyebrow">{editingId?t.edit:t.add}</span><h3>{editingId?scopeLabels[kind]+" · "+t.edit:scopeLabels[kind]+" · "+t.add}</h3></div><button type="button" className="ops-icon-btn" onClick={()=>{setFormOpen(false);setEditingId(null);setForm({});setSelectedChildIds([]);setSelectedManagementServiceIds([]);}}><X size={16}/></button></div>
         <label>{kind==="equipment"?t.tag:t.code}<input value={kind==="equipment"?(form.equipment_tag||""):(form.code||"")} onChange={e=>setField(kind==="equipment"?"equipment_tag":"code",e.target.value)} required/></label>
         <label>{kind==="equipment"?t.designation:t.name}<input value={form.name||""} onChange={e=>setField("name",e.target.value)} required/></label>
-         {parentOptions&&<><label>{t.site}<select required value={form.site_id||""} onChange={e=>setForm(v=>({...v,site_id:e.target.value,service_id:"",unit_id:""}))}><option value="">{t.chooseSite}</option>{sites.filter(x=>x.is_active).map(x=><option key={x.id} value={x.id}>{x.code} · {x.name}</option>)}</select></label>{kind==="unit"&&<label>{t.service} *<select required value={form.service_id||""} onChange={e=>setField("service_id",e.target.value)}><option value="">—</option>{services.filter(x=>x.is_active&&(!form.site_id||x.site_id===form.site_id)).map(x=><option key={x.id} value={x.id}>{x.code} · {x.name}</option>)}</select></label>}</>}
+         {parentOptions&&<><label>{t.site} *<select required value={form.site_id||""} onChange={e=>setForm(v=>({...v,site_id:e.target.value,service_id:"",unit_id:""}))}><option value="">{t.chooseSite}</option>{sites.filter(x=>x.is_active!==false).map(x=><option key={x.id} value={x.id}>{x.code} · {x.name}</option>)}</select></label>{kind==="unit"&&<label>{t.service} *<select required value={form.service_id||""} onChange={e=>setField("service_id",e.target.value)}><option value="">—</option>{services.filter(x=>x.is_active!==false&&(!form.site_id||x.site_id===form.site_id)).map(x=><option key={x.id} value={x.id}>{x.code} · {x.name}</option>)}</select></label>}</>}
          {kind==="management"&&<><label>Description<input value={form.description||""} onChange={e=>setField("description",e.target.value)}/></label><div className="span-2 org-multi-scope-field"><div className="org-scope-picker-head"><label>Services à rattacher au Management</label><span>{selectedManagementServiceIds.length} sélectionné(s)</span></div><div className="org-scope-picker-list">{services.filter(x=>x.is_active!==false).map(x=><label className="org-scope-choice" key={x.id}><input type="checkbox" checked={selectedManagementServiceIds.includes(x.id)} onChange={e=>setSelectedManagementServiceIds(old=>e.target.checked?[...old,x.id]:old.filter(id=>id!==x.id))}/><span><b>{x.code||"—"} · {x.name}</b><small>{sites.find(st=>st.id===x.site_id)?.name||"Service sans site"}</small></span></label>)}</div><small>Vous pouvez sélectionner plusieurs services, indépendamment des sites, pour ce Management.</small></div></>}
-         {childType&&<div className="span-2 org-multi-scope-field"><div className="org-scope-picker-head"><label>{childTitle}</label><span>{selectedChildIds.length} sélectionné(s)</span></div><div className="org-scope-picker-list">{childOptions.filter(x=>x.is_active!==false).map(x=><label className="org-scope-choice" key={x.id}><input type="checkbox" checked={selectedChildIds.includes(x.id)} onChange={e=>setSelectedChildIds(old=>e.target.checked?[...old,x.id]:old.filter(id=>id!==x.id))}/><span><b>{x.code||x.equipment_tag||"—"} · {x.name}</b></span></label>)}</div><small>Vous pouvez rattacher plusieurs éléments à ce niveau.</small></div>}
+         {childType&&<div className="span-2 org-multi-scope-field"><div className="org-scope-picker-head"><label>{childTitle}</label><span>{selectedChildIds.length} sélectionné(s)</span></div><div className="org-scope-picker-list">{childOptions.filter(x=>x.is_active!==false&&(kind!=="service"||!form.site_id||x.site_id===form.site_id)).map(x=><label className="org-scope-choice" key={x.id}><input type="checkbox" checked={selectedChildIds.includes(x.id)} onChange={e=>setSelectedChildIds(old=>e.target.checked?[...old,x.id]:old.filter(id=>id!==x.id))}/><span><b>{x.code||x.equipment_tag||"—"} · {x.name}</b></span></label>)}</div><small>Vous pouvez rattacher plusieurs éléments à ce niveau.</small></div>}
         {kind==="equipment"&&<label>{t.unit} *<select required value={form.unit_id||""} onChange={e=>setField("unit_id",e.target.value)}><option value="">{t.noUnit}</option>{units.filter(x=>x.is_active&&(!form.site_id||x.site_id===form.site_id)).map(x=><option key={x.id} value={x.id}>{x.code} · {x.name}</option>)}</select></label>}
 
         {kind==="site"&&<label>{t.address}<input value={form.address||""} onChange={e=>setField("address",e.target.value)}/></label>}
