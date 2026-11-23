@@ -4448,3 +4448,22 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
  .sp-bulk-compat-modal .modal-actions button{min-height:43px;white-space:normal}
 }
 @media(prefers-reduced-motion:reduce){.sp-bulk-compat-option{transition:none}}
+
+
+/* Hard fix: keep every part/equipment name inside its own selectable row */
+.sp-bulk-compat-modal,
+.sp-bulk-compat-modal *{box-sizing:border-box}
+.sp-bulk-compat-modal .sp-bulk-compat-columns{width:100%;min-width:0;align-items:stretch}
+.sp-bulk-compat-modal .sp-bulk-compat-list{width:100%;min-width:0;max-width:100%;overflow:hidden}
+.sp-bulk-compat-modal .sp-bulk-compat-options{display:flex!important;flex-direction:column!important;align-items:stretch!important;width:100%;min-width:0;max-width:100%;overflow-x:hidden!important;overflow-y:auto}
+.sp-bulk-compat-modal label.sp-bulk-compat-option{display:grid!important;grid-template-columns:20px minmax(0,1fr)!important;align-items:start!important;justify-content:stretch!important;width:100%!important;min-width:0!important;max-width:100%!important;height:auto!important;min-height:0!important;white-space:normal!important;overflow:hidden!important;gap:10px!important;padding:12px!important}
+.sp-bulk-compat-modal label.sp-bulk-compat-option>input[type="checkbox"]{display:block!important;position:static!important;float:none!important;grid-column:1;grid-row:1;width:18px!important;height:18px!important;min-width:18px!important;max-width:18px!important;margin:2px 0 0!important;align-self:start}
+.sp-bulk-compat-modal label.sp-bulk-compat-option>span{display:flex!important;flex-direction:column!important;grid-column:2;grid-row:1;width:100%!important;min-width:0!important;max-width:100%!important;height:auto!important;white-space:normal!important;overflow:visible!important;gap:5px!important}
+.sp-bulk-compat-modal label.sp-bulk-compat-option>span>b,
+.sp-bulk-compat-modal label.sp-bulk-compat-option>span>small{display:block!important;width:100%!important;min-width:0!important;max-width:100%!important;height:auto!important;white-space:normal!important;text-overflow:clip!important;overflow:visible!important;overflow-wrap:anywhere!important;word-break:normal!important;line-height:1.45!important}
+.sp-bulk-compat-modal label.sp-bulk-compat-option>span>b{font-size:13px!important;font-weight:750!important}
+.sp-bulk-compat-modal label.sp-bulk-compat-option>span>small{font-size:11px!important}
+@media(max-width:760px){
+ .sp-bulk-compat-modal .sp-bulk-compat-columns{display:grid!important;grid-template-columns:minmax(0,1fr)!important}
+ .sp-bulk-compat-modal label.sp-bulk-compat-option{grid-template-columns:20px minmax(0,1fr)!important}
+}
