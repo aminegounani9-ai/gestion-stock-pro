@@ -4311,3 +4311,44 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
     animation:none!important;transition:none!important;
   }
 }
+
+/* Project task radar — task-by-task operational visualization */
+.pm-task-radar-pro{grid-column:1/-1;overflow:hidden;position:relative;background:linear-gradient(145deg,#fff 0%,#f8fbff 58%,#f4fbfa 100%)!important;border:1px solid #dfe9f5!important;box-shadow:0 12px 32px rgba(35,65,105,.07)!important}
+.pm-task-radar-pro:before{content:"";position:absolute;inset:0 0 auto;height:3px;background:linear-gradient(90deg,#3478db,#17a783,#9b75dc,#e2a34b)}
+.pm-radar-live{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #ccefe2;border-radius:20px;background:#effbf6;color:#168568;font-size:9px;font-weight:850;letter-spacing:.5px}
+.pm-radar-live i{width:7px;height:7px;border-radius:50%;background:#19a77e;box-shadow:0 0 0 4px #19a77e20;animation:pmRadarPulse 1.8s infinite}
+.pm-radar-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:4px 0 12px}
+.pm-radar-summary>div{display:flex;flex-direction:column;gap:4px;padding:11px 13px;border:1px solid #e6edf6;border-radius:12px;background:#fff}
+.pm-radar-summary small{color:#8291a5;font-size:10px;font-weight:700}
+.pm-radar-summary b{color:#28466e;font-size:21px;font-weight:850;font-variant-numeric:tabular-nums}
+.pm-radar-summary b.is-late{color:#d94f5c}
+.pm-radar-visual{display:flex;flex-direction:column;align-items:center;padding:8px 0 2px}
+.pm-radar-visual svg{width:min(100%,320px);height:auto;overflow:visible}
+.pm-radar-visual svg g circle{transition:r .2s ease,filter .2s ease}
+.pm-radar-visual svg g:hover circle{r:7;filter:drop-shadow(0 2px 4px #223b5a55)}
+.pm-radar-scale{display:flex;justify-content:space-between;width:min(100%,300px);color:#93a0b2;font-size:9px;font-weight:700}
+.pm-radar-legend{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 14px}
+.pm-radar-legend>span{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border:1px solid #e6edf5;border-radius:9px;background:#fff;color:#60728a;font-size:10px;font-weight:700}
+.pm-radar-legend i{width:8px;height:8px;border-radius:50%}
+.pm-radar-legend b{color:#2b466b;font-variant-numeric:tabular-nums}
+.pm-radar-task-list{border:1px solid #e4ebf4;border-radius:13px;background:#fff;overflow:hidden}
+.pm-radar-list-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 13px;background:#f5f8fc;border-bottom:1px solid #e7edf5}
+.pm-radar-list-head b{color:#2b4568;font-size:12px;font-weight:850}
+.pm-radar-list-head small{color:#8190a4;font-size:10px;font-weight:750}
+.pm-radar-task-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #eef2f7;transition:background .18s ease}
+.pm-radar-task-row:last-child{border-bottom:0}
+.pm-radar-task-row:hover{background:#f8fbff}
+.pm-radar-task-index{display:grid;place-items:center;flex:0 0 25px;width:25px;height:25px;border-radius:8px;color:#fff;font-size:10px;font-weight:850;box-shadow:0 3px 7px #243c5b20}
+.pm-radar-task-info{display:flex;flex:1;min-width:0;flex-direction:column;gap:5px}
+.pm-radar-task-info>b{overflow:hidden;color:#304967;font-size:11px;font-weight:800;text-overflow:ellipsis;white-space:nowrap}
+.pm-radar-task-info small{color:#8a98aa;font-size:9px}
+.pm-radar-task-track{height:5px;overflow:hidden;border-radius:8px;background:#edf1f6}
+.pm-radar-task-track i{display:block;height:100%;border-radius:8px;transition:width .45s ease}
+.pm-radar-task-row>strong{flex:0 0 43px;text-align:end;font-size:12px;font-weight:850;font-variant-numeric:tabular-nums}
+.pm-radar-empty{display:flex;min-height:170px;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:#8292a8;text-align:center}
+.pm-radar-empty svg{color:#8ba9d0}
+.pm-radar-empty b{color:#385574;font-size:13px}
+.pm-radar-empty small{max-width:320px;font-size:10px;line-height:1.5}
+@keyframes pmRadarPulse{0%,100%{box-shadow:0 0 0 3px #19a77e18}50%{box-shadow:0 0 0 6px #19a77e08}}
+@media(max-width:760px){.pm-radar-summary{gap:6px}.pm-radar-summary>div{padding:9px 8px}.pm-radar-summary small{font-size:9px}.pm-radar-summary b{font-size:18px}.pm-radar-task-row{gap:8px;padding:10px 8px}.pm-radar-task-info>b{font-size:10px}.pm-radar-task-row>strong{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.pm-radar-live i{animation:none}.pm-radar-task-row,.pm-radar-task-track i,.pm-radar-visual svg g circle{transition:none}}
