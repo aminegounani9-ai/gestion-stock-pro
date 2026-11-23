@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import ModalPortal from "./ModalPortal";
 import { Activity, AlertTriangle, Bell, CalendarDays, CheckCircle2, Clock3, FolderKanban, Plus, Search, Users, X, Pencil, Trash2, Volume2, VolumeX, Gauge, Layers3, ChevronDown } from "lucide-react";
 import { supabase } from "./lib/supabase";
-import { resolveAssignedContext, applyAssignedScopeFilter } from "./lib/assignmentScope";
+import { resolveAssignedContext } from "./lib/assignmentScope";
 import ProjectManagementSuite from "./ProjectManagementSuite";
 import ProjectGantt from "./ProjectGantt";
 
@@ -54,7 +54,8 @@ export default function ProjectManagement({companyId,companyName,currentUserId,c
   const client=supabase;if(!client)return;
   const isAdmin=["owner","admin"].includes(currentRole);
   let projectQuery:any=client.from("projects").select("*").eq("company_id",companyId).order("created_at",{ascending:false}).limit(300);
-  if(!isAdmin){const projectViewScopes=myScopes.map(scope=>({...scope,can_view:scope.projects_can_view??scope.can_view}));projectQuery=applyAssignedScopeFilter(projectQuery,projectViewScopes,{site:"site_id",service:"service_id",department:"department_id",unit:"unit_id",equipment:"equipment_id"});}
+  // Supabase RLS resolves management, site, service, team and responsible-user access.
+  // Do not add a client-side scope filter that could hide valid team/project assignments.
   const [p,n,m]=await Promise.all([
    projectQuery,
    client.from("notifications").select("id,title,message,notification_type,entity_type,entity_id,is_read,created_at").eq("company_id",companyId).eq("recipient_user_id",currentUserId).in("notification_type",["project_update","project_task"]).order("created_at",{ascending:false}).limit(100),
