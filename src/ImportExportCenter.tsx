@@ -20,21 +20,20 @@ const datasets: Dataset[] = [
   { id:"management", label:"Management", table:"org_managements", key:"code", group:"Organisation", fields:[
     {key:"code",required:true},{key:"name",required:true},{key:"description"},{key:"is_active"}
   ]},
-   { id:"sites", label:"Sites", table:"org_sites", key:"code", group:"Organisation", fields:[{key:"code",required:true},{key:"name",required:true},{key:"management_code",required:true},{key:"address"},{key:"is_active"}]},
-   { id:"services", label:"Services", table:"org_services", key:"code", group:"Organisation", fields:[{key:"code",required:true},{key:"name",required:true},{key:"management_code",required:true},{key:"site_code"},{key:"description"},{key:"is_active"}]},
-  ]},
   { id:"sites", label:"Sites", table:"org_sites", key:"code", group:"Organisation", fields:[
-    {key:"code",required:true},{key:"name",required:true},{key:"service_code",required:true},{key:"address"},{key:"is_active"}
+    {key:"code",required:true},{key:"name",required:true},{key:"management_code",required:true},{key:"address"},{key:"is_active"}
   ]},
-   { id:"units", label:"Unités", table:"org_units", key:"code", group:"Organisation", fields:[{key:"code",required:true},{key:"name",required:true},{key:"site_code",required:true},{key:"service_code",required:true},{key:"description"},{key:"is_active"}]},
+  { id:"services", label:"Services", table:"org_services", key:"code", group:"Organisation", fields:[
+    {key:"code",required:true},{key:"name",required:true},{key:"management_code",required:true},{key:"site_code"},{key:"description"},{key:"is_active"}
+  ]},
   { id:"units", label:"Unités", table:"org_units", key:"code", group:"Organisation", fields:[
-    {key:"code",required:true},{key:"name",required:true},{key:"site_code",required:true},{key:"service_code"},{key:"department_code"},{key:"description"},{key:"is_active"}
+    {key:"code",required:true},{key:"name",required:true},{key:"site_code",required:true},{key:"service_code",required:true},{key:"description"},{key:"is_active"}
   ]},
   { id:"equipment", label:"Équipements", table:"org_equipment", key:"equipment_tag", group:"Organisation", fields:[
-    {key:"equipment_tag",required:true},{key:"name",required:true},{key:"site_code",required:true},{key:"unit_code"},{key:"service_code"},{key:"department_code"},{key:"manufacturer"},{key:"model"},{key:"serial_number"},{key:"location"},{key:"status"},{key:"notes"},{key:"is_active"}
+    {key:"equipment_tag",required:true},{key:"name",required:true},{key:"site_code",required:true},{key:"unit_code",required:true},{key:"service_code"},{key:"manufacturer"},{key:"model"},{key:"serial_number"},{key:"location"},{key:"status"},{key:"notes"},{key:"is_active"}
   ]},
   { id:"warehouses", label:"Entrepôts", table:"warehouses", key:"code", group:"Stock", fields:[
-    {key:"code",required:true},{key:"name",required:true},{key:"address"},{key:"site_code"},{key:"unit_code"},{key:"service_code"},{key:"department_code"},{key:"equipment_tag"},{key:"is_default"},{key:"is_active"}
+    {key:"code",required:true},{key:"name",required:true},{key:"address"},{key:"site_code"},{key:"unit_code"},{key:"service_code"},{key:"equipment_tag"},{key:"is_default"},{key:"is_active"}
   ]},
   { id:"locations", label:"Emplacements", table:"storage_locations", key:"code", group:"Stock", fields:[
     {key:"warehouse_code",required:true},{key:"code",required:true},{key:"name",required:true},{key:"parent_code"},{key:"location_type"},{key:"capacity"},{key:"capacity_unit"},{key:"note"},{key:"is_active"}
