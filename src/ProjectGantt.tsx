@@ -5,7 +5,6 @@ type Task=Record<string,any>&{id:string;project_id:string;title:string;status:st
 type Project=Record<string,any>&{id:string;name:string;project_code:string;start_date?:string|null;target_end_date?:string|null};
 type Props={tasks:Task[];projects:Project[];lang:"fr"|"en"|"ar";selectedProjectId?:string;onProjectChange?:(id:string)=>void;onOpenTask:(task:Task)=>void};
 const clamp=(v:number)=>Math.max(0,Math.min(100,v));
-const dateKey=(d:Date)=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");
 const parseDate=(value:string)=>{const [y,m,d]=String(value).slice(0,10).split("-").map(Number);return new Date(y,m-1,d);};
 const taskColor=(id:string)=>{let hash=0;for(let i=0;i<id.length;i++)hash=(hash*31+id.charCodeAt(i))>>>0;return `hsl(${hash%360} 62% 43%)`;};
 const complianceTone=(v:number)=>v<80?"bad":v<100?"mid":"good";
