@@ -45,7 +45,7 @@ export default function ProfessionalModuleReport({companyId,company,page,title,l
    const lookupTables=Array.from(new Set(fetched.flatMap(({rows})=>rows.flatMap(row=>Object.keys(row).map(key=>foreignLookups[key]).filter((name):name is string=>Boolean(name))))));
    const lookupResults=await Promise.all(lookupTables.map(async name=>{const result=await supabase!.from(name).select("*").eq("company_id",companyId).limit(5000);return [name,result.error?[]:(result.data||[])] as const;}));
    const lookupMap:Record<string,Map<string,string>>={};
-   const lookupKey:Record<string,string>={products:"name",product_categories:"name",warehouses:"name",suppliers:"name",customers:"name",storage_locations:"code",stock_lots:"lot_number",org_sites:"name",org_units:"name",org_services:"name",org_departments:"name",org_equipment:"name",purchase_orders:"order_number",sales:"invoice_number",stock_transfers:"transfer_number",inventory_counts:"count_number",stock_returns:"return_number",spare_part_requests:"request_number"};
+   const lookupKey:Record<string,string>={products:"name",product_categories:"name",warehouses:"name",suppliers:"name",customers:"name",storage_locations:"code",stock_lots:"lot_number",org_sites:"name",org_units:"name",org_services:"name",org_equipment:"name",purchase_orders:"order_number",sales:"invoice_number",stock_transfers:"transfer_number",inventory_counts:"count_number",stock_returns:"return_number",spare_part_requests:"request_number"};
    lookupResults.forEach(([name,records])=>{lookupMap[name]=new Map<string,string>((records as Record<string,any>[]).map(row=>[String(row.id),String(row[lookupKey[name]]||row.name||row.code||row.id)] as [string,string]));});
    const filtered=fetched.map(({item,rows})=>{
     let selected=rows;
