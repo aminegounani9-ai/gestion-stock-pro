@@ -52,7 +52,6 @@ export default function ProjectManagement({companyId,companyName,currentUserId,c
   const money=(v:number)=>new Intl.NumberFormat(lang==="en"?"en-US":lang==="ar"?"ar-DZ":"fr-DZ",{style:"currency",currency:currency||"DZD",maximumFractionDigits:0}).format(v||0);
  const load=useCallback(async()=>{
   const client=supabase;if(!client)return;
-  const isAdmin=["owner","admin"].includes(currentRole);
   let projectQuery:any=client.from("projects").select("*").eq("company_id",companyId).order("created_at",{ascending:false}).limit(300);
   // Supabase RLS resolves management, site, service, team and responsible-user access.
   // Do not add a client-side scope filter that could hide valid team/project assignments.
