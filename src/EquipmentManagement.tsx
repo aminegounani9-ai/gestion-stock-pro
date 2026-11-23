@@ -35,7 +35,7 @@ export default function EquipmentManagement({companyId,lang,equipmentSeed,autoPr
    supabase.from("org_units").select("id,code,name,site_id,service_id,department_id").eq("company_id",companyId).limit(500),
    supabase.from("org_services").select("id,code,name,site_id,unit_id").eq("company_id",companyId).limit(300),
    supabase.from("org_departments").select("id,code,name,site_id,unit_id,service_id").eq("company_id",companyId).limit(500),
-   isAdmin||myScopes.length&&myScopes.every((x:any)=>x.scope_type==="warehouse")?Promise.resolve({data:[],error:null} as any):(()=>{let q:any=supabase.from("spare_part_details").select("product_id").eq("company_id",companyId).limit(1000);if(!myScopes.some((x:any)=>x.scope_type==="management"))q=applyAssignedScopeFilter(q,myScopes,{site:"site_id",service:"service_id",department:"department_id",unit:"unit_id",equipment:"equipment_id"},"product_id");return q;})()
+   isAdmin||myScopes.length&&myScopes.every((x:any)=>x.scope_type==="warehouse")?Promise.resolve({data:[],error:null} as any):(()=>{let q:any=supabase.from("spare_part_details").select("product_id").eq("company_id",companyId).limit(1000);q=applyAssignedScopeFilter(q,myScopes,{site:"site_id",service:"service_id",unit:"unit_id",equipment:"equipment_id"},"product_id");return q;})()
   ]);
   const loadError=[eq,sites,units,services,departments,partScopeResult].find(x=>x.error)?.error;
   if(loadError){setError(loadError.message||t.error);return;}
