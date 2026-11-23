@@ -51,7 +51,7 @@ export default function EquipmentManagement({companyId,lang,equipmentSeed,autoPr
   const e=equipment.find(x=>x.id===id);if(!e)return;
   const [links,requests]=await Promise.all([
    supabase.from("spare_part_equipment_compatibility").select("id,product_id,quantity_per_equipment,is_critical,notes").eq("company_id",companyId).eq("equipment_tag",e.equipment_tag),
-   supabase.from("spare_part_requests").select("id,request_number,work_order_reference,status,priority,justification,department,issued_at,created_at,required_date").eq("company_id",companyId).or("equipment_id.eq."+id+",equipment_tag.eq."+e.equipment_tag).order("created_at",{ascending:false}).limit(100)
+   supabase.from("spare_part_requests").select("id,request_number,work_order_reference,status,priority,justification,issued_at,created_at,required_date").eq("company_id",companyId).or("equipment_id.eq."+id+",equipment_tag.eq."+e.equipment_tag).order("created_at",{ascending:false}).limit(100)
   ]);
   if(links.error||requests.error){setError(links.error?.message||requests.error?.message||t.error);return;}
   const requestRows=requests.data||[];
