@@ -67,9 +67,9 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
   const warehouseIds=(warehouses||[]).filter((x:any)=>x.is_active!==false).map((x:any)=>x.id);
   const empty:any={data:[],error:null};
   let detailQuery:any=supabase!.from("spare_part_details").select("*, products(id,sku,name,unit,min_stock,purchase_price,category_id), suppliers(name)").eq("company_id",companyId).order("created_at",{ascending:false}).limit(500);
-  if(!isAdmin)detailQuery=applyAssignedScopeFilter(detailQuery,myScopes,{management:"management_id",site:"site_id",service:"service_id",department:"department_id",unit:"unit_id",equipment:"equipment_id",warehouse:"warehouse_id"},"product_id");
+  if(!isAdmin)detailQuery=applyAssignedScopeFilter(detailQuery,myScopes,{site:"site_id",service:"service_id",unit:"unit_id",equipment:"equipment_id",warehouse:"warehouse_id"},"product_id");
   let equipmentQuery:any=supabase!.from("org_equipment").select("id,equipment_tag,name,site_id,unit_id,service_id,department_id,manufacturer,model,serial_number,location,notes,status").eq("company_id",companyId).eq("status","active").order("name").limit(1000);
-  if(!isAdmin)equipmentQuery=applyAssignedScopeFilter(equipmentQuery,myScopes,{site:"site_id",service:"service_id",department:"department_id",unit:"unit_id",equipment:"id"});
+  if(!isAdmin)equipmentQuery=applyAssignedScopeFilter(equipmentQuery,myScopes,{site:"site_id",service:"service_id",unit:"unit_id",equipment:"id"});
   const [d,r,b,sn]=await Promise.all([
    detailQuery,
    warehouseIds.length?supabase!.from("spare_part_reservations").select("*, products(name,sku,category_id), warehouses(name)").eq("company_id",companyId).in("warehouse_id",warehouseIds).order("created_at",{ascending:false}).limit(100):Promise.resolve(empty),
