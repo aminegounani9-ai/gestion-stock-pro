@@ -20,15 +20,13 @@ const datasets: Dataset[] = [
   { id:"management", label:"Management", table:"org_managements", key:"code", group:"Organisation", fields:[
     {key:"code",required:true},{key:"name",required:true},{key:"description"},{key:"is_active"}
   ]},
-  { id:"services", label:"Services", table:"org_services", key:"code", group:"Organisation", fields:[
-    {key:"code",required:true},{key:"name",required:true},{key:"management_code",required:true},{key:"description"},{key:"is_active"}
+   { id:"sites", label:"Sites", table:"org_sites", key:"code", group:"Organisation", fields:[{key:"code",required:true},{key:"name",required:true},{key:"management_code",required:true},{key:"address"},{key:"is_active"}]},
+   { id:"services", label:"Services", table:"org_services", key:"code", group:"Organisation", fields:[{key:"code",required:true},{key:"name",required:true},{key:"management_code",required:true},{key:"site_code"},{key:"description"},{key:"is_active"}]},
   ]},
   { id:"sites", label:"Sites", table:"org_sites", key:"code", group:"Organisation", fields:[
     {key:"code",required:true},{key:"name",required:true},{key:"service_code",required:true},{key:"address"},{key:"is_active"}
   ]},
-  { id:"departments", label:"Départements", table:"org_departments", key:"code", group:"Organisation", fields:[
-    {key:"code",required:true},{key:"name",required:true},{key:"site_code",required:true},{key:"service_code"},{key:"unit_code"},{key:"description"},{key:"is_active"}
-  ]},
+   { id:"units", label:"Unités", table:"org_units", key:"code", group:"Organisation", fields:[{key:"code",required:true},{key:"name",required:true},{key:"site_code",required:true},{key:"service_code",required:true},{key:"description"},{key:"is_active"}]},
   { id:"units", label:"Unités", table:"org_units", key:"code", group:"Organisation", fields:[
     {key:"code",required:true},{key:"name",required:true},{key:"site_code",required:true},{key:"service_code"},{key:"department_code"},{key:"description"},{key:"is_active"}
   ]},
@@ -61,14 +59,14 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
  const groups=[{id:"Catalogue",label:t.groupCatalogue},{id:"Organisation",label:t.groupOrganisation},{id:"Stock",label:t.groupStock}];
  const getRows=async(table:string)=>{const q=await supabase!.from(table).select("*").eq("company_id",companyId).limit(10000);if(q.error)throw q.error;return q.data||[]};
  const refsFor=async()=>{
-   const required:Record<string,string[]>={spare_parts:["product_categories","org_sites","org_units","org_services","org_departments","org_equipment","warehouses","storage_locations"],products:["product_categories"],categories:["product_categories"],management:[],services:["org_managements"],sites:["org_services"],departments:["org_sites","org_units","org_services"],units:["org_sites","org_units","org_services","org_departments"],equipment:["org_sites","org_units","org_services","org_departments"],warehouses:["org_sites","org_units","org_services","org_departments","org_equipment"],locations:["warehouses","storage_locations"]};
+   const required:Record<string,string[]>={spare_parts:["product_categories","org_sites","org_units","org_services","org_equipment","warehouses","storage_locations"],products:["product_categories"],categories:["product_categories"],management:[],sites:["org_managements"],services:["org_managements","org_sites"],units:["org_sites","org_services"],equipment:["org_sites","org_units","org_services"],warehouses:["org_sites","org_units","org_services","org_equipment"],locations:["warehouses","storage_locations"]};
    const tables=required[selected]||[];
    const out:any={};for(const table of tables)out[table]=await getRows(table);return out;
  };
  const refSheets=(refs:any)=>{
    const rows:any[][]=[["Type","Code / Nom","Désignation","Parent"]];
    const add=(type:string,items:any[],code:string,parent="")=>(items||[]).forEach(x=>rows.push([type,x[code]||x.name||"",x.name||"",parent?x[parent]||"": ""]));
-   add("Management",refs.org_managements,"code");add("Service",refs.org_services,"code");add("Site",refs.org_sites,"code");add("Département",refs.org_departments,"code");add("Unité",refs.org_units,"code");add("Équipement",refs.org_equipment,"equipment_tag");add("Entrepôt",refs.warehouses,"code");add("Emplacement",refs.storage_locations,"code");add("Catégorie",refs.product_categories,"name");
+   add("Management",refs.org_managements,"code");add("Site",refs.org_sites,"code");add("Service",refs.org_services,"code");add("Unité",refs.org_units,"code");add("Équipement",refs.org_equipment,"equipment_tag");add("Entrepôt",refs.warehouses,"code");add("Emplacement",refs.storage_locations,"code");add("Catégorie",refs.product_categories,"name");
    return rows;
  };
  const template=async()=>{
@@ -91,13 +89,13 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
     const detail=await getRows("spare_part_details"),map=new Map(detail.map((x:any)=>[x.product_id,x]));
     const assignments=await getRows("spare_part_unit_assignments");
     const spareProductIds=new Set(detail.map((x:any)=>x.product_id));
-    out=rows.filter((p:any)=>spareProductIds.has(p.id)).map((p:any)=>{const d:any=map.get(p.id)||{};const unitIds=assignments.filter((a:any)=>a.product_id===p.id).map((a:any)=>a.unit_id);const unitCodes=unitIds.map((id:any)=>name("org_units",id)).filter(Boolean);return {sku:p.sku,name:p.name,unit:p.unit,category_name:name("product_categories",p.category_id,"name"),purchase_price:p.purchase_price,manufacturer:d.manufacturer||"",part_number:d.part_number||d.manufacturer_reference||"",criticality:d.criticality||"medium",site_code:name("org_sites",d.site_id),unit_codes:unitCodes.join("; "),service_code:name("org_services",d.service_id),department_code:name("org_departments",d.department_id),equipment_tag:d.equipment_tag||"",warehouse_code:name("warehouses",d.warehouse_id),location_code:name("storage_locations",d.storage_location_id),initial_quantity:"",min_stock:p.min_stock??0};});
+    out=rows.filter((p:any)=>spareProductIds.has(p.id)).map((p:any)=>{const d:any=map.get(p.id)||{};const unitIds=assignments.filter((a:any)=>a.product_id===p.id).map((a:any)=>a.unit_id);const unitCodes=unitIds.map((id:any)=>name("org_units",id)).filter(Boolean);return {sku:p.sku,name:p.name,unit:p.unit,category_name:name("product_categories",p.category_id,"name"),purchase_price:p.purchase_price,manufacturer:d.manufacturer||"",part_number:d.part_number||d.manufacturer_reference||"",criticality:d.criticality||"medium",site_code:name("org_sites",d.site_id),unit_codes:unitCodes.join("; "),service_code:name("org_services",d.service_id),equipment_tag:d.equipment_tag||"",warehouse_code:name("warehouses",d.warehouse_id),location_code:name("storage_locations",d.storage_location_id),initial_quantity:"",min_stock:p.min_stock??0};});
    }else if(ds.id==="management")out=rows;
    else if(ds.id==="products")out=rows.map((p:any)=>({...p,category_name:name("product_categories",p.category_id,"name")}));
    else if(ds.id==="categories")out=rows.map((x:any)=>({...x,parent_category:name("product_categories",x.parent_id,"name")}));
    else if(ds.id==="services")out=rows.map((x:any)=>({...x,management_code:name("org_managements",x.management_id)}));
    else if(ds.id==="sites")out=rows.map((x:any)=>({...x,service_code:name("org_services",x.service_id)}));
-   else if(ds.id==="departments"||ds.id==="units"||ds.id==="equipment"||ds.id==="warehouses")out=rows.map((x:any)=>({...x,site_code:name("org_sites",x.site_id),unit_code:name("org_units",x.unit_id),service_code:name("org_services",x.service_id),department_code:name("org_departments",x.department_id),equipment_tag:x.equipment_tag||name("org_equipment",x.equipment_id,"equipment_tag")}));
+   else if(["sites","services","units","equipment","warehouses"].includes(ds.id))out=rows.map((x:any)=>({...x,site_code:name("org_sites",x.site_id),unit_code:name("org_units",x.unit_id),service_code:name("org_services",x.service_id),department_code:name("org_departments",x.department_id),equipment_tag:x.equipment_tag||name("org_equipment",x.equipment_id,"equipment_tag")}));
    else if(ds.id==="locations")out=rows.map((x:any)=>({...x,warehouse_code:name("warehouses",x.warehouse_id),parent_code:name("storage_locations",x.parent_id),note:x.notes}));
    const data=[ds.fields.map(f=>f.key),...out.map(r=>ds.fields.map(f=>r[f.key]??""))];
    const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(data),"Data");XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([["Export"],["Module",ds.label],["Rows",out.length],["Exported at",new Date().toISOString()]]),"Instructions");
@@ -119,7 +117,7 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
    };
    const value=(r:any,k:string)=>clean(r[k]);
    const resolveScope=(r:any,p:any)=>{
-    const site=value(r,"site_code"),unit=value(r,"unit_code"),service=value(r,"service_code"),department=value(r,"department_code"),tag=value(r,"equipment_tag");
+    const management=value(r,"management_code"),site=value(r,"site_code"),unit=value(r,"unit_code"),service=value(r,"service_code"),tag=value(r,"equipment_tag");
     if(site){p.site_id=lookup("org_sites","code",site);if(!p.site_id)throw new Error("Site_Code introuvable: "+site);}
     if(unit){p.unit_id=lookup("org_units","code",unit,"site_id",p.site_id);if(!p.unit_id)throw new Error("Unit_Code introuvable ou hors site: "+unit);}
     if(service){p.service_id=lookup("org_services","code",service);if(!p.service_id)throw new Error("Service_Code introuvable: "+service);}
@@ -136,7 +134,7 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
     const r=rows[i],line=i+2;try{
      for(const f of ds.fields)if(f.required&&!value(r,f.key))throw new Error("Champ obligatoire: "+f.key);
      const p:any={company_id:companyId};
-     for(const f of ds.fields){if(["category_name","parent_category","management_code","service_code","site_code","unit_code","unit_codes","department_code","equipment_tag","warehouse_code","location_code","parent_code","initial_quantity"].includes(f.key))continue;if(ds.id==="spare_parts"&&!["sku","name","unit","purchase_price","min_stock"].includes(f.key))continue;const v=value(r,f.key);if(v!==null){if(boolFields.has(f.key))p[f.key]=["true","1","yes","oui","vrai"].includes(String(v).toLowerCase());else if(numericFields.has(f.key)){const n=Number(String(v).replace(",","."));if(!Number.isFinite(n))throw new Error("Valeur numérique invalide: "+f.key);p[f.key]=n;}else p[f.key]=v;}}
+     for(const f of ds.fields){if(["category_name","parent_category","management_code","service_code","site_code","unit_code","unit_codes","equipment_tag","warehouse_code","location_code","parent_code","initial_quantity"].includes(f.key))continue;if(ds.id==="spare_parts"&&!["sku","name","unit","purchase_price","min_stock"].includes(f.key))continue;const v=value(r,f.key);if(v!==null){if(boolFields.has(f.key))p[f.key]=["true","1","yes","oui","vrai"].includes(String(v).toLowerCase());else if(numericFields.has(f.key)){const n=Number(String(v).replace(",","."));if(!Number.isFinite(n))throw new Error("Valeur numérique invalide: "+f.key);p[f.key]=n;}else p[f.key]=v;}}
      let id:string|null=null;
      if(ds.id==="categories"){
       const parent=value(r,"parent_category");if(parent){p.parent_id=lookup("product_categories","name",parent);if(!p.parent_id)throw new Error("Catégorie parente introuvable: "+parent);}
@@ -167,9 +165,9 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
       const m=value(r,"management_code");const managementId=lookup("org_managements","code",m);if(!managementId)throw new Error("Management_Code introuvable: "+m);p.management_id=managementId;id=await saveByKey(ds.table,ds.key,p);
      }else if(ds.id==="sites"){
       const service=value(r,"service_code");if(service){p.service_id=lookup("org_services","code",service);if(!p.service_id)throw new Error("Service_Code introuvable: "+service);}id=await saveByKey(ds.table,ds.key,p);
-     }else if(["departments","units","equipment","warehouses"].includes(ds.id)){
+     }else if(["sites","services","units","equipment","warehouses"].includes(ds.id)){
       resolveScope(r,p);
-      if(["departments","units","equipment"].includes(ds.id)&&!p.site_id)throw new Error("Site_Code obligatoire.");
+      if(["units","equipment"].includes(ds.id)&&!p.site_id)throw new Error("Site_Code obligatoire.");
       if(ds.id==="equipment"){p.status=p.status||"active";p.is_active=p.is_active??true;}
       id=await saveByKey(ds.table,ds.key,p);
      }else if(ds.id==="locations"){
