@@ -150,7 +150,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
         ]
       : [...new Set(selectedScopeIds.length?selectedScopeIds:(assignment.scope_id?[assignment.scope_id]:[]))]
           .map(scope_id=>({scope_type:assignment.scope_type,scope_id}));
-    if(!assignment.user_id||!scopeRowsToSave.length||(managementMode&&(!selectedManagementIds.length||(!selectedManagementSiteIds.length&&!selectedManagementServiceIds.length&&!assignment.projects_can_view)))){onNotice("error","Sélectionnez un utilisateur, un Management et au moins un site/service ou activez « Consulter les projets ».");return;}
+    if(!assignment.user_id||!scopeRowsToSave.length||(managementMode&&(!selectedManagementIds.length||(!selectedManagementSiteIds.length&&!selectedManagementServiceIds.length)))){onNotice("error","Sélectionnez un utilisateur, un Management et au moins un Site ou Service explicitement autorisé.");return;}
     const hasAction=assignment.can_create||assignment.can_edit||assignment.can_delete||assignment.can_approve||assignment.can_issue||assignment.can_receive||assignment.can_transfer||assignment.can_inventory||assignment.projects_can_create||assignment.projects_can_edit||assignment.projects_can_delete||assignment.projects_can_approve;
     if(hasAction&&!assignment.can_view&&!assignment.projects_can_view){onNotice("error","La permission Consulter ou Consulter les projets est obligatoire avec les autres permissions.");return;}
     setBusy(true);
