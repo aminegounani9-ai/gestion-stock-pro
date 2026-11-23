@@ -25,11 +25,11 @@ export default function UserManagement({companyId,currentRole,members,myScopes,s
  const idsFor=(type:string)=>myScopes.filter(s=>s.scope_type===type&&s.can_view).map(s=>s.scope_id);
  const assignedSites=idsFor("site"),assignedUnits=idsFor("unit"),assignedServices=idsFor("service"),assignedEquipment=idsFor("equipment"),assignedWarehouses=idsFor("warehouse");
  const allowedSites=admin?sites:sites.filter(x=>assignedSites.includes(x.id));
- const allowedServices=admin?services:services.filter(x=>assignedServices.includes(x.id));
- const allowedUnits=admin?units:units.filter(x=>assignedUnits.includes(x.id));
- const allowedEquipment=admin?equipment:equipment.filter(x=>assignedEquipment.includes(x.id));
+ const allowedServices=admin?services:services.filter(x=>assignedServices.includes(x.id)||allowedSites.some(st=>st.id===x.site_id));
+ const allowedUnits=admin?units:units.filter(x=>assignedUnits.includes(x.id)||allowedServices.some(sv=>sv.id===x.service_id)||allowedSites.some(st=>st.id===x.site_id));
+ const allowedEquipment=admin?equipment:equipment.filter(x=>assignedEquipment.includes(x.id)||allowedUnits.some(u=>u.id===x.unit_id));
  const allowedWarehouses=admin?warehouses:warehouses.filter(x=>assignedWarehouses.includes(x.id));
- const scopeTypes=admin?Object.keys(scopeLabels):Array.from(new Set(myScopes.filter(s=>s.can_view&&s.scope_type!=="management").map(s=>s.scope_type)));
+ const scopeTypes=admin?Object.keys(scopeLabels):Array.from(new Set([...myScopes.filter(s=>s.can_view&&s.scope_type!=="management").map(s=>s.scope_type),...(allowedSites.length?["site"]:[]),...(allowedServices.length?["service"]:[]),...(allowedUnits.length?["unit"]:[]),...(allowedEquipment.length?["equipment"]:[]),...(allowedWarehouses.length?["warehouse"]:[])]));
  const optionsByType:Record<string,any[]>={site:allowedSites,service:allowedServices,unit:allowedUnits,equipment:allowedEquipment,warehouse:allowedWarehouses};
  const scopeOptions:any[]=admin?(sourceByType[scopeType]||[]):(optionsByType[scopeType]||[]);
  function scopeName(type:string,id:string){const item=(sourceByType[type]||[]).find(x=>x.id===id);return item?((item.code?item.code+" · ":"")+item.name):id;}
