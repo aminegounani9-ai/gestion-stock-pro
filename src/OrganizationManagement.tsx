@@ -126,7 +126,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
             const syncEquipment=await supabase.from("org_equipment").update({site_id:parentId}).eq("company_id",companyId).in("service_id",selectedChildIds);if(syncEquipment.error)throw syncEquipment.error;
           }
           if(kind==="service"){
-            const siteId=result.data.site_id||form.site_id;
+            const siteId=(result.data as any).site_id||form.site_id;
             if(!siteId)throw new Error("Le Service doit être rattaché à un Site.");
             const syncUnits=await supabase.from("org_units").update({site_id:siteId}).eq("company_id",companyId).in("id",selectedChildIds);if(syncUnits.error)throw syncUnits.error;
             const syncEquipment=await supabase.from("org_equipment").update({site_id:siteId,service_id:parentId}).eq("company_id",companyId).in("unit_id",selectedChildIds);if(syncEquipment.error)throw syncEquipment.error;
