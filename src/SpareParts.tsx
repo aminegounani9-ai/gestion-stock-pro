@@ -129,10 +129,10 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
  const isScopeLocked=(field:string)=>!!assignedContext.locked[field];
  const ownScopeIds=(type:string)=>ownScopeRows.filter((x:any)=>x.scope_type===type&&x.can_view!==false).map((x:any)=>x.scope_id);
  const warehouseScoped=!isAdmin&&myScopes.length>0&&myScopes.every((x:any)=>x.scope_type==="warehouse");
- const permittedUnitIds=isAdmin?orgUnits.map((x:any)=>x.id):ownScopeIds("unit");
+ const permittedUnitIds=isAdmin?orgUnits.map((x:any)=>x.id):[...new Set([...ownScopeIds("unit"),...orgUnits.filter((x:any)=>ownScopeIds("site").includes(x.site_id)||ownScopeIds("service").includes(x.service_id)).map((x:any)=>x.id)])];
   const permittedUnits=orgUnits.filter((x:any)=>permittedUnitIds.includes(x.id));
   const permittedSiteIds=[...new Set([...ownScopeIds("site"),...permittedUnits.map((x:any)=>x.site_id),...orgServices.filter((x:any)=>ownScopeIds("service").includes(x.id)).map((x:any)=>x.site_id),...orgEquipment.filter((x:any)=>ownScopeIds("equipment").includes(x.id)).map((x:any)=>x.site_id)].filter(Boolean))];
-  const permittedServiceIds=[...new Set([...ownScopeIds("service"),...permittedUnits.map((x:any)=>x.service_id),...orgEquipment.filter((x:any)=>ownScopeIds("equipment").includes(x.id)).map((x:any)=>x.service_id)].filter(Boolean))];
+  const permittedServiceIds=[...new Set([...ownScopeIds("service"),...orgServices.filter((x:any)=>permittedSiteIds.includes(x.site_id)).map((x:any)=>x.id),...permittedUnits.map((x:any)=>x.service_id),...orgEquipment.filter((x:any)=>ownScopeIds("equipment").includes(x.id)).map((x:any)=>x.service_id)].filter(Boolean))];
   const permittedEquipmentIds=[...new Set([...ownScopeIds("equipment"),...orgEquipment.filter((e:any)=>permittedUnitIds.includes(e.unit_id)).map((e:any)=>e.id)])];
   const permittedWarehouseIds=ownScopeIds("warehouse");
   const visibleSites=isAdmin?orgSites:orgSites.filter((x:any)=>permittedSiteIds.includes(x.id));
