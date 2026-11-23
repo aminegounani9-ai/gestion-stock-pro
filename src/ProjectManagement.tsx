@@ -42,8 +42,7 @@ export default function ProjectManagement({companyId,companyName,currentUserId,c
  const canDeleteProject=isCompanyProjectAdmin||(selected?projectScopePermission(projects.find(p=>p.id===selected),"delete"):false)||(!hasProjectSpecificAssignments&&access?.canDelete===true);
  const assignedContext=useMemo(()=>resolveAssignedContext(myScopes,{sites,services,units,equipment,warehouses:[]}),[myScopes,sites,services,units,equipment]);
  const siteName=(id:string)=>sites.find(x=>x.id===id)?.name||"";
- const departmentName=(id:string)=>departments.find(x=>x.id===id)?.name||"";
- const createServiceScopeIds=myScopes.filter(x=>x?.scope_type==="service"&&(x.projects_can_create??x.can_create)===true).map(x=>x.scope_id);
+  const createServiceScopeIds=myScopes.filter(x=>x?.scope_type==="service"&&(x.projects_can_create??x.can_create)===true).map(x=>x.scope_id);
  const effectiveCreateScopes=myScopes.filter(x=>x.scope_type!=="management"&&(x.projects_can_create??x.can_create)===true);
  const onlyServiceCreateScopes=effectiveCreateScopes.length>0&&effectiveCreateScopes.every(x=>x.scope_type==="service");
  const projectServices=onlyServiceCreateScopes?services.filter(x=>createServiceScopeIds.includes(x.id)):services;
