@@ -4554,3 +4554,11 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
  .sp-bulk-compat-modal .sp-bulk-compat-settings input[type=number]{height:42px!important}
  .sp-bulk-compat-modal .modal-actions{bottom:0!important;display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;padding-top:9px!important}
 }
+
+/* Spare-part physical stock entry */
+.sp-initial-stock-field{display:flex;flex-direction:column;gap:9px;padding:16px 18px;border:1px solid #b8c8df;border-left:4px solid #2563eb;border-radius:12px;background:linear-gradient(135deg,rgba(37,99,235,.075),rgba(37,99,235,.025));}
+.sp-initial-stock-field .sp-initial-stock-title{font-weight:750;color:var(--text-primary,#172033);font-size:14px;letter-spacing:.01em;}
+.sp-initial-stock-field input{min-height:46px;font-size:17px;font-weight:700;}
+.sp-initial-stock-field .field-hint{line-height:1.55;}
+[dir="rtl"] .sp-initial-stock-field{border-left:1px solid #b8c8df;border-right:4px solid #2563eb;}
+@media(max-width:640px){.sp-initial-stock-field{padding:13px;}}
