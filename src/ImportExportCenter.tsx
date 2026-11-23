@@ -9,7 +9,7 @@ type Dataset = { id: string; label: string; table: string; key: string; group: s
 
 const datasets: Dataset[] = [
   { id:"spare_parts", label:"Pièces de rechange", table:"products", key:"sku", group:"Catalogue", fields:[
-    {key:"sku",required:true},{key:"name",required:true},{key:"unit"},{key:"category_name"},{key:"purchase_price"},{key:"manufacturer"},{key:"part_number"},{key:"criticality"},{key:"site_code"},{key:"unit_codes"},{key:"service_code"},{key:"department_code"},{key:"equipment_tag"},{key:"warehouse_code"},{key:"location_code"},{key:"initial_quantity"},{key:"min_stock"}
+    {key:"sku",required:true},{key:"name",required:true},{key:"unit"},{key:"category_name"},{key:"purchase_price"},{key:"manufacturer"},{key:"part_number"},{key:"criticality"},{key:"site_code"},{key:"unit_codes"},{key:"service_code"},{key:"equipment_tag"},{key:"warehouse_code"},{key:"location_code"},{key:"initial_quantity"},{key:"min_stock"}
   ]},
   { id:"products", label:"Articles", table:"products", key:"sku", group:"Catalogue", fields:[
     {key:"sku",required:true},{key:"name",required:true},{key:"barcode"},{key:"description"},{key:"category_name"},{key:"unit"},{key:"purchase_price"},{key:"sale_price"},{key:"min_stock"},{key:"max_stock"},{key:"reorder_quantity"},{key:"lead_time_days"},{key:"track_lots"},{key:"track_serial_numbers"},{key:"weight"},{key:"volume"},{key:"is_active"}
@@ -94,7 +94,7 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
    else if(ds.id==="categories")out=rows.map((x:any)=>({...x,parent_category:name("product_categories",x.parent_id,"name")}));
    else if(ds.id==="services")out=rows.map((x:any)=>({...x,management_code:name("org_managements",x.management_id)}));
    else if(ds.id==="sites")out=rows.map((x:any)=>({...x,service_code:name("org_services",x.service_id)}));
-   else if(["sites","services","units","equipment","warehouses"].includes(ds.id))out=rows.map((x:any)=>({...x,site_code:name("org_sites",x.site_id),unit_code:name("org_units",x.unit_id),service_code:name("org_services",x.service_id),department_code:name("org_departments",x.department_id),equipment_tag:x.equipment_tag||name("org_equipment",x.equipment_id,"equipment_tag")}));
+   else if(["sites","services","units","equipment","warehouses"].includes(ds.id))out=rows.map((x:any)=>({...x,site_code:name("org_sites",x.site_id),unit_code:name("org_units",x.unit_id),service_code:name("org_services",x.service_id),equipment_tag:x.equipment_tag||name("org_equipment",x.equipment_id,"equipment_tag")}));
    else if(ds.id==="locations")out=rows.map((x:any)=>({...x,warehouse_code:name("warehouses",x.warehouse_id),parent_code:name("storage_locations",x.parent_id),note:x.notes}));
    const data=[ds.fields.map(f=>f.key),...out.map(r=>ds.fields.map(f=>r[f.key]??""))];
    const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(data),"Data");XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([["Export"],["Module",ds.label],["Rows",out.length],["Exported at",new Date().toISOString()]]),"Instructions");
@@ -116,12 +116,12 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
    };
    const value=(r:any,k:string)=>clean(r[k]);
    const resolveScope=(r:any,p:any)=>{
-    const management=value(r,"management_code"),site=value(r,"site_code"),unit=value(r,"unit_code"),service=value(r,"service_code"),tag=value(r,"equipment_tag");
-    if(site){p.site_id=lookup("org_sites","code",site);if(!p.site_id)throw new Error("Site_Code introuvable: "+site);}
-    if(unit){p.unit_id=lookup("org_units","code",unit,"site_id",p.site_id);if(!p.unit_id)throw new Error("Unit_Code introuvable ou hors site: "+unit);}
-    if(service){p.service_id=lookup("org_services","code",service);if(!p.service_id)throw new Error("Service_Code introuvable: "+service);}
-    if(department){p.department_id=lookup("org_departments","code",department,"site_id",p.site_id);if(!p.department_id)throw new Error("Department_Code introuvable ou hors site: "+department);}
-    if(tag){p.equipment_id=lookup("org_equipment","equipment_tag",tag);if(!p.equipment_id)throw new Error("Equipment_Tag introuvable: "+tag);p.equipment_tag=tag;}
+     const management=value(r,"management_code"),site=value(r,"site_code"),unit=value(r,"unit_code"),service=value(r,"service_code"),tag=value(r,"equipment_tag");
+     if(management){p.management_id=lookup("org_managements","code",management);if(!p.management_id)throw new Error("Management_Code introuvable: "+management);}
+     if(site){p.site_id=lookup("org_sites","code",site,"management_id",p.management_id);if(!p.site_id)throw new Error("Site_Code introuvable: "+site);}
+     if(service){p.service_id=lookup("org_services","code",service,"site_id",p.site_id);if(!p.service_id)throw new Error("Service_Code introuvable: "+service);}
+     if(unit){p.unit_id=lookup("org_units","code",unit,"site_id",p.site_id);if(!p.unit_id)throw new Error("Unit_Code introuvable ou hors site: "+unit);}
+     if(tag){p.equipment_id=lookup("org_equipment","equipment_tag",tag);if(!p.equipment_id)throw new Error("Equipment_Tag introuvable: "+tag);p.equipment_tag=tag;}
    };
    const saveByKey=async(table:string,key:string,payload:any,extra?:{field?:string;value?:any})=>{
     let q=supabase!.from(table).select("id").eq("company_id",companyId).eq(key,payload[key]);if(extra?.field&&extra.value)q=q.eq(extra.field,extra.value);
@@ -144,7 +144,7 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
       const saved=product.data?await supabase!.from("products").update(p).eq("company_id",companyId).eq("id",product.data.id).select("id").single():await supabase!.from("products").insert(p).select("id").single();if(saved.error)throw saved.error;id=saved.data.id;
       if(ds.id==="spare_parts"){
        const d:any={company_id:companyId,product_id:id};
-       const detailFields=ds.fields.filter(f=>!["sku","name","unit","purchase_price","min_stock","category_name","site_code","unit_code","unit_codes","service_code","department_code","equipment_tag","warehouse_code","location_code","initial_quantity"].includes(f.key));
+       const detailFields=ds.fields.filter(f=>!["sku","name","unit","purchase_price","min_stock","category_name","site_code","unit_code","unit_codes","service_code","equipment_tag","warehouse_code","location_code","initial_quantity"].includes(f.key));
        for(const f of detailFields){const v=value(r,f.key);if(v!==null){if(f.key==="criticality"){const raw=String(v).trim().toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"");const criticalityMap:Record<string,string>={low:"low",faible:"low",basse:"low",moyenne:"medium",medium:"medium",moderee:"medium",moderate:"medium",high:"high",haute:"high",elevee:"high",elevée:"high",critical:"critical",critique:"critical",trescritique:"critical","très critique":"critical"};const mapped=criticalityMap[raw];if(!mapped)throw new Error("Criticité invalide: "+v+". Valeurs acceptées: Faible, Moyenne, Haute, Critique.");d.criticality=mapped;}else if(boolFields.has(f.key))d[f.key]=["true","1","yes","oui","vrai"].includes(String(v).toLowerCase());else if(numericFields.has(f.key)){const n=Number(String(v).replace(",","."));if(!Number.isFinite(n))throw new Error("Valeur numérique invalide: "+f.key);d[f.key]=n;}else d[f.key]=v;}}
        if(!d.criticality)d.criticality="medium";
        resolveScope(r,d);
@@ -158,17 +158,16 @@ export default function ImportExportCenter({companyId,lang,canImport,onClose,onD
        if(unitCodes.length){const desired=[...unitIds];let remove=supabase!.from("spare_part_unit_assignments").delete().eq("company_id",companyId).eq("product_id",id);if(desired.length)remove=remove.not("unit_id","in",`(${desired.join(",")})`);const removed=await remove;if(removed.error)throw removed.error;const assigned=await supabase!.from("spare_part_unit_assignments").upsert(desired.map((unit_id:string)=>({company_id:companyId,product_id:id,unit_id})),{onConflict:"company_id,product_id,unit_id"});if(assigned.error)throw assigned.error;}
        const initialQuantity=Number(value(r,"initial_quantity")||0);if(initialQuantity>0&&!product.data){if(!d.warehouse_id||!d.storage_location_id)throw new Error("Entrepôt et emplacement précis obligatoires pour la quantité initiale.");const opening=await supabase!.rpc("register_opening_stock",{p_company_id:companyId,p_product_id:id,p_warehouse_id:d.warehouse_id,p_location_id:d.storage_location_id,p_quantity:initialQuantity,p_unit_cost:Number(p.purchase_price||0),p_note:"Stock initial importé avec la fiche pièce"});if(opening.error)throw opening.error;}
       }
-     }else if(ds.id==="management"){
-      id=await saveByKey(ds.table,ds.key,p);
-     }else if(ds.id==="services"){
-      const m=value(r,"management_code");const managementId=lookup("org_managements","code",m);if(!managementId)throw new Error("Management_Code introuvable: "+m);p.management_id=managementId;id=await saveByKey(ds.table,ds.key,p);
-     }else if(ds.id==="sites"){
-      const service=value(r,"service_code");if(service){p.service_id=lookup("org_services","code",service);if(!p.service_id)throw new Error("Service_Code introuvable: "+service);}id=await saveByKey(ds.table,ds.key,p);
-     }else if(["sites","services","units","equipment","warehouses"].includes(ds.id)){
-      resolveScope(r,p);
-      if(["units","equipment"].includes(ds.id)&&!p.site_id)throw new Error("Site_Code obligatoire.");
-      if(ds.id==="equipment"){p.status=p.status||"active";p.is_active=p.is_active??true;}
-      id=await saveByKey(ds.table,ds.key,p);
+      }else if(ds.id==="management"){
+       id=await saveByKey(ds.table,ds.key,p);
+      }else if(["sites","services","units","equipment","warehouses"].includes(ds.id)){
+       resolveScope(r,p);
+       if(["sites","services"].includes(ds.id)&&!p.management_id)throw new Error("Management_Code obligatoire.");
+       if(["units","equipment"].includes(ds.id)&&!p.site_id)throw new Error("Site_Code obligatoire.");
+       if(["units","equipment"].includes(ds.id)&&!p.service_id)throw new Error("Service_Code obligatoire.");
+       if(ds.id==="equipment"&&!p.unit_id)throw new Error("Unit_Code obligatoire.");
+       if(ds.id==="equipment"){p.status=p.status||"active";p.is_active=p.is_active??true;}
+       id=await saveByKey(ds.table,ds.key,p);
      }else if(ds.id==="locations"){
       const wh=value(r,"warehouse_code");p.warehouse_id=lookup("warehouses","code",wh);if(!p.warehouse_id)throw new Error("Warehouse_Code introuvable: "+wh);
       const parent=value(r,"parent_code");if(parent){p.parent_id=lookup("storage_locations","code",parent,"warehouse_id",p.warehouse_id);if(!p.parent_id)throw new Error("Parent_Code introuvable: "+parent);}
