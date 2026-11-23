@@ -4,11 +4,11 @@ import type { FormEvent } from "react";
 import { Plus, RefreshCw, ShieldCheck, Building2, X, Check, Pencil } from "lucide-react";
 import { supabase } from "./lib/supabase";
 
-type ScopeType = "management" | "site" | "unit" | "service" | "department" | "equipment" | "warehouse";
+type ScopeType = "management" | "site" | "unit" | "service" | "equipment" | "warehouse";
 type Row = { id: string; code?: string; name?: string; site_id?: string; unit_id?: string | null; service_id?: string | null; equipment_tag?: string; is_active?: boolean; [key: string]: any };
 type Member = { user_id: string; email?: string; role?: string; is_active?: boolean };
-const tables: Record<ScopeType,string> = { management:"org_managements", site:"org_sites", unit:"org_units", service:"org_services", department:"org_departments", equipment:"org_equipment", warehouse:"warehouses" };
-const labels: Record<ScopeType,string> = { management:"Management", site:"Site", unit:"Unité", service:"Service", department:"Département", equipment:"Équipement", warehouse:"Entrepôt" };
+const tables: Record<ScopeType,string> = { management:"org_managements", site:"org_sites", unit:"org_units", service:"org_services", equipment:"org_equipment", warehouse:"warehouses" };
+const labels: Record<ScopeType,string> = { management:"Management", site:"Site", unit:"Unité", service:"Service", equipment:"Équipement", warehouse:"Entrepôt" };
 const words={
  fr:{management:"Management / Direction générale",managementIntro:"Affectation hiérarchique au niveau de toute l’entreprise : accès transversal aux modules, sites, unités, services, départements et données.",director:"Directeur",assignDirector:"Nommer Directeur",currentDirectors:"Membres du Management",noDirectors:"Aucun directeur n’est encore affecté.",removeDirector:"Retirer du Management",selectMember:"Sélectionner un collaborateur",directorAssigned:"Accès Management accordé. Actualisez la session du collaborateur pour appliquer ses droits.",directorRemoved:"Accès Management retiré. Le rôle du collaborateur est repassé à Lecteur.",title:"Organisation de l'entreprise",intro:"Configurez les sites, unités, services, départements, équipements et magasins.",refresh:"Actualiser",code:"Code",tag:"Tag équipement",name:"Nom",designation:"Désignation",site:"Site",chooseSite:"Choisir un site",unit:"Unité (facultatif)",noUnit:"Aucune unité",service:"Service (facultatif)",noService:"Aucun service",address:"Adresse",manufacturer:"Fabricant",model:"Modèle",serial:"N° série",location:"Emplacement",save:"Enregistrer les modifications",add:"Ajouter",cancel:"Annuler",codeTag:"Code / Tag",attachment:"Rattachement",status:"Statut",action:"Action",active:"Actif",inactive:"Inactif",edit:"Modifier",disable:"Désactiver",enable:"Réactiver",empty:"Aucun élément enregistré",emptyHint:"Ajoutez le premier élément avec le formulaire ci-dessus.",rights:"Périmètres & autorisations",rightsIntro:"Définissez les périmètres de données et les opérations autorisées. Les accès aux modules et leurs actions se règlent dans Utilisateurs > Matrice des permissions.",multiScopeHint:"Cochez directement un ou plusieurs périmètres. Les droits par module se règlent dans Utilisateurs.",multiScopeSaved:"affectation(s) enregistrée(s).",structure:"Structure",assignments:"Affectations",user:"Utilisateur",select:"Sélectionner",job:"Fonction / Poste",jobHint:"Manager, Responsable, Superviseur...",scopeType:"Type de périmètre",scope:"Périmètre",rightsCount:"Droits",remove:"Retirer",unavailable:"Élément indisponible",saveAssignment:"Enregistrer l'affectation",view:"Consulter",create:"Créer",update:"Modifier",delete:"Supprimer",approve:"Approuver",issue:"Délivrer",receive:"Réceptionner",transfer:"Transférer",inventory:"Inventorier"},
  en:{management:"Management / Executive direction",managementIntro:"Company-wide hierarchical assignment with cross-department access to all modules, sites, units, services, departments and records.",director:"Director",assignDirector:"Appoint director",currentDirectors:"Management members",noDirectors:"No director has been assigned yet.",removeDirector:"Remove from Management",selectMember:"Select a team member",directorAssigned:"Management access granted. The member should refresh their session to apply permissions.",directorRemoved:"Management access removed. The member role has been reset to Viewer.",title:"Company organization",intro:"Configure sites, units, services, departments, equipment and warehouses.",refresh:"Refresh",code:"Code",tag:"Equipment tag",name:"Name",designation:"Description",site:"Site",chooseSite:"Select a site",unit:"Unit (optional)",noUnit:"No unit",service:"Service (optional)",noService:"No service",address:"Address",manufacturer:"Manufacturer",model:"Model",serial:"Serial no.",location:"Location",save:"Save changes",add:"Add",cancel:"Cancel",codeTag:"Code / Tag",attachment:"Assignment",status:"Status",action:"Action",active:"Active",inactive:"Inactive",edit:"Edit",disable:"Deactivate",enable:"Reactivate",empty:"No records yet",emptyHint:"Add the first item using the form above.",rights:"Scopes & permissions",rightsIntro:"Define the data scope and allowed operations here. Module access and module actions are configured in Users > Permission matrix.",multiScopeHint:"Select one or more units (Ctrl/Cmd + click for multiple selections).",multiScopeSaved:"assignment(s) saved.",structure:"Structure",assignments:"Assignments",user:"User",select:"Select",job:"Job title / Role",jobHint:"Manager, Responsible, Supervisor...",scopeType:"Scope type",scope:"Scope",rightsCount:"Rights",remove:"Remove",unavailable:"Unavailable item",saveAssignment:"Save assignment",view:"View",create:"Create",update:"Edit",delete:"Delete",approve:"Approve",issue:"Issue",receive:"Receive",transfer:"Transfer",inventory:"Inventory"},
@@ -25,7 +25,6 @@ export default function OrganizationManagement({ companyId, members, currentUser
   const [sites,setSites] = useState<Row[]>([]);
   const [units,setUnits] = useState<Row[]>([]);
   const [services,setServices] = useState<Row[]>([]);
-  const [departments,setDepartments] = useState<Row[]>([]);
   const [equipment,setEquipment] = useState<Row[]>([]);
   const [warehouses,setWarehouses] = useState<Row[]>([]);
   const [projects,setProjects] = useState<Row[]>([]);
@@ -50,44 +49,41 @@ export default function OrganizationManagement({ companyId, members, currentUser
   const [assignmentModalOpen,setAssignmentModalOpen]=useState(false);
   const refresh = useCallback(async () => {
     if(!supabase) return;
-    const [a,b,c,d,e,f,g,h,p,pt] = await Promise.all([
+    const [a,b,c,d,e,f,g,h,p] = await Promise.all([
       supabase.from("org_managements").select("*").eq("company_id",companyId).order("name"),
       supabase.from("org_sites").select("*").eq("company_id",companyId).order("name"),
       supabase.from("org_units").select("*").eq("company_id",companyId).order("name"),
       supabase.from("org_services").select("*").eq("company_id",companyId).order("name"),
-      supabase.from("org_departments").select("*").eq("company_id",companyId).order("name"),
       supabase.from("org_equipment").select("*").eq("company_id",companyId).order("name"),
       supabase.from("user_scope_assignments").select("*").eq("company_id",companyId).order("created_at",{ascending:false}),
       supabase.from("warehouses").select("id,code,name,is_active").eq("company_id",companyId).order("name"),
       supabase.from("projects").select("id,project_code,name,project_manager_id,responsible_user_id").eq("company_id",companyId).order("name"),
       supabase.from("project_team_members").select("*").eq("company_id",companyId)
     ]);
-    const error=[a,b,c,d,e,f,g,h,p,pt].find(x=>x.error)?.error;
+    const error=[a,b,c,d,e,f,g,h,p].find(x=>x.error)?.error;
     if(error) throw error;
-    setManagements(a.data??[]);setSites(b.data??[]);setUnits(c.data??[]);setServices(d.data??[]);setDepartments(e.data??[]);setEquipment((f.data??[]).map(x=>({...x,is_active:x.status==="active"})));setAssignments(g.data??[]);setWarehouses(h.data??[]);setProjects(p.data??[]);setProjectTeamRows(pt.data??[]);
+    setManagements(a.data??[]);setSites(b.data??[]);setUnits(c.data??[]);setServices(d.data??[]);setEquipment((e.data??[]).map(x=>({...x,is_active:x.status==="active"})));setAssignments(f.data??[]);setWarehouses(g.data??[]);setProjects(h.data??[]);setProjectTeamRows(p.data??[]);
   },[companyId]);
   useEffect(()=>{void refresh().catch(e=>onNotice("error",e.message));},[refresh]);
 
-  const scopeRows = useMemo(()=>({management:managements,site:sites,unit:units,service:services,department:departments,equipment,warehouse:warehouses}),[managements,sites,units,services,departments,equipment,warehouses]);
+  const scopeRows = useMemo(()=>({management:managements,site:sites,unit:units,service:services,equipment,warehouse:warehouses}),[managements,sites,units,services,equipment,warehouses]);
   const availableScopes = scopeRows[assignment.scope_type] ?? [];
   const filteredScopeOptions=availableScopes.filter((x:Row)=>[x.code,x.name,x.equipment_tag].filter(Boolean).join(" ").toLowerCase().includes(assignmentSearch.toLowerCase()));
   function scopeContext(row:Row){
     const unit=units.find(x=>x.id===row.unit_id);
-    const department=departments.find(x=>x.id===(row.department_id||unit?.department_id));
-    const service=services.find(x=>x.id===(row.service_id||department?.service_id));
-    const site=sites.find(x=>x.id===(row.site_id||service?.site_id));
-    const management=managements.find(x=>x.id===(row.management_id||site?.management_id));
-    return [management?.name,site?.name,service?.name,department?.name,unit?.name].filter(Boolean).join(" › ")||(assignment.scope_type==="warehouse"?"Magasin":"");
+    const service=services.find(x=>x.id===(row.service_id||unit?.service_id));
+    const site=sites.find(x=>x.id===(row.site_id||service?.site_id||unit?.site_id));
+    const management=managements.find(x=>x.id===(row.management_id||site?.management_id||service?.management_id));
+    return [management?.name,site?.name,service?.name,unit?.name].filter(Boolean).join(" › ")||(assignment.scope_type==="warehouse"?"Magasin":"");
   }
   function setField(key:string,value:string){setForm(old=>({...old,[key]:value}));}
   async function createStructure(event:FormEvent){
     event.preventDefault();if(!supabase)return;
     const payload:any={company_id:companyId,code:form.code?.trim(),name:form.name?.trim()};
-    if(kind==="unit"||kind==="department"||kind==="equipment") payload.site_id=form.site_id;
+    if(kind==="unit"||kind==="equipment") payload.site_id=form.site_id;
     if(kind==="service") payload.site_id=form.site_id||null;
-    if(kind==="equipment") payload.unit_id=form.unit_id||null;
-    if(kind==="department") payload.service_id=null;
-    if(kind==="unit") payload.service_id=null;
+    if(kind==="unit") payload.service_id=form.service_id||null;
+    if(kind==="equipment"){payload.unit_id=form.unit_id||null;const parentUnit=units.find(x=>x.id===form.unit_id);payload.service_id=parentUnit?.service_id||null;payload.site_id=parentUnit?.site_id||form.site_id;}
     if(kind==="equipment"){payload.equipment_tag=form.equipment_tag?.trim();payload.manufacturer=form.manufacturer?.trim()||null;payload.model=form.model?.trim()||null;payload.serial_number=form.serial_number?.trim()||null;payload.location=form.location?.trim()||null;}
     if(kind==="site")payload.address=form.address?.trim()||null;
     if(kind==="management")payload.description=form.description?.trim()||null;
@@ -98,7 +94,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
       const result=editingId?await supabase.from(tables[kind]).update(payload).eq("id",editingId).eq("company_id",companyId).select("id").single():await supabase.from(tables[kind]).insert(payload).select("id").single();
       if(result.error)throw result.error;
       const parentId=result.data.id;
-      const relationConfig:any={management:{table:"org_sites",column:"management_id"},site:{table:"org_services",column:"site_id"},service:{table:"org_departments",column:"service_id"},department:{table:"org_units",column:"department_id"}};
+      const relationConfig:any={management:{table:"org_sites",column:"management_id"},site:{table:"org_services",column:"site_id"},service:{table:"org_units",column:"service_id"},unit:{table:"org_equipment",column:"unit_id"}};
       const relation=relationConfig[kind];
       const db:any=supabase;
       if(relation){
@@ -107,32 +103,13 @@ export default function OrganizationManagement({ companyId, members, currentUser
         if(selectedChildIds.length){
           const attach=await db.from(relation.table).update({[relation.column]:parentId}).eq("company_id",companyId).in("id",selectedChildIds);
           if(attach.error)throw attach.error;
-          if(kind==="site"){
-            const childDepartments=await supabase.from("org_departments").select("id").eq("company_id",companyId).in("service_id",selectedChildIds);
-            if(childDepartments.error)throw childDepartments.error;
-            if(childDepartments.data?.length){
-              const syncDepartments=await supabase.from("org_departments").update({site_id:parentId}).eq("company_id",companyId).in("id",childDepartments.data.map(x=>x.id));
-              if(syncDepartments.error)throw syncDepartments.error;
-              const syncUnits=await supabase.from("org_units").update({site_id:parentId}).eq("company_id",companyId).in("department_id",childDepartments.data.map(x=>x.id));
-              if(syncUnits.error)throw syncUnits.error;
-            }
-          }
           if(kind==="service"){
             const service=services.find(x=>x.id===parentId);
-            if(service?.site_id){
-              const syncDepartments=await supabase.from("org_departments").update({site_id:service.site_id}).eq("company_id",companyId).in("id",selectedChildIds);
-              if(syncDepartments.error)throw syncDepartments.error;
-              const syncUnits=await supabase.from("org_units").update({site_id:service.site_id}).eq("company_id",companyId).in("department_id",selectedChildIds);
-              if(syncUnits.error)throw syncUnits.error;
-            }
+            if(service?.site_id){const sync=await supabase.from("org_units").update({site_id:service.site_id}).eq("company_id",companyId).in("id",selectedChildIds);if(sync.error)throw sync.error;}
           }
-          if(kind==="department"){
-            const department=departments.find(x=>x.id===parentId);
-            const siteId=department?.site_id||form.site_id;
-            if(siteId){
-              const syncUnits=await supabase.from("org_units").update({site_id:siteId}).eq("company_id",companyId).in("id",selectedChildIds);
-              if(syncUnits.error)throw syncUnits.error;
-            }
+          if(kind==="unit"){
+            const unit=units.find(x=>x.id===parentId);
+            if(unit?.site_id){const sync=await supabase.from("org_equipment").update({site_id:unit.site_id,service_id:unit.service_id||null}).eq("company_id",companyId).in("id",selectedChildIds);if(sync.error)throw sync.error;}
           }
         }
       }
@@ -150,8 +127,8 @@ export default function OrganizationManagement({ companyId, members, currentUser
   }
   function startEdit(type:ScopeType,row:Row){
     setKind(type);setEditingId(row.id);
-    setForm({code:row.code||"",name:row.name||"",description:row.description||"",address:row.address||"",site_id:row.site_id||"",unit_id:row.unit_id||"",service_id:row.service_id||"",department_id:row.department_id||"",equipment_tag:row.equipment_tag||"",manufacturer:row.manufacturer||"",model:row.model||"",serial_number:row.serial_number||"",location:row.location||""});
-    const childRows:any={management:sites.filter(x=>x.management_id===row.id),site:services.filter(x=>x.site_id===row.id),service:departments.filter(x=>x.service_id===row.id),department:units.filter(x=>x.department_id===row.id)};
+    setForm({code:row.code||"",name:row.name||"",description:row.description||"",address:row.address||"",site_id:row.site_id||"",unit_id:row.unit_id||"",service_id:row.service_id||"",equipment_tag:row.equipment_tag||"",manufacturer:row.manufacturer||"",model:row.model||"",serial_number:row.serial_number||"",location:row.location||""});
+    const childRows:any={management:sites.filter(x=>x.management_id===row.id),site:services.filter(x=>x.site_id===row.id),service:units.filter(x=>x.service_id===row.id),unit:equipment.filter(x=>x.unit_id===row.id)};
     setSelectedChildIds((childRows[type]||[]).map((x:Row)=>x.id));
     setSelectedManagementServiceIds(type==="management"?services.filter(x=>x.management_id===row.id).map(x=>x.id):[]);
     setActiveTab("structure");setFormOpen(true);
@@ -250,11 +227,11 @@ export default function OrganizationManagement({ companyId, members, currentUser
     setProjectResponsibleId(p?.responsible_user_id||"");
     setProjectTeamIds(projectTeamRows.filter(x=>x.project_id===id&&x.assignment_role==="team_member").map(x=>x.user_id));
   }
-  const tabs:[ScopeType,string][]=[["management","Management"],["site",lang==="ar"?"المواقع":lang==="en"?"Sites":"Sites"],["service",lang==="ar"?"المصالح":lang==="en"?"Services":"Services"],["department",lang==="ar"?"الأقسام":lang==="en"?"Departments":"Départements"],["unit",lang==="ar"?"الوحدات":lang==="en"?"Units":"Unités"],["equipment",lang==="ar"?"المعدات":lang==="en"?"Equipment":"Équipements"]];
-  const parentOptions = kind==="equipment"||kind==="unit"||kind==="department";
-  const childType=kind==="management"?"site":kind==="site"?"service":kind==="service"?"department":kind==="department"?"unit":null;
-  const childOptions:Row[]=childType==="site"?sites:childType==="service"?services:childType==="department"?departments.filter(x=>!form.site_id||x.site_id===form.site_id):childType==="unit"?units.filter(x=>!form.site_id||x.site_id===form.site_id):[];
-  const childTitle=childType==="site"?"Sites à rattacher":childType==="service"?"Services à rattacher":childType==="department"?"Départements à rattacher":"Unités à rattacher";
+  const tabs:[ScopeType,string][]=[["management","Management"],["site",lang==="ar"?"المواقع":lang==="en"?"Sites":"Sites"],["service",lang==="ar"?"المصالح":lang==="en"?"Services":"Services"],["unit",lang==="ar"?"الوحدات":lang==="en"?"Units":"Unités"],["equipment",lang==="ar"?"المعدات":lang==="en"?"Equipment":"Équipements"]];
+  const parentOptions = kind==="equipment"||kind==="unit";
+  const childType=kind==="management"?"site":kind==="site"?"service":kind==="service"?"unit":kind==="unit"?"equipment":null;
+  const childOptions:Row[]=childType==="site"?sites:childType==="service"?services.filter(x=>!form.site_id||x.site_id===form.site_id):childType==="unit"?units.filter(x=>!form.site_id||x.site_id===form.site_id):childType==="equipment"?equipment.filter(x=>!form.site_id||x.site_id===form.site_id):[];
+  const childTitle=childType==="site"?"Sites à rattacher":childType==="service"?"Services à rattacher":childType==="unit"?"Unités à rattacher":"Équipements à rattacher";
   return <div className="ops-wrap" dir={lang==="ar"?"rtl":"ltr"}>
     <section className="panel">
       <div className="panel-head"><div><h3>{t.title}</h3><p>{t.intro}</p></div><div className="row-actions"><button className="secondary-btn" type="button" onClick={()=>void refresh()}><RefreshCw size={14}/> {t.refresh}</button><button className="primary-btn" type="button" onClick={()=>{setEditingId(null);setForm({});setSelectedChildIds([]);setSelectedManagementServiceIds([]);setFormOpen(true);}}><Plus size={15}/>{t.add} {scopeLabels[kind].toLowerCase()}</button></div></div>
@@ -262,7 +239,8 @@ export default function OrganizationManagement({ companyId, members, currentUser
       {formOpen&&<ModalPortal><div className="modal-backdrop org-form-backdrop"><form className="modal-card form-grid org-form" onSubmit={createStructure}><div className="modal-head span-2"><div><span className="eyebrow">{editingId?t.edit:t.add}</span><h3>{editingId?scopeLabels[kind]+" · "+t.edit:scopeLabels[kind]+" · "+t.add}</h3></div><button type="button" className="ops-icon-btn" onClick={()=>{setFormOpen(false);setEditingId(null);setForm({});setSelectedChildIds([]);setSelectedManagementServiceIds([]);}}><X size={16}/></button></div>
         <label>{kind==="equipment"?t.tag:t.code}<input value={kind==="equipment"?(form.equipment_tag||""):(form.code||"")} onChange={e=>setField(kind==="equipment"?"equipment_tag":"code",e.target.value)} required/></label>
         <label>{kind==="equipment"?t.designation:t.name}<input value={form.name||""} onChange={e=>setField("name",e.target.value)} required/></label>
-        {parentOptions&&<label>{t.site}<select required value={form.site_id||""} onChange={e=>setField("site_id",e.target.value)}><option value="">{t.chooseSite}</option>{sites.filter(x=>x.is_active).map(x=><option key={x.id} value={x.id}>{x.code} · {x.name}</option>)}</select></label>}
+        {parentOptions&&<label>{t.site}<select required value={form.site_id||""} onChange={e=>setForm(v=>({...v,site_id:e.target.value,service_id:"",unit_id:""}))}><option value="">{t.chooseSite}</option>{sites.filter(x=>x.is_active).map(x=><option key={x.id} value={x.id}>{x.code} · {x.name}</option>)}</select></label>
+         {kind==="unit"&&<label>{t.service}<select value={form.service_id||""} onChange={e=>setField("service_id",e.target.value)}><option value="">—</option>{services.filter(x=>x.is_active&&(!form.site_id||x.site_id===form.site_id)).map(x=><option key={x.id} value={x.id}>{x.code} · {x.name}</option>)}</select></label>}}
         {kind==="management"&&<><label>Description<input value={form.description||""} onChange={e=>setField("description",e.target.value)}/></label><div className="span-2 org-multi-scope-field"><div className="org-scope-picker-head"><label>Services à rattacher au Management</label><span>{selectedManagementServiceIds.length} sélectionné(s)</span></div><div className="org-scope-picker-list">{services.filter(x=>x.is_active!==false).map(x=><label className="org-scope-choice" key={x.id}><input type="checkbox" checked={selectedManagementServiceIds.includes(x.id)} onChange={e=>setSelectedManagementServiceIds(old=>e.target.checked?[...old,x.id]:old.filter(id=>id!==x.id))}/><span><b>{x.code||"—"} · {x.name}</b><small>{sites.find(st=>st.id===x.site_id)?.name||"Service sans site"}</small></span></label>)}</div><small>Vous pouvez sélectionner plusieurs services, indépendamment des sites, pour ce Management.</small></div></>}
         {childType&&<div className="span-2 org-multi-scope-field"><div className="org-scope-picker-head"><label>{childTitle}</label><span>{selectedChildIds.length} sélectionné(s)</span></div><div className="org-scope-picker-list">{childOptions.filter(x=>x.is_active!==false).map(x=><label className="org-scope-choice" key={x.id}><input type="checkbox" checked={selectedChildIds.includes(x.id)} onChange={e=>setSelectedChildIds(old=>e.target.checked?[...old,x.id]:old.filter(id=>id!==x.id))}/><span><b>{x.code||x.equipment_tag||"—"} · {x.name}</b></span></label>)}</div><small>Vous pouvez rattacher plusieurs éléments à ce niveau.</small></div>}
         {kind==="equipment"&&<label>{t.unit}<select value={form.unit_id||""} onChange={e=>setField("unit_id",e.target.value)}><option value="">{t.noUnit}</option>{units.filter(x=>x.is_active&&(!form.site_id||x.site_id===form.site_id)).map(x=><option key={x.id} value={x.id}>{x.code} · {x.name}</option>)}</select></label>}
@@ -281,7 +259,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
       {assignmentModalOpen&&<ModalPortal><div className="modal-backdrop org-form-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget&&!busy)setAssignmentModalOpen(false);}}><form className="modal-card org-assignment-modal" onSubmit={saveAssignment}><div className="modal-head"><div><span className="eyebrow">ORGANISATION · ACCÈS</span><h3>{t.saveAssignment}</h3><p>{t.rightsIntro}</p></div><button type="button" className="icon-btn" aria-label="Fermer" onClick={()=>setAssignmentModalOpen(false)} disabled={busy}><X size={18}/></button></div><div className="form-grid org-form org-assignment-body">
         <label>{t.user}<select required value={assignment.user_id} onChange={e=>setAssignment(old=>({...old,user_id:e.target.value}))}><option value="">{t.select}</option>{members.filter(m=>m.is_active!==false&&m.user_id!==currentUserId).map(m=><option key={m.user_id} value={m.user_id}>{m.email||m.user_id} · {m.role||"membre"}</option>)}</select></label>
         <label>{t.job}<input value={assignment.job_title} onChange={e=>setAssignment(old=>({...old,job_title:e.target.value}))} placeholder={t.jobHint}/></label>
-        <label>{t.scopeType}<select value={assignment.scope_type} onChange={e=>{setSelectedScopeIds([]);setSelectedManagementIds([]);setSelectedManagementSiteIds([]);setSelectedManagementServiceIds([]);setEditingManagementAssignmentIds([]);setAssignmentSearch("");setAssignment(old=>({...old,scope_type:e.target.value as ScopeType,scope_id:""}));}}><optgroup label={lang==="ar"?"الهيكل التنظيمي":lang==="en"?"Organization":"Structure organisation"}><option value="management">Management</option><option value="service">{scopeLabels.service}</option><option value="site">{scopeLabels.site}</option><option value="unit">{scopeLabels.unit}</option><option value="department">{scopeLabels.department}</option></optgroup><optgroup label={lang==="ar"?"الموارد":lang==="en"?"Resources":"Ressources"}><option value="warehouse">{scopeLabels.warehouse}</option><option value="equipment">{scopeLabels.equipment}</option></optgroup></select></label>
+        <label>{t.scopeType}<select value={assignment.scope_type} onChange={e=>{setSelectedScopeIds([]);setSelectedManagementIds([]);setSelectedManagementSiteIds([]);setSelectedManagementServiceIds([]);setEditingManagementAssignmentIds([]);setAssignmentSearch("");setAssignment(old=>({...old,scope_type:e.target.value as ScopeType,scope_id:""}));}}><optgroup label={lang==="ar"?"الهيكل التنظيمي":lang==="en"?"Organization":"Structure organisation"}><option value="management">Management</option><option value="service">{scopeLabels.service}</option><option value="site">{scopeLabels.site}</option><option value="unit">{scopeLabels.unit}</option></optgroup><optgroup label={lang==="ar"?"الموارد":lang==="en"?"Resources":"Ressources"}><option value="warehouse">{scopeLabels.warehouse}</option><option value="equipment">{scopeLabels.equipment}</option></optgroup></select></label>
         {assignment.scope_type==="management"?<div className="span-2 org-management-scope-picker">
           <div className="org-multi-scope-field"><div className="org-scope-picker-head"><label>{lang==="ar"?"الإدارات المسموح بها":lang==="en"?"Managements to assign":"Managements à affecter"}</label><span>{selectedManagementIds.length} sélectionné(s)</span></div><div className="org-scope-picker-list">{managements.filter(x=>x.is_active!==false).map(x=><label className="org-scope-choice" key={x.id}><input type="checkbox" checked={selectedManagementIds.includes(x.id)} onChange={e=>{const ids=e.target.checked?[...selectedManagementIds,x.id]:selectedManagementIds.filter(id=>id!==x.id);setSelectedManagementIds(ids);const validSiteIds=sites.filter(st=>ids.includes(st.management_id)).map(st=>st.id);setSelectedManagementSiteIds(old=>old.filter(id=>validSiteIds.includes(id)));setSelectedManagementServiceIds(old=>old.filter(id=>{const service=services.find(sv=>sv.id===id);return !!service&&(ids.includes(service.management_id)||!!service.site_id&&validSiteIds.includes(service.site_id));}));}}/><span><b>{x.code?x.code+" · ":""}{x.name}</b></span></label>)}</div></div>
           {selectedManagementIds.length>0&&<><div className="org-multi-scope-field"><div className="org-scope-picker-head"><label>{lang==="ar"?"المواقع التابعة للإدارات المختارة":lang==="en"?"Sites under selected managements":"Sites des Managements sélectionnés"}</label><span>{selectedManagementSiteIds.length} sélectionné(s)</span></div><div className="org-scope-picker-list">{sites.filter(x=>x.is_active!==false&&selectedManagementIds.includes(x.management_id)).map(x=><label className="org-scope-choice" key={x.id}><input type="checkbox" checked={selectedManagementSiteIds.includes(x.id)} onChange={e=>setSelectedManagementSiteIds(old=>e.target.checked?[...old,x.id]:old.filter(id=>id!==x.id))}/><span><b>{x.code||"—"} · {x.name}</b><small>{managements.find(m=>m.id===x.management_id)?.name||""}</small></span></label>)}</div></div>
