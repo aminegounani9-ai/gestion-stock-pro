@@ -42,7 +42,7 @@ export default function EquipmentManagement({companyId,lang,equipmentSeed,autoPr
   const pr=isAdmin?await supabase.from("products").select("id,sku,name,unit,is_active").eq("company_id",companyId).eq("is_active",true).order("name").limit(500):productIds.length?await supabase.from("products").select("id,sku,name,unit,is_active").eq("company_id",companyId).in("id",productIds).eq("is_active",true).order("name").limit(500):{data:[],error:null} as any;
   if(pr.error){setError(pr.error.message||t.error);return;}
   setEquipment((eq.data||[]) as Equipment[]);setProducts(pr.data||[]);setSites(sites.data||[]);setUnits(units.data||[]);setServices(services.data||[]);
-  setOrgNames(Object.fromEntries([...(sites.data||[]),...(units.data||[]),...(services.data||[]),...(departments.data||[])].map((x:any)=>[x.id,[x.code,x.name].filter(Boolean).join(" · ")])));
+  setOrgNames(Object.fromEntries([...(sites.data||[]),...(units.data||[]),...(services.data||[])].map((x:any)=>[x.id,[x.code,x.name].filter(Boolean).join(" · ")])));
   const preferred=(equipmentSeed&&eq.data?.some((x:any)=>x.id===equipmentSeed)?equipmentSeed:"")||(selected&&eq.data?.some((x:any)=>x.id===selected)?selected:"")||eq.data?.[0]?.id||"";
   setSelected(preferred);
  };
