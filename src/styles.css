@@ -4210,46 +4210,104 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
 }
 
 
-/* Unified notification controls — same dimensions and visual language
-   in the global notification popover and Project Management. */
+/* Premium notification actions: consistent sizing, 2 mm spacing and subtle motion. */
 .notification-head-actions,
-.pm-notification-tools{
-  display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:7px;
+.pm-notification-tools,
+.pm-notice-actions{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  flex-wrap:wrap!important;
+  gap:8px!important; /* approx. 2 mm */
 }
 .gsp-notification-action{
   box-sizing:border-box!important;
-  display:inline-flex!important;align-items:center!important;justify-content:center!important;
-  gap:6px!important;
-  min-width:104px!important;height:34px!important;min-height:34px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:7px!important;
+  width:126px!important;
+  min-width:126px!important;
+  height:36px!important;
+  min-height:36px!important;
   padding:0 10px!important;
-  border:1px solid #dce5f1!important;border-radius:9px!important;
-  background:linear-gradient(180deg,#ffffff 0%,#f4f7fc 100%)!important;
-  color:#3e5f91!important;
-  font-family:inherit!important;font-size:10px!important;font-weight:800!important;
-  line-height:1!important;white-space:nowrap!important;
-  box-shadow:0 2px 5px rgba(29,54,91,.06)!important;
-  cursor:pointer!important;transition:background .16s ease,border-color .16s ease,box-shadow .16s ease,transform .16s ease!important;
+  border:1px solid #c9dcfa!important;
+  border-radius:10px!important;
+  background:linear-gradient(135deg,#edf5ff 0%,#dceaff 100%)!important;
+  color:#2456a0!important;
+  font-family:inherit!important;
+  font-size:10px!important;
+  font-weight:800!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+  box-shadow:0 3px 9px rgba(38,91,166,.10),inset 0 1px 0 rgba(255,255,255,.9)!important;
+  cursor:pointer!important;
+  transform:translateY(0) scale(1)!important;
+  transition:background .2s ease,border-color .2s ease,box-shadow .2s ease,transform .2s cubic-bezier(.2,.8,.2,1),filter .2s ease!important;
+  animation:gspNoticeButtonIn .32s ease both;
 }
-.gsp-notification-action svg{width:14px!important;height:14px!important;flex:0 0 14px!important;stroke-width:2.2!important}
+.gsp-notification-action svg{
+  width:14px!important;height:14px!important;flex:0 0 14px!important;
+  stroke-width:2.3!important;transition:transform .22s ease!important;
+}
 .gsp-notification-action:hover:not(:disabled){
-  background:#edf4ff!important;border-color:#b9cbea!important;
-  box-shadow:0 4px 10px rgba(47,91,153,.12)!important;transform:translateY(-1px)!important;
+  background:linear-gradient(135deg,#dceaff 0%,#c8ddff 100%)!important;
+  border-color:#91b8f2!important;
+  box-shadow:0 6px 14px rgba(38,91,166,.18)!important;
+  transform:translateY(-2px) scale(1.025)!important;
+  filter:saturate(1.08)!important;
 }
-.gsp-notification-action:active:not(:disabled){transform:translateY(0)!important}
-.gsp-notification-action:disabled{opacity:.42!important;cursor:not-allowed!important;box-shadow:none!important}
+.gsp-notification-action:hover:not(:disabled) svg{transform:scale(1.12)}
+.gsp-notification-action:active:not(:disabled){
+  transform:translateY(0) scale(.97)!important;
+  box-shadow:0 2px 5px rgba(38,91,166,.12)!important;
+}
+.gsp-notification-action:focus-visible{
+  outline:3px solid rgba(59,130,246,.28)!important;outline-offset:2px!important;
+}
+.gsp-notification-action:disabled{
+  opacity:.42!important;cursor:not-allowed!important;box-shadow:none!important;animation:none!important;
+}
 .gsp-notification-action.is-danger{
-  color:#b64d58!important;border-color:#f0d9dc!important;
-  background:linear-gradient(180deg,#fff 0%,#fff5f5 100%)!important;
+  color:#b42332!important;
+  border-color:#f4c7cd!important;
+  background:linear-gradient(135deg,#fff1f2 0%,#ffe0e4 100%)!important;
+  box-shadow:0 3px 9px rgba(190,40,58,.09),inset 0 1px 0 rgba(255,255,255,.9)!important;
 }
-.gsp-notification-action.is-danger:hover:not(:disabled){background:#ffeded!important;border-color:#e9b9bf!important}
-.gsp-notification-action.is-icon{min-width:34px!important;width:34px!important;padding:0!important}
-.notification-head-actions .gsp-notification-action{min-width:98px}
+.gsp-notification-action.is-danger:hover:not(:disabled){
+  background:linear-gradient(135deg,#ffe2e5 0%,#ffcbd2 100%)!important;
+  border-color:#ec9da8!important;
+  box-shadow:0 6px 14px rgba(190,40,58,.17)!important;
+}
+.pm-notification-tools .gsp-notification-action:first-child{
+  color:#087e70!important;border-color:#b8e8df!important;
+  background:linear-gradient(135deg,#e8fbf6 0%,#d0f4eb 100%)!important;
+  box-shadow:0 3px 9px rgba(8,126,112,.09),inset 0 1px 0 rgba(255,255,255,.9)!important;
+}
+.pm-notification-tools .gsp-notification-action:first-child:hover:not(:disabled){
+  background:linear-gradient(135deg,#d5f7ee 0%,#baf0e3 100%)!important;
+  border-color:#85d8c8!important;
+  box-shadow:0 6px 14px rgba(8,126,112,.16)!important;
+}
+.gsp-notification-action.is-icon{width:126px!important;min-width:126px!important}
+@keyframes gspNoticeButtonIn{
+  from{opacity:0;transform:translateY(5px) scale(.97)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
 @media(max-width:760px){
-  .notification-head-actions,.pm-notification-tools{gap:6px!important;width:100%!important}
-  .notification-head-actions .gsp-notification-action,
-  .pm-notification-tools .gsp-notification-action{
-    min-width:0!important;flex:1 1 0!important;height:36px!important;min-height:36px!important;
-    padding:0 8px!important;font-size:9px!important;
+  .notification-head-actions,.pm-notification-tools,.pm-notice-actions{
+    gap:8px!important;width:100%!important;justify-content:stretch!important;
   }
-  .notification-head-actions .gsp-notification-action.is-icon{flex:0 0 36px!important;width:36px!important;min-width:36px!important}
+  .notification-head-actions .gsp-notification-action,
+  .pm-notification-tools .gsp-notification-action,
+  .pm-notice-actions .gsp-notification-action{
+    width:auto!important;min-width:0!important;flex:1 1 0!important;
+    height:36px!important;min-height:36px!important;padding:0 7px!important;
+    font-size:9px!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .gsp-notification-action,.gsp-notification-action svg{
+    animation:none!important;transition:none!important;
+  }
 }
