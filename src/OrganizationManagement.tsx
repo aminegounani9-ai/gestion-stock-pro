@@ -98,18 +98,34 @@ export default function OrganizationManagement({ companyId, members, currentUser
       const relation=relationConfig[kind];
       const db:any=supabase;
       if(relation){
+        const previousIds=kind==="site"?services.filter(x=>x.site_id===parentId).map(x=>x.id):kind==="service"?units.filter(x=>x.service_id===parentId).map(x=>x.id):kind==="unit"?equipment.filter(x=>x.unit_id===parentId).map(x=>x.id):[];
         const clear=await db.from(relation.table).update({[relation.column]:null}).eq("company_id",companyId).eq(relation.column,parentId);
         if(clear.error)throw clear.error;
+        if(kind==="site"&&previousIds.length){
+          const clearUnits=await supabase.from("org_units").update({site_id:null}).eq("company_id",companyId).in("service_id",previousIds);if(clearUnits.error)throw clearUnits.error;
+          const clearEquipment=await supabase.from("org_equipment").update({site_id:null}).eq("company_id",companyId).in("service_id",previousIds);if(clearEquipment.error)throw clearEquipment.error;
+        }
+        if(kind==="service"&&previousIds.length){
+          const clearEquipment=await supabase.from("org_equipment").update({site_id:null,service_id:null}).eq("company_id",companyId).in("unit_id",previousIds);if(clearEquipment.error)throw clearEquipment.error;
+          const clearUnits=await supabase.from("org_units").update({site_id:null}).eq("company_id",companyId).in("id",previousIds);if(clearUnits.error)throw clearUnits.error;
+        }
+        if(kind==="unit"&&previousIds.length){
+          const clearEquipment=await supabase.from("org_equipment").update({site_id:null,service_id:null}).eq("company_id",companyId).in("id",previousIds);if(clearEquipment.error)throw clearEquipment.error;
+        }
         if(selectedChildIds.length){
           const attach=await db.from(relation.table).update({[relation.column]:parentId}).eq("company_id",companyId).in("id",selectedChildIds);
           if(attach.error)throw attach.error;
+          if(kind==="site"){
+            const syncUnits=await supabase.from("org_units").update({site_id:parentId}).eq("company_id",companyId).in("service_id",selectedChildIds);if(syncUnits.error)throw syncUnits.error;
+            const syncEquipment=await supabase.from("org_equipment").update({site_id:parentId}).eq("company_id",companyId).in("service_id",selectedChildIds);if(syncEquipment.error)throw syncEquipment.error;
+          }
           if(kind==="service"){
-            const service=services.find(x=>x.id===parentId);
-            if(service?.site_id){const sync=await supabase.from("org_units").update({site_id:service.site_id}).eq("company_id",companyId).in("id",selectedChildIds);if(sync.error)throw sync.error;}
+            const service=services.find(x=>x.id===parentId),siteId=service?.site_id||null;
+            const syncUnits=await supabase.from("org_units").update({site_id:siteId}).eq("company_id",companyId).in("id",selectedChildIds);if(syncUnits.error)throw syncUnits.error;
+            const syncEquipment=await supabase.from("org_equipment").update({site_id:siteId,service_id:parentId}).eq("company_id",companyId).in("unit_id",selectedChildIds);if(syncEquipment.error)throw syncEquipment.error;
           }
           if(kind==="unit"){
-            const unit=units.find(x=>x.id===parentId);
-            if(unit?.site_id){const sync=await supabase.from("org_equipment").update({site_id:unit.site_id,service_id:unit.service_id||null}).eq("company_id",companyId).in("id",selectedChildIds);if(sync.error)throw sync.error;}
+            const syncEquipment=await supabase.from("org_equipment").update({site_id:form.site_id||null,service_id:form.service_id||null}).eq("company_id",companyId).in("id",selectedChildIds);if(syncEquipment.error)throw syncEquipment.error;
           }
         }
       }
