@@ -21,8 +21,7 @@ export default function EquipmentManagement({companyId,lang,equipmentSeed,autoPr
  const filterSites=useMemo(()=>sites.filter(s=>equipment.some(e=>e.site_id===s.id)),[sites,equipment]);
  const filterUnits=useMemo(()=>units.filter(u=>equipment.some(e=>e.unit_id===u.id&&(!siteFilter||e.site_id===siteFilter))),[units,equipment,siteFilter]);
  const filterServices=useMemo(()=>services.filter(s=>equipment.some(e=>e.service_id===s.id&&(!siteFilter||e.site_id===siteFilter)&&(!unitFilter||e.unit_id===unitFilter))),[services,equipment,siteFilter,unitFilter]);
- const filterDepartments=useMemo(()=>departments.filter(d=>equipment.some(e=>e.department_id===d.id&&(!siteFilter||e.site_id===siteFilter)&&(!unitFilter||e.unit_id===unitFilter)&&(!serviceFilter||e.service_id===serviceFilter))),[departments,equipment,siteFilter,unitFilter,serviceFilter]);
- useEffect(()=>{if(filtered.length&&!filtered.some(e=>e.id===selected))setSelected(filtered[0].id);else if(!filtered.length)setSelected("");},[filtered,selected]);
+  useEffect(()=>{if(filtered.length&&!filtered.some(e=>e.id===selected))setSelected(filtered[0].id);else if(!filtered.length)setSelected("");},[filtered,selected]);
  const load=async()=>{
   if(!supabase)return;
   setError("");
