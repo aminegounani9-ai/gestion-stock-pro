@@ -248,8 +248,8 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
   if(error)throw error;setRequestForm((v:any)=>({priority:"normal",requester_id:v.requester_id}));setRequestLines([{product_id:"",warehouse_id:"",quantity:"1",notes:""}]);setShowRequestForm(false);await load();alert(`Demande de pièce ${number} envoyée.`);
  }catch(e:any){alert(e.message);}finally{setSaving(false);}}
  const isResponsible=requestScopes.some(x=>x.user_id===currentUserId&&x.can_approve&&/responsable|responsible/i.test(x.job_title||""));
- const canApproveRequest=["owner","admin","director","manager","supervisor","warehouse"].includes(role)||(access?.isAdmin||access?.canApprove)||isResponsible;
- async function processRequest(id:string,action:"approve"|"reject"|"issue"){if((action==="issue"&&!canIssue)||(action!=="issue"&&!isResponsible))return;let reason:string|null=null;let issueLines:any[]=[];
+ const canApproveRequest=["owner","admin","director","manager","supervisor"].includes(role)||(access?.isAdmin||access?.canApprove)||isResponsible;
+ async function processRequest(id:string,action:"approve"|"reject"|"issue"){if((action==="issue"&&!canIssue)||(action!=="issue"&&!canApproveRequest))return;let reason:string|null=null;let issueLines:any[]=[];
   if(action==="reject"){reason=window.prompt("Motif obligatoire du refus :");if(!reason?.trim())return;}
   if(action==="issue"){const req=requests.find(x=>x.id===id);issueLines=(req?.spare_part_request_items||[]).map((it:any)=>({item_id:it.id,warehouse_id:issueQuantities["wh_"+it.id]||it.warehouse_id||null,quantity:Number(issueQuantities[it.id]??(Number(it.approved_quantity)-Number(it.issued_quantity)))})).filter((x:any)=>x.quantity>0);if(!issueLines.length){alert("Saisissez au moins une quantité à délivrer.");return;}}
   setSaving(true);try{const {error}=await supabase!.rpc("process_spare_part_request",{p_company_id:companyId,p_request_id:id,p_action:action,p_rejection_reason:reason,p_issue_lines:issueLines});if(error)throw error;await load();await onSaved();}catch(e:any){alert(e.message);}finally{setSaving(false);}}
