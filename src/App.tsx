@@ -293,21 +293,21 @@ export default function App() {
       const empty:any={data:[],error:null,count:0};
       if(!scopeUser){
         setProducts([]);setWarehouses([]);setSuppliers([]);setCustomers([]);setMovements([]);setPurchases([]);setSales([]);setCategories([]);
-        setOrgSites([]);setOrgUnits([]);setOrgServices([]);setOrgDepartments([]);setOrgEquipment([]);setMyScopeAssignments([]);
+        setOrgSites([]);setOrgUnits([]);setOrgServices([]);setOrgEquipment([]);setMyScopeAssignments([]);
         return;
       }
-      const [permissions,os,ou,ov,od,oe,wh,scopeResult,categoriesResult]=await Promise.all([
+      const [permissions,os,ou,ov,oe,wh,scopeResult,categoriesResult]=await Promise.all([
         supabase.from("user_module_permissions").select("module_key,can_view,can_create,can_edit,can_delete,can_approve,can_issue,can_receive,can_transfer,can_inventory").eq("company_id",companyId).eq("user_id",scopeUser.id),
         supabase.from("org_sites").select("id,code,name,management_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name").limit(300),
-        supabase.from("org_units").select("id,code,name,site_id,service_id,department_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name").limit(500),
+        supabase.from("org_units").select("id,code,name,site_id,service_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name").limit(500),
         supabase.from("org_services").select("id,code,name,site_id,unit_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name").limit(300),
-        supabase.from("org_departments").select("id,code,name,site_id,unit_id,service_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name").limit(500),
-        supabase.from("org_equipment").select("id,equipment_tag,name,site_id,unit_id,service_id,department_id,status").eq("company_id",companyId).eq("status","active").order("name").limit(1000),
-        supabase.from("warehouses").select("id,code,name,site_id,unit_id,service_id,department_id,equipment_id,is_active").eq("company_id",companyId).order("name").limit(300),
+        
+        supabase.from("org_equipment").select("id,equipment_tag,name,site_id,unit_id,service_id,status").eq("company_id",companyId).eq("status","active").order("name").limit(1000),
+        supabase.from("warehouses").select("id,code,name,site_id,unit_id,service_id,equipment_id,is_active").eq("company_id",companyId).order("name").limit(300),
         supabase.from("user_scope_assignments").select("scope_type,scope_id,job_title,can_view,can_create,can_edit,can_delete,can_approve,can_issue,can_receive,can_transfer,can_inventory,projects_can_view,projects_can_create,projects_can_edit,projects_can_delete,projects_can_approve").eq("company_id",companyId).eq("user_id",scopeUser.id),
         supabase.from("product_categories").select("id,name").eq("company_id",companyId).order("name").limit(200)
       ]);
-      const firstError=[permissions,os,ou,ov,od,oe,wh,scopeResult,categoriesResult].find(x=>x.error)?.error;
+      const firstError=[permissions,os,ou,ov,oe,wh,scopeResult,categoriesResult].find(x=>x.error)?.error;
       if(firstError)throw firstError;
       const moduleKeys=new Set((permissions.data||[]).filter((x:any)=>x.can_view).map((x:any)=>x.module_key));
       let partScopeResult:any=empty;
@@ -360,7 +360,7 @@ export default function App() {
         if(ownCustomers.error)throw ownCustomers.error;
         customersResult={data:[...new Map([...(linkedCustomers.data||[]),...(ownCustomers.data||[])].map((x:any)=>[x.id,x])).values()],error:null};
       }
-      setOrgSites(os.data??[]);setOrgUnits(ou.data??[]);setOrgServices(ov.data??[]);setOrgDepartments(od.data??[]);setOrgEquipment((oe.data??[]).map((x:any)=>({...x,is_active:true})));setWarehouses(wh.data??[]);setMyScopeAssignments(scopeResult.data??[]);
+      setOrgSites(os.data??[]);setOrgUnits(ou.data??[]);setOrgServices(ov.data??[]);setOrgEquipment((oe.data??[]).map((x:any)=>({...x,is_active:true})));setWarehouses(wh.data??[]);setMyScopeAssignments(scopeResult.data??[]);
       setProducts((productsResult.data??[]) as Product[]);setCategories(categoriesResult.data??[]);setMovements(movementsResult.data??[]);setPurchases(purchasesResult.data??[]);setSuppliers(suppliersResult.data??[]);
       setCustomers(customersResult.data??[]);setSales(salesResult.data??[]);
       return;
@@ -382,17 +382,17 @@ export default function App() {
         supabase.from("org_sites").select("id,code,name,management_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
         supabase.from("org_units").select("id,code,name,site_id,service_id,department_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
         supabase.from("org_services").select("id,code,name,site_id,unit_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
-        supabase.from("org_departments").select("id,code,name,site_id,unit_id,service_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
+        
         supabase.from("org_equipment").select("id,equipment_tag,name,site_id,unit_id,service_id,department_id,status").eq("company_id",companyId).eq("status","active").order("name")
       ]),
       supabase.auth.getUser()
     ]);
     const [p,w,s,c,m,b,po,sa] = workspaceResults;
-    const [os,ou,ov,od,oe] = orgResults;
+    const [os,ou,ov,oe] = orgResults;
     const queryError = [p,w,s,c,m,b,po,sa].find(result => result.error);
     if (queryError?.error) throw queryError.error;
     if (categoryResult.error) throw categoryResult.error;
-    const orgError=[os,ou,ov,od,oe].find(x=>x.error)?.error;
+    const orgError=[os,ou,ov,oe].find(x=>x.error)?.error;
     if(orgError)throw orgError;
     setCategories(categoryResult.data ?? []);
     setOrgSites(os.data??[]);setOrgUnits(ou.data??[]);setOrgServices(ov.data??[]);setOrgDepartments(od.data??[]);setOrgEquipment((oe.data??[]).map(x=>({...x,is_active:true})));
@@ -760,7 +760,7 @@ export default function App() {
     const allowed=(permission:string,scopeAction:string)=>isAdmin||(canView&&p[permission]===true&&scopeAllows(scopeAction));
     return {canView,canCreate:allowed("can_create","create"),canEdit:allowed("can_edit","edit"),canDelete:allowed("can_delete","delete"),canApprove:allowed("can_approve","approve"),canIssue:allowed("can_issue","issue"),canReceive:allowed("can_receive","receive"),canTransfer:allowed("can_transfer","transfer"),canInventory:allowed("can_inventory","inventory"),isAdmin};
   };
-  const assignedContext = useMemo(()=>resolveAssignedContext(myScopeAssignments,{sites:orgSites,services:orgServices,departments:orgDepartments,units:orgUnits,equipment:orgEquipment,warehouses}),[myScopeAssignments,orgSites,orgServices,orgDepartments,orgUnits,orgEquipment,warehouses]);
+  const assignedContext = useMemo(()=>resolveAssignedContext(myScopeAssignments,{sites:orgSites,services:orgServices,units:orgUnits,equipment:orgEquipment,warehouses}),[myScopeAssignments,orgSites,orgServices,orgUnits,orgEquipment,warehouses]);
   const defaultWarehouseId=assignedContext.values.warehouse_id||(warehouses.length===1?warehouses[0].id:"");
   const canManageUsers = ["owner","admin","manager","supervisor"].includes(currentRole);
   const visibleNav = nav.filter(item=>{if(item.id==="dashboard")return true;if(item.id==="users")return isAdmin||(canManageUsers&&modulePermissions.users?.can_view===true);if(item.id==="organization")return isAdmin;if(item.id==="settings")return isAdmin||modulePermissions.settings?.can_view===true;if(isAdmin)return true;if(item.id==="projects"&&myScopeAssignments.some(scope=>scope.projects_can_view===true))return true;return accessFor(item.id).canView;});
