@@ -79,3 +79,44 @@
 }
 .pgantt-bar b{min-width:0}
 @media(max-width:560px){.pgantt-bar{height:29px;top:auto}}
+
+/* Professional annual project calendar: month scale, exact task date positioning */
+.pgantt-year-panel{border:1px solid #dce6f2!important;background:linear-gradient(145deg,#fff 0%,#f8fbff 100%)!important}
+.pgantt-year-scroll{padding:0 18px 18px!important}
+.pgantt-year-layout{--pgantt-months:12;display:grid;grid-template-columns:235px minmax(1200px,1fr) 94px;align-items:stretch;min-width:1530px}
+.pgantt-year-axis{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));min-height:58px;border-bottom:1px solid #dce6f1}
+.pgantt-year-axis>div{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-width:0;border-left:1px solid #e8eef6;background:linear-gradient(180deg,#f5f8fc,#fff)}
+.pgantt-year-axis b{color:#385575;font-size:11px;font-weight:850;text-transform:capitalize}
+.pgantt-year-axis small{color:#98a6b7;font-size:9px}
+.pgantt-year-row{display:contents}
+.pgantt-year-task-label{display:flex;min-width:0;flex-direction:column;justify-content:center;align-items:flex-start;gap:4px;padding:9px 12px;border:0;border-bottom:1px solid #e9eef5;background:#fff;text-align:left;cursor:pointer;transition:background .2s}
+.pgantt-year-task-label:hover{background:#f2f7ff}
+.pgantt-year-task-label b{max-width:100%;overflow:hidden;color:#294461;font-size:11px;font-weight:850;text-overflow:ellipsis;white-space:nowrap}
+.pgantt-year-task-label small{max-width:100%;overflow:hidden;color:#8192a7;font-size:9px;text-overflow:ellipsis;white-space:nowrap}
+.pgantt-task-type{display:inline-flex;padding:2px 6px;border-radius:5px;background:#eaf1fa;color:#55749a;font-size:8px;font-weight:900;letter-spacing:.045em}
+.pgantt-year-task-label.child{padding-left:25px;border-left:3px solid #a78bce}
+.pgantt-year-task-label.child .pgantt-task-type{background:#f1eafb;color:#8055a9}
+.pgantt-year-track{position:relative;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));align-items:center;min-height:59px;overflow:hidden;border-bottom:1px solid #e9eef5;background:#fff}
+.pgantt-year-track>i:not(.pgantt-year-today){height:100%;min-width:0;border-left:1px solid #e8edf4;background:transparent}
+.pgantt-year-track>i.alt{background:#f8fafd}
+.pgantt-year-today{position:absolute;z-index:1;top:0;bottom:0;width:2px;background:#e49a35;box-shadow:0 0 0 3px #e49a351c;pointer-events:none}
+.pgantt-year-bar{position:absolute;z-index:2;top:13px;display:flex;align-items:center;gap:7px;min-width:0;height:33px;padding:0 9px;overflow:hidden;border:1px solid color-mix(in srgb,var(--task-color) 42%,white);border-radius:8px;background:color-mix(in srgb,var(--task-color) 20%,white);color:#fff;text-align:left;box-shadow:0 3px 9px color-mix(in srgb,var(--task-color) 20%,transparent);cursor:pointer;transition:filter .2s,box-shadow .2s}
+.pgantt-year-bar:hover{z-index:4;filter:saturate(1.15);box-shadow:0 5px 14px color-mix(in srgb,var(--task-color) 30%,transparent)}
+.pgantt-year-bar-fill{position:absolute;inset:0 auto 0 0;z-index:0;max-width:100%;border-radius:6px;background:var(--task-color);opacity:.9;transition:width .5s ease}
+.pgantt-year-bar b,.pgantt-year-bar strong{position:relative;z-index:1;min-width:0;overflow:hidden;color:#fff;font-size:9px;font-weight:900;text-overflow:ellipsis;text-shadow:0 1px 2px #142b49a6;white-space:nowrap}
+.pgantt-year-bar b{flex:1}
+.pgantt-year-bar em{margin-left:5px;font-size:8px;font-style:normal;font-weight:700;opacity:.94}
+.pgantt-year-bar strong{flex:0 0 auto;font-size:10px}
+.pgantt-year-bar.is-live{border-color:#f0b44e;box-shadow:0 0 0 2px #e8a83d30,0 3px 10px #c98b2b2b}
+.pgantt-year-bar.is-live:after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 25%,#ffffff55 48%,transparent 70%);transform:translateX(-100%);animation:pganttLiveShimmer 3.4s ease-in-out infinite;pointer-events:none}
+.pgantt-year-bar.is-subtask{border-style:dashed;border-width:2px}
+.pgantt-year-row.is-secondary .pgantt-year-track{background-color:#fcfbfe}
+.pgantt-year-row.is-secondary .pgantt-year-meta{background:#fcfbfe}
+.pgantt-year-meta{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:5px;padding:6px;border-bottom:1px solid #e9eef5;background:#fff;color:#8a98aa;font-size:9px}
+.pgantt-year-meta .pgantt-compliance{display:inline-flex;align-items:center;justify-content:center;min-width:42px;padding:3px 7px;border-radius:99px;font-size:10px;font-weight:900;font-variant-numeric:tabular-nums}
+.pgantt-year-meta .pgantt-compliance.bad{background:#fde8ea;color:#b42332}
+.pgantt-year-meta .pgantt-compliance.mid{background:#fff2d8;color:#9a620c}
+.pgantt-year-meta .pgantt-compliance.good{background:#ddf5eb;color:#087b58}
+@keyframes pganttLiveShimmer{0%,55%{transform:translateX(-110%)}100%{transform:translateX(110%)}}
+@media(max-width:760px){.pgantt-year-scroll{padding-left:8px!important;padding-right:8px!important}.pgantt-year-layout{grid-template-columns:190px minmax(1200px,1fr) 82px;min-width:1472px}.pgantt-year-task-label{padding-left:8px}.pgantt-year-task-label b{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.pgantt-year-bar,.pgantt-year-bar-fill,.pgantt-year-task-label{transition:none}.pgantt-year-bar.is-live:after{animation:none}}
