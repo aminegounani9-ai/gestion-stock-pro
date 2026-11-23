@@ -33,7 +33,7 @@ export default function EquipmentManagement({companyId,lang,equipmentSeed,autoPr
    supabase.from("org_sites").select("id,code,name").eq("company_id",companyId).limit(300),
    supabase.from("org_units").select("id,code,name,site_id,service_id").eq("company_id",companyId).limit(500),
    supabase.from("org_services").select("id,code,name,site_id,unit_id").eq("company_id",companyId).limit(300),
-   supabase.from("org_departments").select("id,code,name,site_id,unit_id,service_id").eq("company_id",companyId).limit(500),
+   
    isAdmin||myScopes.length&&myScopes.every((x:any)=>x.scope_type==="warehouse")?Promise.resolve({data:[],error:null} as any):(()=>{let q:any=supabase.from("spare_part_details").select("product_id").eq("company_id",companyId).limit(1000);q=applyAssignedScopeFilter(q,myScopes,{site:"site_id",service:"service_id",unit:"unit_id",equipment:"equipment_id"},"product_id");return q;})()
   ]);
   const loadError=[eq,sites,units,services,partScopeResult].find(x=>x.error)?.error;
@@ -98,7 +98,7 @@ export default function EquipmentManagement({companyId,lang,equipmentSeed,autoPr
   const result=editingEquipmentId?await supabase.from("org_equipment").update(payload).eq("id",editingEquipmentId).eq("company_id",companyId).select("id").single():await supabase.from("org_equipment").insert(payload).select("id").single();const data=result.data;const e=result.error;
   setCreateBusy(false);
   if(e){setCreateError(e.code==="23505"?(lang==="ar"?"رمز المعدة موجود مسبقاً.":lang==="en"?"This equipment tag already exists.":"Ce tag équipement existe déjà."):e.message);return;}
-  setCreateOpen(false);setEditingEquipmentId(null);setNewEquipment({equipment_tag:"",name:"",site_id:"",unit_id:"",service_id:"",department_id:"",manufacturer:"",model:"",serial_number:"",location:"",status:"active",notes:""});
+  setCreateOpen(false);setEditingEquipmentId(null);setNewEquipment({equipment_tag:"",name:"",site_id:"",unit_id:"",service_id:"",manufacturer:"",model:"",serial_number:"",location:"",status:"active",notes:""});
   await load();if(data?.id)setSelected(data.id);
  }
  function editEquipment(row:Equipment){setEditingEquipmentId(row.id);setNewEquipment({equipment_tag:row.equipment_tag,name:row.name,site_id:row.site_id,unit_id:row.unit_id||"",service_id:row.service_id||"",manufacturer:row.manufacturer||"",model:row.model||"",serial_number:row.serial_number||"",location:row.location||"",status:row.status,notes:row.notes||""});setCreateError("");setCreateOpen(true);}
