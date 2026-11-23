@@ -619,7 +619,26 @@ export default function App() {
     try{const {error}=await supabase.from("products").update({is_active:nextActive}).eq("id",product.id).eq("company_id",company.id);if(error)throw error;await loadWorkspace(company.id);flash("success",nextActive?"Article réactivé.":"Article archivé.");}catch(e:any){flash("error",e.message)}
   }
 
+  async function openWarehouseEditor(row?:any) {
+    if(!supabase||!company)return;
+    setEditingId(row?.id||null);
+    setForm(row?{code:row.code||"",name:row.name||"",address:row.address||"",site_id:row.site_id||"",unit_id:row.unit_id||"",service_id:row.service_id||"",equipment_id:row.equipment_id||""}:{...assignedContext.values});
+    const [sr,ur,ar,team]=await Promise.all([
+      row?supabase.from("warehouse_service_assignments").select("service_id").eq("company_id",company.id).eq("warehouse_id",row.id):Promise.resolve({data:[],error:null} as any),
+      row?supabase.from("warehouse_unit_assignments").select("unit_id").eq("company_id",company.id).eq("warehouse_id",row.id):Promise.resolve({data:[],error:null} as any),
+      row?supabase.from("warehouse_user_access").select("user_id").eq("company_id",company.id).eq("warehouse_id",row.id):Promise.resolve({data:[],error:null} as any),
+      supabase.rpc("list_company_users_with_names",{p_company_id:company.id})
+    ]);
+    const err=[sr,ur,ar,team].find(x=>x.error)?.error;if(err){flash("error",err.message);return;}
+    setWarehouseServiceIds((sr.data||[]).map((x:any)=>x.service_id));
+    setWarehouseUnitIds((ur.data||[]).map((x:any)=>x.unit_id));
+    setWarehouseUserIds((ar.data||[]).map((x:any)=>x.user_id));
+    setWarehouseMembers((team.data||[]).filter((x:any)=>x.is_active));
+    setModal("warehouse");
+  }
+
   function editRecord(kind:"product"|"warehouse"|"supplier"|"customer",row:any) {
+    if(kind==="warehouse"){void openWarehouseEditor(row);return;}
     setEditingId(row.id);
     if(kind==="product")setForm({sku:row.sku||"",name:row.name||"",description:row.description||"",barcode:row.barcode||"",unit:row.unit||"piece",category_id:row.category_id||"",purchase_price:String(row.purchase_price??0),min_stock:String(row.min_stock??0),max_stock:String(row.max_stock??0),reorder_quantity:String(row.reorder_quantity??0),lead_time_days:String(row.lead_time_days??0),track_lots:String(row.track_lots??false),track_serial_numbers:String(row.track_serial_numbers??false),weight:String(row.weight??0),volume:String(row.volume??0)});
     else if(kind==="warehouse")setForm({code:row.code||"",name:row.name||"",address:row.address||"",site_id:row.site_id||"",unit_id:row.unit_id||"",service_id:row.service_id||"",equipment_id:row.equipment_id||""});
