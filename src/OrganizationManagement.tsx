@@ -92,7 +92,13 @@ export default function OrganizationManagement({ companyId, members, currentUser
     if(kind==="equipment"){delete payload.code;if(!payload.equipment_tag){onNotice("error","Le tag équipement est obligatoire.");return;}}
     setBusy(true);
     try{
-      const result=editingId?await supabase.from(tables[kind]).update(payload).eq("id",editingId).eq("company_id",companyId).select(kind==="service"?"id,site_id":"id").single():await supabase.from(tables[kind]).insert(payload).select(kind==="service"?"id,site_id":"id").single();
+      const result=editingId
+        ? (kind==="service"
+            ? await supabase.from("org_services").update(payload).eq("id",editingId).eq("company_id",companyId).select("id,site_id").single()
+            : await supabase.from(tables[kind]).update(payload).eq("id",editingId).eq("company_id",companyId).select("id").single())
+        : (kind==="service"
+            ? await supabase.from("org_services").insert(payload).select("id,site_id").single()
+            : await supabase.from(tables[kind]).insert(payload).select("id").single());
       if(result.error)throw result.error;
       const parentId=result.data.id;
       const relationConfig:any={management:{table:"org_sites",column:"management_id"},site:{table:"org_services",column:"site_id"},service:{table:"org_units",column:"service_id"},unit:{table:"org_equipment",column:"unit_id"}};
