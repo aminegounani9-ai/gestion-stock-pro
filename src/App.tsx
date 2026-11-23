@@ -763,7 +763,7 @@ export default function App() {
   const assignedContext = useMemo(()=>resolveAssignedContext(myScopeAssignments,{sites:orgSites,services:orgServices,departments:orgDepartments,units:orgUnits,equipment:orgEquipment,warehouses}),[myScopeAssignments,orgSites,orgServices,orgDepartments,orgUnits,orgEquipment,warehouses]);
   const defaultWarehouseId=assignedContext.values.warehouse_id||(warehouses.length===1?warehouses[0].id:"");
   const canManageUsers = ["owner","admin","manager","supervisor"].includes(currentRole);
-  const visibleNav = nav.filter(item=>{if(item.id==="dashboard")return true;if(item.id==="users")return isAdmin||(canManageUsers&&modulePermissions.users?.can_view===true);if(item.id==="organization")return isAdmin;if(item.id==="settings")return isAdmin||modulePermissions.settings?.can_view===true;if(isAdmin)return true;return accessFor(item.id).canView;});
+  const visibleNav = nav.filter(item=>{if(item.id==="dashboard")return true;if(item.id==="users")return isAdmin||(canManageUsers&&modulePermissions.users?.can_view===true);if(item.id==="organization")return isAdmin;if(item.id==="settings")return isAdmin||modulePermissions.settings?.can_view===true;if(isAdmin)return true;if(item.id==="projects"&&myScopeAssignments.some(scope=>scope.projects_can_view===true))return true;return accessFor(item.id).canView;});
   const visiblePageIds=visibleNav.map(item=>item.id).join("|");
   useEffect(()=>{if(company&&!visibleNav.some(item=>item.id===page)){setPage((visibleNav[0]?.id||"dashboard") as Page);}},[company?.id,page,visiblePageIds,hasProjectAccess]);
   const title = t[page];
