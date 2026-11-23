@@ -91,7 +91,7 @@ export default function OrganizationManagement({ companyId, members, currentUser
     if(kind==="equipment"){delete payload.code;if(!payload.equipment_tag){onNotice("error","Le tag équipement est obligatoire.");return;}}
     setBusy(true);
     try{
-      const result=editingId?await supabase.from(tables[kind]).update(payload).eq("id",editingId).eq("company_id",companyId).select("id").single():await supabase.from(tables[kind]).insert(payload).select("id").single();
+      const result=editingId?await supabase.from(tables[kind]).update(payload).eq("id",editingId).eq("company_id",companyId).select("id,site_id").single():await supabase.from(tables[kind]).insert(payload).select("id,site_id").single();
       if(result.error)throw result.error;
       const parentId=result.data.id;
       const relationConfig:any={management:{table:"org_sites",column:"management_id"},site:{table:"org_services",column:"site_id"},service:{table:"org_units",column:"service_id"},unit:{table:"org_equipment",column:"unit_id"}};
@@ -102,15 +102,14 @@ export default function OrganizationManagement({ companyId, members, currentUser
         const clear=await db.from(relation.table).update({[relation.column]:null}).eq("company_id",companyId).eq(relation.column,parentId);
         if(clear.error)throw clear.error;
         if(kind==="site"&&previousIds.length){
-          const clearUnits=await supabase.from("org_units").update({site_id:null}).eq("company_id",companyId).in("service_id",previousIds);if(clearUnits.error)throw clearUnits.error;
+          // Keep org_units.site_id populated: this column is NOT NULL. Descendant site links are synchronized after attachment.
           const clearEquipment=await supabase.from("org_equipment").update({site_id:null}).eq("company_id",companyId).in("service_id",previousIds);if(clearEquipment.error)throw clearEquipment.error;
         }
         if(kind==="service"&&previousIds.length){
-          const clearEquipment=await supabase.from("org_equipment").update({site_id:null,service_id:null}).eq("company_id",companyId).in("unit_id",previousIds);if(clearEquipment.error)throw clearEquipment.error;
-          const clearUnits=await supabase.from("org_units").update({site_id:null}).eq("company_id",companyId).in("id",previousIds);if(clearUnits.error)throw clearUnits.error;
+          const clearEquipment=await supabase.from("org_equipment").update({service_id:null}).eq("company_id",companyId).in("unit_id",previousIds);if(clearEquipment.error)throw clearEquipment.error;
         }
         if(kind==="unit"&&previousIds.length){
-          const clearEquipment=await supabase.from("org_equipment").update({site_id:null,service_id:null}).eq("company_id",companyId).in("id",previousIds);if(clearEquipment.error)throw clearEquipment.error;
+          const clearEquipment=await supabase.from("org_equipment").update({service_id:null}).eq("company_id",companyId).in("id",previousIds);if(clearEquipment.error)throw clearEquipment.error;
         }
         if(selectedChildIds.length){
           const attach=await db.from(relation.table).update({[relation.column]:parentId}).eq("company_id",companyId).in("id",selectedChildIds);
@@ -120,7 +119,8 @@ export default function OrganizationManagement({ companyId, members, currentUser
             const syncEquipment=await supabase.from("org_equipment").update({site_id:parentId}).eq("company_id",companyId).in("service_id",selectedChildIds);if(syncEquipment.error)throw syncEquipment.error;
           }
           if(kind==="service"){
-            const service=services.find(x=>x.id===parentId),siteId=service?.site_id||null;
+            const siteId=result.data.site_id||form.site_id||services.find(x=>x.id===parentId)?.site_id;
+            if(!siteId)throw new Error("Sélectionnez un Site pour ce Service avant de lui rattacher des unités.");
             const syncUnits=await supabase.from("org_units").update({site_id:siteId}).eq("company_id",companyId).in("id",selectedChildIds);if(syncUnits.error)throw syncUnits.error;
             const syncEquipment=await supabase.from("org_equipment").update({site_id:siteId,service_id:parentId}).eq("company_id",companyId).in("unit_id",selectedChildIds);if(syncEquipment.error)throw syncEquipment.error;
           }
