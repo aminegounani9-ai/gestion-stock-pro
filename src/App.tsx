@@ -313,11 +313,11 @@ export default function App() {
       let partScopeResult:any=empty;
       if(moduleKeys.has("spareParts")||moduleKeys.has("products")||moduleKeys.has("requests")||moduleKeys.has("equipment")||moduleKeys.has("reports")){
         const scopeRows=scopeResult.data||[];
-        const managementWide=scopeRows.some((x:any)=>x.scope_type==="management");
+        
         const warehouseOnly=scopeRows.length>0&&scopeRows.every((x:any)=>x.scope_type==="warehouse");
         if(!warehouseOnly){
           let partScopeQuery:any=supabase.from("spare_part_details").select("product_id").eq("company_id",companyId).limit(1000);
-          if(!managementWide)partScopeQuery=applyAssignedScopeFilter(partScopeQuery,scopeRows,{site:"site_id",service:"service_id",department:"department_id",unit:"unit_id",equipment:"equipment_id"},"product_id");
+          partScopeQuery=applyAssignedScopeFilter(partScopeQuery,scopeRows,{site:"site_id",service:"service_id",unit:"unit_id",equipment:"equipment_id"},"product_id");
           partScopeResult=await partScopeQuery;
         }
       }
