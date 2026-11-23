@@ -657,7 +657,7 @@ export default function App() {
         table = "products";
         payload = {...payload,category_id:form.category_id||null,sku:form.sku?.trim(),name:form.name?.trim(),description:form.description?.trim()||null,barcode:form.barcode?.trim()||null,unit:form.unit||"piece",purchase_price:Number(form.purchase_price||0),min_stock:Number(form.min_stock||0),max_stock:Number(form.max_stock||0),reorder_quantity:Number(form.reorder_quantity||0),lead_time_days:Number(form.lead_time_days||0),track_lots:form.track_lots==="true",track_serial_numbers:form.track_serial_numbers==="true",weight:Number(form.weight||0),volume:Number(form.volume||0)};
       } else if (modal === "warehouse") {
-        table = "warehouses"; payload = {...payload,code:form.code?.trim().toUpperCase(),name:form.name?.trim(),address:form.address?.trim()||null,site_id:form.site_id||null,unit_id:warehouseUnitIds[0]||form.unit_id||null,service_id:warehouseServiceIds[0]||form.service_id||null,equipment_id:form.equipment_id||null};
+        table = "warehouses"; const selectedEquipment=orgEquipment.find(x=>x.id===form.equipment_id); payload = {...payload,code:form.code?.trim().toUpperCase(),name:form.name?.trim(),address:form.address?.trim()||null,site_id:selectedEquipment?.site_id||form.site_id||null,unit_id:null,service_id:null,department_id:null,equipment_id:form.equipment_id||null};
       } else if (modal === "supplier") {
         table = "suppliers"; payload = {...payload,name:form.name?.trim(),contact_name:form.contact_name?.trim()||null,phone:form.phone?.trim()||null,email:form.email?.trim()||null,address:form.address?.trim()||null,tax_number:form.tax_number?.trim()||null,notes:form.notes?.trim()||null};
       } else if (modal === "customer") {
