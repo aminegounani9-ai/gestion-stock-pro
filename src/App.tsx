@@ -152,7 +152,6 @@ export default function App() {
   const [orgSites,setOrgSites]=useState<any[]>([]);
   const [orgUnits,setOrgUnits]=useState<any[]>([]);
   const [orgServices,setOrgServices]=useState<any[]>([]);
-  const [orgDepartments,setOrgDepartments]=useState<any[]>([]);
   const [orgEquipment,setOrgEquipment]=useState<any[]>([]);
   const [modulePermissions,setModulePermissions]=useState<Record<string,any>>({});
   const [hasProjectAccess,setHasProjectAccess]=useState(false);
@@ -380,10 +379,10 @@ export default function App() {
       supabase.from("product_categories").select("id,name").eq("company_id",companyId).order("name"),
       Promise.all([
         supabase.from("org_sites").select("id,code,name,management_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
-        supabase.from("org_units").select("id,code,name,site_id,service_id,department_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
+        supabase.from("org_units").select("id,code,name,site_id,service_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
         supabase.from("org_services").select("id,code,name,site_id,unit_id,is_active").eq("company_id",companyId).eq("is_active",true).order("name"),
         
-        supabase.from("org_equipment").select("id,equipment_tag,name,site_id,unit_id,service_id,department_id,status").eq("company_id",companyId).eq("status","active").order("name")
+        supabase.from("org_equipment").select("id,equipment_tag,name,site_id,unit_id,service_id,status").eq("company_id",companyId).eq("status","active").order("name")
       ]),
       supabase.auth.getUser()
     ]);
@@ -395,7 +394,7 @@ export default function App() {
     const orgError=[os,ou,ov,oe].find(x=>x.error)?.error;
     if(orgError)throw orgError;
     setCategories(categoryResult.data ?? []);
-    setOrgSites(os.data??[]);setOrgUnits(ou.data??[]);setOrgServices(ov.data??[]);setOrgDepartments(od.data??[]);setOrgEquipment((oe.data??[]).map(x=>({...x,is_active:true})));
+    setOrgSites(os.data??[]);setOrgUnits(ou.data??[]);setOrgServices(ov.data??[]);setOrgEquipment((oe.data??[]).map(x=>({...x,is_active:true})));
     const {data:{user:fullUser}}=authResult;
     const scopeResult=fullUser?await supabase.from("user_scope_assignments").select("scope_type,scope_id,job_title,can_view,can_create,can_edit,can_delete,can_approve,can_issue,can_receive,can_transfer,can_inventory").eq("company_id",companyId).eq("user_id",fullUser.id):{data:[],error:null};
     if(scopeResult.error)throw scopeResult.error;
@@ -636,7 +635,7 @@ export default function App() {
         table = "products";
         payload = {...payload,category_id:form.category_id||null,sku:form.sku?.trim(),name:form.name?.trim(),description:form.description?.trim()||null,barcode:form.barcode?.trim()||null,unit:form.unit||"piece",purchase_price:Number(form.purchase_price||0),min_stock:Number(form.min_stock||0),max_stock:Number(form.max_stock||0),reorder_quantity:Number(form.reorder_quantity||0),lead_time_days:Number(form.lead_time_days||0),track_lots:form.track_lots==="true",track_serial_numbers:form.track_serial_numbers==="true",weight:Number(form.weight||0),volume:Number(form.volume||0)};
       } else if (modal === "warehouse") {
-        table = "warehouses"; payload = {...payload,code:form.code?.trim().toUpperCase(),name:form.name?.trim(),address:form.address?.trim()||null,site_id:form.site_id||null,unit_id:form.unit_id||null,service_id:form.service_id||null,department_id:null,equipment_id:form.equipment_id||null};
+        table = "warehouses"; payload = {...payload,code:form.code?.trim().toUpperCase(),name:form.name?.trim(),address:form.address?.trim()||null,site_id:form.site_id||null,unit_id:form.unit_id||null,service_id:form.service_id||null,equipment_id:form.equipment_id||null};
       } else if (modal === "supplier") {
         table = "suppliers"; payload = {...payload,name:form.name?.trim(),contact_name:form.contact_name?.trim()||null,phone:form.phone?.trim()||null,email:form.email?.trim()||null,address:form.address?.trim()||null,tax_number:form.tax_number?.trim()||null,notes:form.notes?.trim()||null};
       } else if (modal === "customer") {
