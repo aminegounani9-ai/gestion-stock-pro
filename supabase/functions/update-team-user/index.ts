@@ -29,6 +29,7 @@ Deno.serve(async (req: Request) => {
     const fullName = String(body.full_name ?? "").trim();
     const jobTitle = String(body.job_title ?? "").trim();
     const role = String(body.role ?? "");
+    const password = typeof body.password === "string" ? body.password : "";
     if (!companyId || !userId || !fullName || fullName.length > 160 || jobTitle.length > 160) {
       return respond({ error: "Nom, fonction ou utilisateur invalide." }, 400);
     }
@@ -37,11 +38,14 @@ Deno.serve(async (req: Request) => {
       .select("role,is_active").eq("company_id", companyId).eq("user_id", caller.id).maybeSingle();
     if (callerError) throw callerError;
     if (!callerMember?.is_active) return respond({ error: "Accès à l'entreprise refusé." }, 403);
+    const isAdmin = ["owner", "admin"].includes(callerMember.role);
+    if (password && (!isAdmin || password.length < 8 || password.length > 128)) {
+      return respond({ error: !isAdmin ? "Seuls les administrateurs peuvent réinitialiser le mot de passe." : "Le mot de passe doit contenir entre 8 et 128 caractères." }, 403);
+    }
     const { data: target, error: targetError } = await adminClient.from("company_members")
       .select("role,is_active").eq("company_id", companyId).eq("user_id", userId).maybeSingle();
     if (targetError) throw targetError;
     if (!target?.is_active || target.role === "owner") return respond({ error: "Ce compte ne peut pas être modifié." }, 403);
-    const isAdmin = ["owner", "admin"].includes(callerMember.role);
     const manageableByManager = ["project_responsible", "warehouse", "technician", "viewer", "staff"];
     const manageableBySupervisor = ["technician", "viewer", "staff"];
     if (!isAdmin) {
@@ -63,9 +67,11 @@ Deno.serve(async (req: Request) => {
     }
     const { data: targetAuth, error: targetAuthError } = await adminClient.auth.admin.getUserById(userId);
     if (targetAuthError) throw targetAuthError;
-    const { error: authUpdateError } = await adminClient.auth.admin.updateUserById(userId, {
+    const authUpdate: Record<string, unknown> = {
       user_metadata: { ...(targetAuth.user?.user_metadata ?? {}), full_name: fullName, job_title: jobTitle },
-    });
+    };
+    if (password) authUpdate.password = password;
+    const { error: authUpdateError } = await adminClient.auth.admin.updateUserById(userId, authUpdate);
     if (authUpdateError) throw authUpdateError;
     const { error: roleError } = await adminClient.from("company_members").update({ role }).eq("company_id", companyId).eq("user_id", userId);
     if (roleError) throw roleError;
