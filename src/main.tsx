@@ -15,19 +15,17 @@ if (root) {
   );
 }
 
+// Temporarily disable the PWA service worker while diagnosing mobile startup.
+// Clear only this app's shell cache; application data in Supabase is untouched.
 if ("serviceWorker" in navigator && import.meta.env.PROD) {
   window.addEventListener("load", async () => {
     try {
-      const registration = await navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" });
-      await registration.update();
-      let refreshing = false;
-      navigator.serviceWorker.addEventListener("controllerchange", () => {
-        if (refreshing) return;
-        refreshing = true;
-        window.location.reload();
-      });
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map((registration) => registration.unregister()));
+      const keys = await caches.keys();
+      await Promise.all(keys.filter((key) => key.startsWith("stock-project-management-shell-")).map((key) => caches.delete(key)));
     } catch (error) {
-      console.warn("PWA service worker registration failed:", error);
+      console.warn("Mobile startup cache cleanup failed:", error);
     }
   });
 }
