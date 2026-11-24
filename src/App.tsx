@@ -563,7 +563,7 @@ export default function App() {
   async function markNotificationRead(item:AppNotification){
     if(!supabase||!session?.user?.id)return;
     if(!item.is_read){const {error}=await supabase.from("notifications").update({is_read:true}).eq("id",item.id).eq("recipient_user_id",session.user.id);if(error){flash("error",error.message);return;}setNotifications(list=>list.map(n=>n.id===item.id?{...n,is_read:true}:n));}
-    if(item.entity_type==="spare_part_request")setPage("requests");if(item.entity_type==="project"||item.entity_type==="project_task")setPage("projects");setNotificationsOpen(false);
+    if(item.entity_type==="spare_part_request")setPage("requests");if(item.entity_type==="project"||item.entity_type==="project_task")setPage("projects");if(item.entity_type==="team_user")setPage("users");setNotificationsOpen(false);
   }
   async function markAllNotificationsRead(){
     if(!supabase||!company||!session?.user?.id)return;
