@@ -39,7 +39,7 @@ Deno.serve(async (req: Request) => {
     if (!companyId || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length < 8 || !fullName || !scopeId) {
       return respond({ error: "Données invalides : vérifiez le nom, l'e-mail, le mot de passe et l'affectation." }, 400);
     }
-    const allowedRoles = ["admin", "director", "manager", "supervisor", "project_responsible", "warehouse", "technician", "viewer", "staff"];
+    const allowedRoles = ["admin", "director", "manager", "supervisor", "shift_leader", "project_responsible", "warehouse", "technician", "viewer", "staff"];
     const allowedScopes: Record<string, string> = {
       site: "org_sites", unit: "org_units", service: "org_services",
       department: "org_departments", warehouse: "warehouses", equipment: "org_equipment",
@@ -57,8 +57,9 @@ Deno.serve(async (req: Request) => {
     if (!scope) return respond({ error: "L'affectation sélectionnée n'existe pas ou n'est pas active." }, 400);
 
     if (!isAdmin) {
-      const permitted = membership.role === "manager" ? ["project_responsible", "warehouse", "technician", "viewer", "staff"]
-        : membership.role === "supervisor" ? ["technician", "viewer", "staff"] : [];
+      const permitted = membership.role === "director" ? ["manager", "supervisor", "shift_leader", "project_responsible", "warehouse", "technician", "viewer", "staff"]
+        : membership.role === "manager" ? ["supervisor", "shift_leader", "project_responsible", "warehouse", "technician", "viewer", "staff"]
+        : membership.role === "supervisor" ? ["shift_leader", "technician", "viewer", "staff"] : [];
       if (!permitted.includes(role)) return respond({ error: "Votre rôle ne permet pas de créer ce type de compte." }, 403);
       const { data: scopes, error: scopesError } = await adminClient.from("user_scope_assignments")
         .select("scope_type,scope_id").eq("company_id", companyId).eq("user_id", caller.id).eq("can_view", true);
