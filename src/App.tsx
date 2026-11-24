@@ -164,6 +164,22 @@ export default function App() {
   const [myScopeAssignments,setMyScopeAssignments]=useState<any[]>([]);
   const [companyRoles, setCompanyRoles] = useState<Record<string,string>>({});
   const [currentRole, setCurrentRole] = useState("viewer");
+  useEffect(()=>{
+    if(!supabase||!session?.user?.id||!company?.id)return;
+    const client=supabase;
+    const channel=client.channel("team-presence:"+company.id,{config:{presence:{key:session.user.id}}});
+    channel.subscribe(async status=>{
+      if(status==="SUBSCRIBED"){
+        await channel.track({
+          user_id:session.user.id,
+          full_name:session.user.user_metadata?.full_name||session.user.email||"Utilisateur",
+          online_at:new Date().toISOString()
+        });
+      }
+    });
+    return()=>{void client.removeChannel(channel);};
+  },[session?.user?.id,company?.id]);
+
   const [isAdmin, setIsAdmin] = useState(false);
   const [inviteFlow] = useState(() => new URLSearchParams(window.location.search).get("invite") === "1");
   const [search, setSearch] = useState("");
