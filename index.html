@@ -15,7 +15,21 @@
     <title>Stock &amp; Project Management</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><div id="boot-fallback" style="min-height:100vh;display:grid;place-items:center;padding:24px;background:#f4f6fa;color:#172033;font:14px Arial,sans-serif;text-align:center"><div><strong style="font-size:18px">Gestion Stock Pro</strong><p id="boot-message">Chargement de l’application…</p></div></div></div>
+    <script>
+      (function () {
+        function showBootError(message) {
+          var node = document.getElementById("boot-message");
+          if (node) node.textContent = "Erreur de démarrage : " + String(message || "Erreur inconnue") + " — actualisez la page.";
+        }
+        window.addEventListener("error", function (event) {
+          if (event && (event.message || event.filename)) showBootError(event.message || ("Impossible de charger " + event.filename));
+        });
+        window.addEventListener("unhandledrejection", function (event) {
+          showBootError(event.reason && (event.reason.message || event.reason) || "Erreur JavaScript asynchrone");
+        });
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
