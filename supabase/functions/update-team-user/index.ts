@@ -61,8 +61,10 @@ Deno.serve(async (req: Request) => {
         return respond({ error: "Ce collaborateur est hors de votre périmètre." }, 403);
       }
     }
+    const { data: targetAuth, error: targetAuthError } = await adminClient.auth.admin.getUserById(userId);
+    if (targetAuthError) throw targetAuthError;
     const { error: authUpdateError } = await adminClient.auth.admin.updateUserById(userId, {
-      user_metadata: { ...(target as any).user_metadata, full_name: fullName, job_title: jobTitle },
+      user_metadata: { ...(targetAuth.user?.user_metadata ?? {}), full_name: fullName, job_title: jobTitle },
     });
     if (authUpdateError) throw authUpdateError;
     const { error: roleError } = await adminClient.from("company_members").update({ role }).eq("company_id", companyId).eq("user_id", userId);
