@@ -29,6 +29,8 @@ Deno.serve(async (req: Request) => {
     const fullName = String(body.full_name ?? "").trim();
     const jobTitle = String(body.job_title ?? "").trim();
     const role = String(body.role ?? "");
+    const hasReportingUpdate = Object.prototype.hasOwnProperty.call(body, "reports_to_user_id");
+    const reportsToUserId = body.reports_to_user_id ? String(body.reports_to_user_id) : null;
     const password = typeof body.password === "string" ? body.password : "";
     if (!companyId || !userId || !fullName || fullName.length > 160 || jobTitle.length > 160) {
       return respond({ error: "Nom, fonction ou utilisateur invalide." }, 400);
@@ -46,8 +48,8 @@ Deno.serve(async (req: Request) => {
       .select("role,is_active").eq("company_id", companyId).eq("user_id", userId).maybeSingle();
     if (targetError) throw targetError;
     if (!target?.is_active || target.role === "owner") return respond({ error: "Ce compte ne peut pas être modifié." }, 403);
-    const manageableByManager = ["project_responsible", "warehouse", "technician", "viewer", "staff"];
-    const manageableBySupervisor = ["technician", "viewer", "staff"];
+    const manageableByManager = ["supervisor", "shift_leader", "project_responsible", "warehouse", "technician", "viewer", "staff"];
+    const manageableBySupervisor = ["shift_leader", "technician", "viewer", "staff"];
     if (!isAdmin) {
       const permitted = callerMember.role === "manager" ? manageableByManager :
         callerMember.role === "supervisor" ? manageableBySupervisor : [];
@@ -65,6 +67,18 @@ Deno.serve(async (req: Request) => {
         return respond({ error: "Ce collaborateur est hors de votre périmètre." }, 403);
       }
     }
+    if (hasReportingUpdate) {
+      if (!isAdmin) return respond({ error: "Seuls les administrateurs peuvent modifier le responsable direct." }, 403);
+      if (reportsToUserId === userId) return respond({ error: "Un utilisateur ne peut pas être son propre responsable." }, 400);
+      if (reportsToUserId) {
+        const { data: parent, error: parentError } = await adminClient.from("company_members")
+          .select("role,is_active").eq("company_id", companyId).eq("user_id", reportsToUserId).maybeSingle();
+        if (parentError) throw parentError;
+        if (!parent?.is_active) return respond({ error: "Le responsable sélectionné n'est pas un membre actif de cette entreprise." }, 400);
+        const rank: Record<string, number> = { owner: 7, admin: 7, director: 6, manager: 5, supervisor: 4, shift_leader: 3, technician: 2, warehouse: 1, viewer: 1, staff: 1, project_responsible: 1 };
+        if ((rank[parent.role] ?? 0) <= (rank[role] ?? 0)) return respond({ error: "Le responsable direct doit avoir un niveau hiérarchique supérieur." }, 400);
+      }
+    }
     const { data: targetAuth, error: targetAuthError } = await adminClient.auth.admin.getUserById(userId);
     if (targetAuthError) throw targetAuthError;
     const authUpdate: Record<string, unknown> = {
@@ -73,7 +87,9 @@ Deno.serve(async (req: Request) => {
     if (password) authUpdate.password = password;
     const { error: authUpdateError } = await adminClient.auth.admin.updateUserById(userId, authUpdate);
     if (authUpdateError) throw authUpdateError;
-    const { error: roleError } = await adminClient.from("company_members").update({ role }).eq("company_id", companyId).eq("user_id", userId);
+    const memberUpdate: Record<string, unknown> = { role };
+    if (hasReportingUpdate) memberUpdate.reports_to_user_id = reportsToUserId;
+    const { error: roleError } = await adminClient.from("company_members").update(memberUpdate).eq("company_id", companyId).eq("user_id", userId);
     if (roleError) throw roleError;
     const { error: jobError } = await adminClient.from("user_scope_assignments").update({ job_title: jobTitle || null })
       .eq("company_id", companyId).eq("user_id", userId);
