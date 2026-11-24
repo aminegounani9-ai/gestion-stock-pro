@@ -535,7 +535,7 @@ export default function App() {
         // Module visibility must never trigger a company-wide workspace query.
         await loadWorkspace(chosen.id,"scopes");
       }
-      if (["owner","admin","manager","supervisor"].includes(chosenRole)||(["director","project_responsible"].includes(chosenRole)&&canListProjectTeam)) {
+      if (["owner","admin","director","manager","supervisor"].includes(chosenRole)||(["project_responsible"].includes(chosenRole)&&canListProjectTeam)) {
         const {data: memberRows,error: memberError} = await supabase.rpc("list_company_users_with_names",{p_company_id:chosen.id});
         if (memberError) throw memberError;
         setMembers(memberRows ?? []);
