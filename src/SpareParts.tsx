@@ -94,7 +94,10 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
    supabase!.from("org_services").select("id,code,name,site_id,unit_id").eq("company_id",companyId).eq("is_active",true).order("name").limit(300),
    
    equipmentQuery,
-   warehouseIds.length?supabase!.from("storage_locations").select("id,code,name,warehouse_id").eq("company_id",companyId).in("warehouse_id",warehouseIds).eq("is_active",true).order("code"):Promise.resolve(empty)
+   warehouseIds.length?supabase!.from("storage_locations").select("id,code,name,warehouse_id").eq("company_id",companyId).in("warehouse_id",warehouseIds).eq("is_active",true).order("code"):Promise.resolve(empty),
+   supabase!.from("warehouse_service_assignments").select("warehouse_id,service_id").eq("company_id",companyId),
+   supabase!.from("warehouse_unit_assignments").select("warehouse_id,unit_id").eq("company_id",companyId),
+   supabase!.from("warehouse_user_access").select("warehouse_id,user_id,can_view").eq("company_id",companyId).eq("can_view",true)
   ]);
   if(rq.error)throw rq.error;
   const requestRows=rq.data||[];
