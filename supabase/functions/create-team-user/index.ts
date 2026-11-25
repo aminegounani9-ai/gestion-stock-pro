@@ -36,7 +36,7 @@ Deno.serve(async (req: Request) => {
     const scopeType = String(body.scope_type ?? "");
     const scopeId = String(body.scope_id ?? "");
 
-    if (!companyId || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length < 8 || !fullName || !scopeId) {
+    if (!companyId || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length < 8 || !fullName || (role !== "admin" && !scopeId)) {
       return respond({ error: "Données invalides : vérifiez le nom, l'e-mail, le mot de passe et l'affectation." }, 400);
     }
     const allowedRoles = ["admin", "director", "manager", "supervisor", "shift_leader", "project_responsible", "warehouse", "technician", "viewer", "staff"];
@@ -44,17 +44,21 @@ Deno.serve(async (req: Request) => {
       site: "org_sites", unit: "org_units", service: "org_services",
       department: "org_departments", warehouse: "warehouses", equipment: "org_equipment",
     };
-    if (!allowedRoles.includes(role) || !allowedScopes[scopeType]) return respond({ error: "Rôle ou type d'affectation non autorisé." }, 400);
+    if (!allowedRoles.includes(role) || (role !== "admin" && !allowedScopes[scopeType])) return respond({ error: "Rôle ou type d'affectation non autorisé." }, 400);
 
     const { data: membership, error: membershipError } = await adminClient.from("company_members")
       .select("role,is_active").eq("company_id", companyId).eq("user_id", caller.id).maybeSingle();
     if (membershipError) throw membershipError;
     if (!membership?.is_active) return respond({ error: "Vous n'avez pas accès à cette entreprise." }, 403);
     const isAdmin = ["owner", "admin"].includes(membership.role);
-    const { data: scope, error: scopeError } = await adminClient.from(allowedScopes[scopeType])
-      .select("*").eq("id", scopeId).eq("company_id", companyId).eq("is_active", true).maybeSingle();
-    if (scopeError) throw scopeError;
-    if (!scope) return respond({ error: "L'affectation sélectionnée n'existe pas ou n'est pas active." }, 400);
+    let scope: any = null;
+    if (role !== "admin") {
+      const { data, error: scopeError } = await adminClient.from(allowedScopes[scopeType])
+        .select("*").eq("id", scopeId).eq("company_id", companyId).eq("is_active", true).maybeSingle();
+      if (scopeError) throw scopeError;
+      scope = data;
+      if (!scope) return respond({ error: "L'affectation sélectionnée n'existe pas ou n'est pas active." }, 400);
+    }
 
     if (!isAdmin) {
       const permitted = membership.role === "director" ? ["manager", "supervisor", "shift_leader", "project_responsible", "warehouse", "technician", "viewer", "staff"]
@@ -121,13 +125,15 @@ Deno.serve(async (req: Request) => {
     const userId = created.user.id;
     try {
       // company_members is created atomically by private.assign_invited_company_membership().
-      const { error: assignmentError } = await adminClient.from("user_scope_assignments").insert({
-        company_id: companyId, user_id: userId, job_title: jobTitle || null,
-        scope_type: scopeType, scope_id: scopeId, can_view: true,
-        can_create: false, can_edit: false, can_delete: false, can_approve: false,
-        can_issue: false, can_receive: false, can_transfer: false, can_inventory: false,
-      });
-      if (assignmentError) throw assignmentError;
+      if (role !== "admin") {
+        const { error: assignmentError } = await adminClient.from("user_scope_assignments").insert({
+          company_id: companyId, user_id: userId, job_title: jobTitle || null,
+          scope_type: scopeType, scope_id: scopeId, can_view: true,
+          can_create: false, can_edit: false, can_delete: false, can_approve: false,
+          can_issue: false, can_receive: false, can_transfer: false, can_inventory: false,
+        });
+        if (assignmentError) throw assignmentError;
+      }
     } catch (dbError) {
       await adminClient.auth.admin.deleteUser(userId);
       throw dbError;
