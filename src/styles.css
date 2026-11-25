@@ -4723,3 +4723,19 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
 .users-edit-btn{align-self:center;display:inline-flex;align-items:center;justify-content:center;gap:5px;min-width:76px;padding:8px 9px;border:1px solid #dce5f5;border-radius:8px;background:#f7f9ff;color:#3157c8;font-size:9px;font-weight:750}
 .users-edit-btn:hover{background:#eaf0ff;border-color:#b9c9ed}
 @media(max-width:760px){.users-member-row{flex-wrap:wrap}.users-member-row .users-member{flex-wrap:wrap;padding:8px}.users-member-row .users-member-info{flex:1 1 calc(100% - 50px);min-width:0}.users-member-row .users-online{margin-left:43px}.users-edit-btn{margin-left:auto;min-height:36px}.users-member-row .users-member .status-pill{margin-left:0}}
+
+
+/* Platform owner multi-company workspace */
+.top-company-select{max-width:210px;min-width:120px;height:36px;padding:0 10px;border:1px solid #dce3ef;border-radius:9px;background:#fff;color:#24324b;font-size:11px;font-weight:700;outline:none}
+.top-company-select:focus{border-color:#5577dc;box-shadow:0 0 0 3px #5577dc18}
+.platform-companies-panel{display:grid;gap:16px;margin-bottom:18px}
+.platform-company-create{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.platform-company-create label{display:grid;gap:6px;flex:1;min-width:220px;color:#66758d;font-size:10px;font-weight:700}
+.platform-company-create input{height:40px;border:1px solid #e1e7f0;border-radius:9px;padding:0 12px;background:#fff;color:#263650;font-size:12px}
+.platform-company-list{display:grid;gap:7px}
+.platform-company-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #e8edf4;border-radius:10px;background:#fbfcfe}
+.platform-company-row>div{display:grid;gap:3px;flex:1;min-width:0}
+.platform-company-row b{font-size:11px;color:#2d3b54}
+.platform-company-row small{font-size:9px;color:#8793a6}
+.platform-company-note{margin:0;padding:11px 13px;border-radius:9px;background:#f3f6fc;color:#64748b;font-size:10px;line-height:1.7}
+@media(max-width:760px){.top-company-select{max-width:125px;min-width:90px;height:33px;font-size:10px;padding:0 6px}.platform-company-create{align-items:stretch}.platform-company-create label{min-width:100%;}.platform-company-create .primary-btn{width:100%;justify-content:center}}
