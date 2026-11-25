@@ -847,7 +847,7 @@ export default function App() {
   const defaultWarehouseId=assignedContext.values.warehouse_id||(warehouses.length===1?warehouses[0].id:"");
   const canManageUsers = ["owner","admin","director","manager","supervisor"].includes(currentRole);
   const isDemoSession = session?.user?.is_anonymous === true;
-  const visibleNav = nav.filter(item=>{if(isDemoSession&&["projects","users","organization","settings"].includes(item.id))return false;if(item.id==="dashboard")return true;if(item.id==="users")return isAdmin||canManageUsers;if(item.id==="organization")return isAdmin;if(item.id==="settings")return isAdmin||modulePermissions.settings?.can_view===true;if(isAdmin)return true;if(item.id==="projects")return accessFor("projects").canView;return accessFor(item.id).canView;});
+  const visibleNav = nav.filter(item=>{if(isDemoSession&&["users","organization","settings"].includes(item.id))return false;if(isDemoSession&&item.id==="projects")return true;if(item.id==="dashboard")return true;if(item.id==="users")return isAdmin||canManageUsers;if(item.id==="organization")return isAdmin;if(item.id==="settings")return isAdmin||modulePermissions.settings?.can_view===true;if(isAdmin)return true;if(item.id==="projects")return accessFor("projects").canView;return accessFor(item.id).canView;});
   const visiblePageIds=visibleNav.map(item=>item.id).join("|");
   useEffect(()=>{if(company&&!visibleNav.some(item=>item.id===page)){setPage((visibleNav[0]?.id||"dashboard") as Page);}},[company?.id,page,visiblePageIds,hasProjectAccess]);
   const title = t[page];
