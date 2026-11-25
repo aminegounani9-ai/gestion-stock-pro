@@ -81,6 +81,9 @@ Deno.serve(async (req: Request) => {
     }
     const { data: targetAuth, error: targetAuthError } = await adminClient.auth.admin.getUserById(userId);
     if (targetAuthError) throw targetAuthError;
+    if (String(targetAuth.user?.email || "").toLowerCase() === "gnnamine@gmail.com") {
+      return respond({ error: "Le compte propriétaire de la plateforme est protégé et ne peut pas être modifié depuis Team Members." }, 403);
+    }
     const authUpdate: Record<string, unknown> = {
       user_metadata: { ...(targetAuth.user?.user_metadata ?? {}), full_name: fullName, job_title: jobTitle },
     };
