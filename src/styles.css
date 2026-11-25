@@ -4739,3 +4739,28 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
 .platform-company-row small{font-size:9px;color:#8793a6}
 .platform-company-note{margin:0;padding:11px 13px;border-radius:9px;background:#f3f6fc;color:#64748b;font-size:10px;line-height:1.7}
 @media(max-width:760px){.top-company-select{max-width:125px;min-width:90px;height:33px;font-size:10px;padding:0 6px}.platform-company-create{align-items:stretch}.platform-company-create label{min-width:100%;}.platform-company-create .primary-btn{width:100%;justify-content:center}}
+
+
+/* Isolated guest demo entry and visible demo state */
+.demo-access-btn{
+  display:grid;grid-template-columns:22px 1fr;align-items:center;column-gap:9px;
+  width:100%;min-height:58px;margin-top:11px;padding:10px 14px;
+  border:1px solid #b9c9ee;border-radius:12px;
+  background:linear-gradient(110deg,#eef4ff,#f8faff);color:#254ca7;
+  text-align:left;font-size:12px;font-weight:800;cursor:pointer;
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+}
+.demo-access-btn:hover:not(:disabled){transform:translateY(-1px);border-color:#7897df;box-shadow:0 8px 20px rgba(44,83,165,.12)}
+.demo-access-btn:disabled{opacity:.65;cursor:wait}
+.demo-access-btn>svg{grid-row:span 2}
+.demo-access-btn small{grid-column:2;color:#7585a2;font-size:9px;font-weight:600;margin-top:2px}
+.demo-session-badge{
+  display:inline-flex;align-items:center;gap:6px;flex:none;
+  padding:7px 10px;border:1px solid #b8d9c8;border-radius:999px;
+  background:#effaf3;color:#18754b;font-size:9px;font-weight:850;
+  letter-spacing:.35px;white-space:nowrap;
+}
+@media(max-width:760px){
+  .demo-session-badge{padding:6px 8px;font-size:8px;gap:4px}
+  .demo-session-badge svg{width:12px;height:12px}
+}
