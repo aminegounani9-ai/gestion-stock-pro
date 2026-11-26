@@ -4938,3 +4938,13 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
  .spare-parts-mobile .table-wrap table tbody td{gap:8px;font-size:10px}
  .spare-parts-mobile .table-wrap table tbody td::before{font-size:9px}
 }
+
+
+/* Collapsible equipment compatibility section */
+.sp-compat-section-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.sp-compat-section-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sp-compat-collapse-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:36px;padding:8px 13px;border:1px solid #d7e1f0;border-radius:10px;background:#f4f7fc;color:#31558f;font-size:12px;font-weight:800;cursor:pointer;transition:background .18s ease,border-color .18s ease,transform .18s ease}
+.sp-compat-collapse-btn:hover{background:#eaf1ff;border-color:#a9bee4}
+.sp-compat-collapse-btn:focus-visible{outline:3px solid rgba(49,93,204,.22);outline-offset:2px}
+#sp-compat-section-content[hidden]{display:none!important}
+@media(max-width:600px){.sp-compat-section-head{align-items:flex-start}.sp-compat-section-controls{width:100%;justify-content:space-between}.sp-compat-collapse-btn{min-height:40px;padding:9px 14px}}
