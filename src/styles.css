@@ -5523,3 +5523,93 @@ body,.app-shell{color:var(--ui-text)}
   }
   .sp-dashboard .sp-hero h2{font-size:20px!important;line-height:1.25}
 }
+
+
+/* Stock dashboard hero — premium blue gradient with raised 3D finish */
+.sp-dashboard .sp-hero{
+  position:relative!important;
+  isolation:isolate!important;
+  overflow:hidden!important;
+  color:#fff!important;
+  background:
+    radial-gradient(ellipse at 82% 12%,rgba(255,255,255,.24),transparent 34%),
+    radial-gradient(ellipse at 8% 100%,rgba(15,39,91,.34),transparent 46%),
+    linear-gradient(128deg,#173f83 0%,#245bb0 42%,#397bd5 76%,#5795ed 100%)!important;
+  border:1px solid rgba(255,255,255,.3)!important;
+  border-top:1px solid rgba(255,255,255,.55)!important;
+  border-left:4px solid #8dbaff!important;
+  border-radius:19px!important;
+  box-shadow:
+    0 15px 30px rgba(22,61,126,.25),
+    0 6px 12px rgba(20,54,111,.16),
+    inset 0 1px 0 rgba(255,255,255,.32),
+    inset 0 -3px 0 rgba(9,35,83,.18)!important;
+  transform:translateY(0);
+  transition:transform .22s ease,box-shadow .22s ease;
+}
+.sp-dashboard .sp-hero::before{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(115deg,rgba(255,255,255,.12),transparent 36%,rgba(255,255,255,.07) 72%,transparent);
+}
+.sp-dashboard .sp-hero:hover{
+  transform:translateY(-2px);
+  box-shadow:0 19px 36px rgba(22,61,126,.29),0 8px 16px rgba(20,54,111,.17),inset 0 1px 0 rgba(255,255,255,.36)!important;
+}
+.sp-dashboard .sp-hero h2,
+.sp-dashboard .sp-hero h3,
+.sp-dashboard .sp-hero .sp-title{
+  color:#fff!important;
+  font-weight:850!important;
+  letter-spacing:-.55px!important;
+  text-shadow:0 2px 5px rgba(8,30,70,.24),0 1px 0 rgba(255,255,255,.12)!important;
+}
+.sp-dashboard .sp-hero p,
+.sp-dashboard .sp-hero .sp-live-note,
+.sp-dashboard .sp-hero :is(span,small){
+  color:rgba(255,255,255,.9)!important;
+}
+.sp-dashboard .sp-hero .sp-eyebrow{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  color:#fff!important;
+  background:rgba(255,255,255,.15)!important;
+  border:1px solid rgba(255,255,255,.28)!important;
+  border-radius:20px!important;
+  padding:5px 11px!important;
+  letter-spacing:1.1px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 3px 8px rgba(8,30,70,.1);
+  backdrop-filter:blur(8px);
+}
+.sp-dashboard .sp-hero .sp-hero-mark{
+  color:rgba(255,255,255,.24)!important;
+  opacity:1!important;
+  filter:drop-shadow(0 8px 12px rgba(7,28,67,.2));
+}
+.sp-dashboard .sp-hero .sp-refresh{
+  color:#17488f!important;
+  background:linear-gradient(180deg,#fff 0%,#e5efff 100%)!important;
+  border:1px solid rgba(255,255,255,.82)!important;
+  border-bottom:3px solid #b6cbed!important;
+  border-radius:11px!important;
+  box-shadow:0 5px 12px rgba(8,31,73,.2),inset 0 1px 0 #fff!important;
+  transition:transform .18s ease,box-shadow .18s ease;
+}
+.sp-dashboard .sp-hero .sp-refresh:hover{
+  color:#103b7d!important;
+  background:linear-gradient(180deg,#fff,#dceaff)!important;
+  transform:translateY(-2px);
+  box-shadow:0 8px 15px rgba(8,31,73,.24),inset 0 1px 0 #fff!important;
+}
+@media(max-width:760px){
+  .sp-dashboard .sp-hero{
+    border-radius:15px!important;
+    border-left-width:3px!important;
+    box-shadow:0 10px 22px rgba(22,61,126,.23),inset 0 1px 0 rgba(255,255,255,.3)!important;
+  }
+  .sp-dashboard .sp-hero h2{font-size:20px!important;line-height:1.25}
+}
