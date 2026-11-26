@@ -5202,3 +5202,42 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
  .equipment-module .equipment-dossier-actions{grid-template-columns:1fr}
 }
 @media(prefers-reduced-motion:reduce){.equipment-module *{scroll-behavior:auto!important;transition:none!important}}
+
+
+/* Equipment "All equipment" list: independent vertical scrolling */
+.equipment-module .equipment-list:not(.equipment-list-collapsed){
+  display:block!important;
+  height: min(680px, calc(100vh - 190px));
+  min-height: 260px;
+  max-height: calc(100vh - 190px)!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+  scrollbar-width:thin;
+  scrollbar-color:#aabbd2 #f1f4f8;
+}
+.equipment-module .equipment-list:not(.equipment-list-collapsed)::-webkit-scrollbar{width:8px}
+.equipment-module .equipment-list:not(.equipment-list-collapsed)::-webkit-scrollbar-track{background:#f1f4f8;border-radius:8px}
+.equipment-module .equipment-list:not(.equipment-list-collapsed)::-webkit-scrollbar-thumb{background:#aabbd2;border:2px solid #f1f4f8;border-radius:8px}
+.equipment-module .equipment-list:not(.equipment-list-collapsed) .equipment-list-head{
+  position:sticky!important;
+  top:0;
+  z-index:4;
+}
+@media(max-width:760px){
+ .equipment-module .equipment-list:not(.equipment-list-collapsed){
+   display:block!important;
+   width:100%;
+   height:min(380px,42dvh);
+   min-height:190px;
+   max-height:42dvh!important;
+   overflow-y:auto!important;
+   overflow-x:hidden!important;
+ }
+ .equipment-module .equipment-list:not(.equipment-list-collapsed) .equipment-list-head{
+   position:sticky!important;
+   top:0;
+   z-index:5;
+ }
+}
