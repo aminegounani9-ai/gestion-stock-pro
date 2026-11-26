@@ -29,6 +29,7 @@ async function buildLiveContext(client: any, companyId: string, question: string
     client.from("stock_balances").select("product_id,warehouse_id,quantity_on_hand").eq("company_id", companyId).limit(stockIntent ? 1000 : 100)
   ]);
   const warehouses = warehouseRes.data || [];
+  const visibleWarehouseIds = warehouses.map((w:any)=>w.id).filter(Boolean);
   let balances = balanceRes.data || [];
   if (warehouseRes.error) console.error("AI warehouse lookup failed", warehouseRes.error.message);
   if (balanceRes.error) console.error("AI stock balance lookup failed", balanceRes.error.message);
@@ -90,8 +91,12 @@ async function buildLiveContext(client: any, companyId: string, question: string
         .eq("company_id",companyId).in("product_id",ids).limit(100),
       client.from("stock_serial_numbers").select("product_id,warehouse_id,location_id,lot_id,serial_number,status,received_at,notes")
         .eq("company_id",companyId).in("product_id",ids).limit(100),
-      client.from("spare_part_reservations").select("product_id,warehouse_id,quantity,reservation_number,requested_for,work_order_reference,required_date,status,notes")
-        .eq("company_id",companyId).in("product_id",ids).limit(100)
+      // Reservation SELECT policy also permits rows created by the current user.
+      // For AI context, keep only reservations in warehouses the user can currently view.
+      visibleWarehouseIds.length
+        ? client.from("spare_part_reservations").select("product_id,warehouse_id,quantity,reservation_number,requested_for,work_order_reference,required_date,status,notes")
+            .eq("company_id",companyId).in("product_id",ids).in("warehouse_id",visibleWarehouseIds).limit(100)
+        : Promise.resolve({data:[],error:null})
     ]);
     result.stockMovements=movementRes.data||[];
     result.stockLots=lotRes.data||[];
@@ -104,9 +109,9 @@ async function buildLiveContext(client: any, companyId: string, question: string
 
   if(broadIntent){
     const tables=[
-      ["products","Articles"],["categories","Catégories"],["warehouses","Entrepôts"],["suppliers","Fournisseurs"],["customers","Clients"],
+      ["products","Articles"],["warehouses","Entrepôts"],
       ["purchase_orders","Commandes d'achat"],["sales","Ventes"],["stock_movements","Mouvements"],["stock_transfers","Transferts"],
-      ["inventory_counts","Inventaires"],["stock_returns","Retours"],["expenses","Dépenses"],["payment_transactions","Paiements"],
+      ["inventory_counts","Inventaires"],["stock_returns","Retours"],
       ["projects","Projets"],["project_tasks","Tâches projets"],["org_equipment","Équipements"],["spare_part_details","Fiches techniques pièces"],
       ["stock_lots","Lots"],["stock_serial_numbers","Numéros de série"]
     ];
@@ -177,7 +182,10 @@ Deno.serve(async (req: Request) => {
       liveContext = { source: "live_database", lookup: latestQuestion, retrievalStatus: "partial_unavailable" };
     }
 
-    const companyName = String(body.company?.name || "votre entreprise").slice(0, 120);
+    // Resolve the company label from the authenticated database session; never trust
+    // a company name supplied by the browser.
+    const { data: companyRecord } = await client.from("companies").select("name").eq("id", companyId).maybeSingle();
+    const companyName = String(companyRecord?.name || "votre entreprise").slice(0, 120);
     const detectLanguage = (value: string): string => {
       const text = value.toLowerCase().trim();
       if (/[\u0600-\u06FF]/.test(value)) return "Arabic (use the same register as the user)";
@@ -201,8 +209,7 @@ Deno.serve(async (req: Request) => {
       company: companyName,
       currentPage: page,
       signedInRole: userRole,
-      liveDatabaseEvidence: liveContext,
-      uiSnapshot: body.context || {}
+      liveDatabaseEvidence: liveContext
     }).slice(0, 28000);
 
     const softwareGuide = `
