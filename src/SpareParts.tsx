@@ -352,6 +352,17 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
   {loadError&&<div className="ops-load-error" role="alert"><b>{lang==="ar"?"تعذر تحميل بيانات الوحدة":lang==="en"?"Module data could not be loaded":"Erreur de chargement du module"}</b><span>{loadError}</span><button type="button" className="secondary-btn" onClick={()=>void load().catch((error:any)=>setLoadError(error?.message||"Erreur de chargement"))}>{lang==="ar"?"إعادة المحاولة":lang==="en"?"Retry":"Réessayer"}</button></div>}
   {focusProductId&&view==="parts"&&<div className="ops-filter-banner" style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,padding:"12px 16px",marginBottom:14,border:"1px solid #93b4ee",borderRadius:12,background:"rgba(59,130,246,.08)"}}><b>{lang==="ar"?"عرض القطعة المحددة فقط":lang==="en"?"Showing only the scanned spare part":"Affichage de la pièce scannée uniquement"}</b><button type="button" className="secondary-btn" onClick={onClearFocus}>{lang==="ar"?"عرض كل القطع":lang==="en"?"Show all parts":"Afficher toutes les pièces"}</button></div>}
   {view==="parts"&&<>
+  <div className="sp-workspace-hero">
+   <div className="sp-workspace-copy">
+    <span className="sp-workspace-eyebrow"><Boxes size={14}/> {lang==="ar"?"إدارة المخزون وقطع الغيار":lang==="en"?"INVENTORY & SPARE PARTS":"GESTION DU STOCK · PIÈCES DE RECHANGE"}</span>
+    <h2>{t.title}</h2>
+    <p>{t.sub}</p>
+   </div>
+   <div className="sp-workspace-meta">
+    <span className="sp-workspace-live"><i/> {lang==="ar"?"مساحة العمل نشطة":lang==="en"?"Workspace active":"ESPACE DE TRAVAIL ACTIF"}</span>
+    <strong><Boxes size={16}/>{details.length} {lang==="ar"?"مرجع":lang==="en"?"references":"références"}</strong>
+   </div>
+  </div>
   <div className="ops-kpis"><div className="ops-kpi"><Boxes/><span>{t.parts}</span><b>{details.length}</b></div><div className="ops-kpi"><AlertTriangle/><span>{t.critical}</span><b>{criticalCount}</b></div><div className="ops-kpi"><PackagePlus/><span>{t.low}</span><b>{lowCount}</b></div><div className="ops-kpi"><Boxes/><span>Emplacements</span><b>{storageLocations.length}</b></div></div>
   <div className="panel ops-panel abc-panel"><div className="panel-head"><div><h3>{abcWords.title}</h3><p>{abcWords.desc}</p><small className="abc-method">{abcWords.method}</small></div><span className="abc-total"><small>{abcWords.value}</small><b>{new Intl.NumberFormat(lang==="ar"?"ar-DZ":lang==="en"?"en-US":"fr-DZ",{style:"currency",currency:"DZD",maximumFractionDigits:0}).format(abcTotal)}</b></span></div>
    <div className="abc-summary"><div className="abc-chip class-a"><b>A</b><span>{abcCounts.A} {abcWords.parts}</span></div><div className="abc-chip class-b"><b>B</b><span>{abcCounts.B} {abcWords.parts}</span></div><div className="abc-chip class-c"><b>C</b><span>{abcCounts.C} {abcWords.parts}</span></div></div>
