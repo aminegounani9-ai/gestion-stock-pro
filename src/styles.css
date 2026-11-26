@@ -5403,3 +5403,64 @@ body,.app-shell{color:var(--ui-text)}
     font-size:13px;
   }
 }
+
+
+/* Requested visual correction: white stock dashboard hero + full-width spare-part actions */
+.sp-dashboard .sp-hero{
+  background:#fff!important;
+  color:#26364d!important;
+  border:1px solid #e4eaf2!important;
+  box-shadow:0 8px 24px rgba(25,45,75,.055)!important;
+}
+.sp-dashboard .sp-hero h2{color:#1e2d43!important}
+.sp-dashboard .sp-hero p{color:#718096!important}
+.sp-dashboard .sp-hero .sp-eyebrow{color:#52709a!important}
+.sp-dashboard .sp-hero .sp-live-note{color:#718096!important}
+.sp-dashboard .sp-hero .sp-hero-mark{color:#dce7f7!important;opacity:.8}
+.sp-dashboard .sp-hero .sp-refresh{
+  background:#f2f6fc!important;
+  color:#3157a5!important;
+  border:1px solid #dce6f4!important;
+}
+.spare-parts-mobile .sp-open-form,
+.spare-parts-mobile .sp-bulk-compat-trigger{
+  display:flex!important;
+  width:100%!important;
+  min-width:100%!important;
+  max-width:100%!important;
+  min-height:40px!important;
+  height:40px!important;
+  margin:0 0 9px!important;
+  padding:0 18px!important;
+  justify-content:center!important;
+  align-items:center!important;
+  gap:10px!important;
+  border-radius:10px!important;
+  font-size:12px!important;
+  font-weight:800!important;
+  line-height:1.2!important;
+  box-sizing:border-box!important;
+}
+.spare-parts-mobile .sp-open-form{
+  color:#fff!important;
+  background:linear-gradient(105deg,#2456a7,#477bd0)!important;
+  border:1px solid #2456a7!important;
+  box-shadow:0 5px 14px rgba(49,87,200,.2)!important;
+}
+.spare-parts-mobile .sp-bulk-compat-trigger{
+  color:#244a83!important;
+  background:#edf3ff!important;
+  border:1px solid #b9c9e4!important;
+  box-shadow:0 4px 12px rgba(38,78,137,.09)!important;
+}
+.spare-parts-mobile .sp-open-form svg,
+.spare-parts-mobile .sp-bulk-compat-trigger svg{flex:0 0 auto;width:17px;height:17px}
+.spare-parts-mobile .sp-open-form:hover,
+.spare-parts-mobile .sp-bulk-compat-trigger:hover{transform:translateY(-1px)}
+@media(max-width:760px){
+ .spare-parts-mobile .sp-open-form,
+ .spare-parts-mobile .sp-bulk-compat-trigger{
+   min-height:40px!important;height:40px!important;margin-bottom:8px!important;
+   font-size:12px!important;
+ }
+}
