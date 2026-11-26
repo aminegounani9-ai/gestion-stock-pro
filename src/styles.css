@@ -5241,3 +5241,8 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
    z-index:5;
  }
 }
+
+/* Highlight row found through the global header search */
+.global-search-hit{position:relative!important;z-index:1!important;animation:globalSearchHit 1.9s ease both;outline:2px solid #4f83c2!important;outline-offset:-2px;border-radius:8px}
+@keyframes globalSearchHit{0%,100%{background-color:transparent}18%,72%{background-color:rgba(92,145,215,.17)}}
+@media(prefers-reduced-motion:reduce){.global-search-hit{animation:none;background:rgba(92,145,215,.17)!important}}
