@@ -4948,3 +4948,59 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
 .sp-compat-collapse-btn:focus-visible{outline:3px solid rgba(49,93,204,.22);outline-offset:2px}
 #sp-compat-section-content[hidden]{display:none!important}
 @media(max-width:600px){.sp-compat-section-head{align-items:flex-start}.sp-compat-section-controls{width:100%;justify-content:space-between}.sp-compat-collapse-btn{min-height:40px;padding:9px 14px}}
+
+
+/* Spare Parts workspace — refined desktop and mobile visual system */
+.spare-parts-mobile{color:var(--text-primary,#172033)}
+.spare-parts-mobile .sp-workspace-hero{position:relative;display:flex;align-items:center;justify-content:space-between;gap:22px;min-height:142px;margin:0 0 18px;padding:25px 28px;overflow:hidden;border:1px solid #d9e3f1;border-radius:20px;background:linear-gradient(118deg,#f4f7fc 0%,#edf3fb 52%,#f8fafc 100%);box-shadow:0 8px 24px rgba(28,48,78,.055)}
+.spare-parts-mobile .sp-workspace-hero:after{content:"";position:absolute;right:-54px;top:-112px;width:300px;height:300px;border:1px solid rgba(74,111,170,.12);border-radius:50%;box-shadow:0 0 0 28px rgba(74,111,170,.035),0 0 0 58px rgba(74,111,170,.025);pointer-events:none}
+.spare-parts-mobile[dir=rtl] .sp-workspace-hero:after{right:auto;left:-54px}
+.sp-workspace-copy,.sp-workspace-meta{position:relative;z-index:1;min-width:0}
+.sp-workspace-eyebrow{display:inline-flex;align-items:center;gap:7px;margin-bottom:9px;color:#526d9b;font-size:10px;font-weight:850;letter-spacing:.09em}
+.sp-workspace-copy h2{margin:0;color:#1c2d49;font-size:clamp(21px,2.2vw,29px);font-weight:850;letter-spacing:-.035em;line-height:1.2}
+.sp-workspace-copy p{max-width:720px;margin:8px 0 0;color:#66758c;font-size:12px;line-height:1.65}
+.sp-workspace-meta{display:flex;flex-direction:column;align-items:flex-end;gap:12px;flex:none}
+.sp-workspace-live{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid #d2e6db;border-radius:999px;background:#f1f8f3;color:#337451;font-size:9px;font-weight:850;letter-spacing:.04em;white-space:nowrap}
+.sp-workspace-live i{width:7px;height:7px;border-radius:50%;background:#2f9b61;box-shadow:0 0 0 3px rgba(47,155,97,.12)}
+.sp-workspace-meta strong{display:flex;align-items:center;gap:7px;color:#405a80;font-size:12px;font-weight:800}
+.spare-parts-mobile .ops-kpis{gap:12px;margin:0 0 18px}
+.spare-parts-mobile .ops-kpi{position:relative;min-height:104px;padding:17px 18px;border:1px solid #e0e7f0;border-radius:16px;background:linear-gradient(145deg,#fff,#f8fafd);box-shadow:0 5px 16px rgba(25,44,73,.045);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.spare-parts-mobile .ops-kpi:hover{transform:translateY(-2px);border-color:#c9d7eb;box-shadow:0 10px 22px rgba(25,44,73,.075)}
+.spare-parts-mobile .ops-kpi svg{width:23px;height:23px;padding:4px;box-sizing:content-box;border-radius:10px;background:#edf3fc;color:#496b9f}
+.spare-parts-mobile .ops-kpi span{color:#718096;font-size:11px;font-weight:700}
+.spare-parts-mobile .ops-kpi b{color:#203653;font-size:27px;font-weight:850;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
+.spare-parts-mobile .abc-panel{padding:20px;border:1px solid #e1e8f1;border-radius:17px;background:var(--surface-card,#fff);box-shadow:0 5px 18px rgba(25,44,73,.04)}
+.spare-parts-mobile .abc-panel .panel-head h3{color:#253b5c;font-size:15px;font-weight:850}
+.spare-parts-mobile .abc-total{padding:10px 14px;border:1px solid #dce6f3;border-radius:13px;background:#f5f8fd}
+.spare-parts-mobile .abc-total b{color:#294d7e;font-size:18px;font-weight:850}
+.spare-parts-mobile .abc-summary{gap:9px;margin:15px 0}
+.spare-parts-mobile .abc-chip{border:1px solid #e5eaf1;border-radius:11px;background:#fbfcfe}
+.spare-parts-mobile .sp-open-form,.spare-parts-mobile .sp-bulk-compat-trigger{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;margin:0 8px 16px 0;padding:10px 15px;border-radius:11px;font-size:11px;font-weight:800;box-shadow:0 3px 9px rgba(34,68,126,.08)}
+.spare-parts-mobile .sp-open-form{border:1px solid #244b91;background:linear-gradient(120deg,#315da8,#244780);color:#fff}
+.spare-parts-mobile .sp-bulk-compat-trigger{border:1px solid #d7e1ef;background:#f5f8fd;color:#38577f}
+.spare-parts-mobile .panel.ops-panel:not(.abc-panel){border:1px solid #e2e8f0;background:var(--surface-card,#fff);box-shadow:0 5px 18px rgba(25,44,73,.035)}
+.spare-parts-mobile .panel-head h3{color:#263a58;font-weight:850}
+.spare-parts-mobile .table-search{min-height:40px;border:1px solid #dce4ef;border-radius:11px;background:#f9fbfe}
+.spare-parts-mobile .table-search input{min-width:150px;background:transparent}
+.spare-parts-mobile .table-wrap{border:1px solid #e6ebf2;border-radius:13px;background:#fff}
+.spare-parts-mobile .table-wrap table thead th{padding:12px 11px;background:#f5f8fc;color:#60718a;font-size:10px;font-weight:850;white-space:nowrap}
+.spare-parts-mobile .table-wrap table tbody td{padding:12px 11px;color:#35465f;font-size:11px}
+.spare-parts-mobile .gsp-spare-form-dialog .panel{border:0;box-shadow:none}
+.spare-parts-mobile .gsp-spare-form-dialog .panel-head{background:#f7f9fc}
+.spare-parts-mobile .ops-fields label{color:#52627a;font-size:11px;font-weight:750}
+.spare-parts-mobile .ops-fields input,.spare-parts-mobile .ops-fields select,.spare-parts-mobile .ops-fields textarea{border:1px solid #dce4ee;border-radius:10px;background:#fbfcfe;color:#24364f;outline:none;transition:border-color .15s ease,box-shadow .15s ease}
+.spare-parts-mobile .ops-fields input:focus,.spare-parts-mobile .ops-fields select:focus,.spare-parts-mobile .ops-fields textarea:focus{border-color:#7898ca;box-shadow:0 0 0 3px rgba(69,111,177,.11)}
+@media(max-width:760px){
+ .spare-parts-mobile .sp-workspace-hero{align-items:flex-start;flex-direction:column;gap:15px;min-height:0;margin-bottom:12px;padding:17px 16px;border-radius:16px}
+ .spare-parts-mobile .sp-workspace-copy h2{font-size:21px}
+ .spare-parts-mobile .sp-workspace-copy p{font-size:11px}
+ .spare-parts-mobile .sp-workspace-meta{width:100%;flex-direction:row;align-items:center;justify-content:space-between;gap:8px;padding-top:10px;border-top:1px solid #e0e8f2}
+ .spare-parts-mobile .sp-workspace-live{font-size:8px;padding:6px 8px}
+ .spare-parts-mobile .sp-workspace-meta strong{font-size:10px}
+ .spare-parts-mobile .ops-kpis{margin-bottom:12px}
+ .spare-parts-mobile .ops-kpi{border:1px solid #e0e7f0;background:linear-gradient(145deg,#fff,#f7f9fc);box-shadow:0 3px 10px rgba(25,44,73,.04)}
+ .spare-parts-mobile .sp-open-form,.spare-parts-mobile .sp-bulk-compat-trigger{width:100%;margin:0 0 8px;min-height:44px}
+ .spare-parts-mobile .abc-panel{padding:13px}
+ .spare-parts-mobile .table-wrap{border:0}
+}
+@media(prefers-reduced-motion:reduce){.spare-parts-mobile .ops-kpi,.spare-parts-mobile .sp-open-form{transition:none}}
