@@ -196,22 +196,30 @@ export default function App() {
   const [search, setSearch] = useState("");
   useEffect(()=>{
     const query=search.trim().toLocaleLowerCase();
-    if(!query)return;
+    if(query.length<2||!company?.id)return;
     const timer=window.setTimeout(()=>{
-      const root=document.querySelector(".page-content");
-      if(!root)return;
-      const candidates=Array.from(root.querySelectorAll<HTMLElement>("tbody tr, .equipment-list-row, .sp-compat-row, .spare-part-row, .product-row, .simple-row"));
-      const match=candidates.find(el=>el.innerText.toLocaleLowerCase().includes(query));
-      if(match){
-        match.scrollIntoView({behavior:"smooth",block:"center",inline:"nearest"});
-        match.classList.remove("global-search-hit");
-        void match.offsetWidth;
-        match.classList.add("global-search-hit");
-        window.setTimeout(()=>match.classList.remove("global-search-hit"),2200);
+      const contains=(value:any)=>String(value??"").toLocaleLowerCase().includes(query);
+      const product=(products||[]).find((x:any)=>contains(x.sku)||contains(x.name)||contains(x.barcode)||contains(x.description));
+      if(product){
+        if(page!=="spareParts"||spareFocusId!==product.id){
+          setSpareFocusId(product.id);
+          setPage("spareParts");
+        }
+        return;
       }
-    },350);
-    return ()=>window.clearTimeout(timer);
-  },[search,page]);
+      const equipment=(orgEquipment||[]).find((x:any)=>contains(x.equipment_tag)||contains(x.name)||contains(x.model)||contains(x.serial_number));
+      if(equipment){
+        if(page!=="equipment"||equipmentSeed!==equipment.id){
+          setEquipmentSeed(equipment.id);
+          setPage("equipment");
+        }
+        return;
+      }
+      const movement=(movements||[]).find((x:any)=>contains(x.reference)||contains(x.document_number)||contains(x.products?.sku)||contains(x.products?.name)||contains(x.notes));
+      if(movement&&page!=="stock")setPage("stock");
+    },650);
+    return()=>window.clearTimeout(timer);
+  },[search,page,company?.id,products,orgEquipment,movements,spareFocusId,equipmentSeed]);
 
   const [movementSearch,setMovementSearch]=useState("");
   const [scannerOpen,setScannerOpen]=useState(false);
