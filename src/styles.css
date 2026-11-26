@@ -4764,3 +4764,40 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
   .demo-session-badge{padding:6px 8px;font-size:8px;gap:4px}
   .demo-session-badge svg{width:12px;height:12px}
 }
+
+/* Professional spare-part compatibility dashboard */
+.sp-compat-dashboard{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:16px 0 12px}
+.sp-compat-stat{display:flex;flex-direction:column;gap:7px;min-height:78px;padding:13px 15px;border:1px solid var(--border-color,#e2e8f0);border-radius:13px;background:var(--surface-card,#fff);box-shadow:0 2px 8px rgba(15,23,42,.035)}
+.sp-compat-stat span{font-size:11px;font-weight:750;color:var(--text-muted,#64748b)}
+.sp-compat-stat b{font-size:24px;line-height:1;font-weight:850;color:var(--text-primary,#172033);font-variant-numeric:tabular-nums}
+.sp-compat-stat-in{background:linear-gradient(135deg,rgba(22,163,74,.10),rgba(22,163,74,.035));border-color:rgba(22,163,74,.25)}
+.sp-compat-stat-in b{color:#15803d}
+.sp-compat-stat-low{background:linear-gradient(135deg,rgba(217,119,6,.11),rgba(217,119,6,.035));border-color:rgba(217,119,6,.25)}
+.sp-compat-stat-low b{color:#b45309}
+.sp-compat-stat-out{background:linear-gradient(135deg,rgba(220,38,38,.10),rgba(220,38,38,.035));border-color:rgba(220,38,38,.24)}
+.sp-compat-stat-out b{color:#b91c1c}
+.sp-compat-stat-unlisted{background:linear-gradient(135deg,rgba(100,116,139,.12),rgba(100,116,139,.035));border-color:rgba(100,116,139,.25)}
+.sp-compat-stat-unlisted b{color:#475569}
+.sp-compat-toolbar{display:flex;flex-direction:column;gap:10px;margin:10px 0 14px}
+.sp-compat-toolbar>input{width:100%;max-width:460px;min-height:39px;padding:9px 12px;border:1px solid var(--border-color,#dbe2ea);border-radius:10px;background:var(--surface-card,#fff);color:var(--text-primary,#172033);font:inherit;font-size:12px}
+.sp-compat-filters{display:flex;gap:7px;flex-wrap:wrap}
+.sp-compat-filter{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid var(--border-color,#dbe2ea);border-radius:999px;background:var(--surface-card,#fff);color:var(--text-secondary,#475569);font-size:11px;font-weight:750;cursor:pointer;transition:.15s ease}
+.sp-compat-filter b{display:inline-grid;place-items:center;min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:rgba(100,116,139,.12);font-size:10px}
+.sp-compat-filter.active{border-color:#526fbd;background:rgba(59,94,174,.09);color:#34549b;box-shadow:0 0 0 2px rgba(59,94,174,.06)}
+.sp-compat-table td{vertical-align:middle}
+.sp-compat-table td small{display:block;margin-top:3px;color:var(--text-muted,#64748b);font-size:10px}
+.sp-compat-status{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;padding:5px 9px;border-radius:999px;font-size:10px;font-weight:850;letter-spacing:.1px}
+.sp-compat-status i{width:7px;height:7px;display:inline-block;border-radius:50%;background:currentColor;box-shadow:0 0 0 3px color-mix(in srgb,currentColor 13%,transparent)}
+.sp-compat-status.in{color:#15803d;background:#dcfce7}
+.sp-compat-status.low{color:#a16207;background:#fef3c7}
+.sp-compat-status.out{color:#b91c1c;background:#fee2e2}
+.sp-compat-status.unlisted{color:#475569;background:#e2e8f0}
+.sp-compat-critical,.sp-compat-normal{display:inline-flex;padding:4px 8px;border-radius:7px;font-size:10px;font-weight:800}
+.sp-compat-critical{color:#9f1239;background:#ffe4e6}
+.sp-compat-normal{color:#475569;background:#f1f5f9}
+.sp-compat-add-stock{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 10px;border:1px solid #b7c8f3;border-radius:9px;background:linear-gradient(135deg,#eef3ff,#e3ebff);color:#294d9a;font-size:10px;font-weight:850;white-space:nowrap;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
+.sp-compat-add-stock:hover{transform:translateY(-1px);box-shadow:0 5px 13px rgba(41,77,154,.13)}
+.sp-compat-linked{display:inline-flex;align-items:center;gap:5px;color:#15803d;font-size:10px;font-weight:800;white-space:nowrap}
+.sp-compat-readonly{color:var(--text-muted,#64748b);font-size:10px}
+@media(max-width:1050px){.sp-compat-dashboard{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:640px){.sp-compat-dashboard{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.sp-compat-stat{min-height:68px;padding:10px}.sp-compat-stat b{font-size:21px}.sp-compat-filters{gap:5px}.sp-compat-filter{padding:6px 8px;font-size:10px}.sp-compat-table{min-width:900px}}
