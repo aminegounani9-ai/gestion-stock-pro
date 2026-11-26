@@ -146,7 +146,7 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
   setLoading(false);
  },[companyId,myScopes,warehouses,role]);
  useEffect(()=>{void load().catch((error:any)=>{setLoading(false);setLoadError(error?.message||"Impossible de charger les données du module.");});},[load]);
- useEffect(()=>{if(searchTerm)setSearch(searchTerm);},[searchTerm]);
+ useEffect(()=>{setSearch(searchTerm||"");},[searchTerm]);
  const ownScopeRows=myScopes.length?myScopes:requestScopes.filter((x:any)=>x.user_id===currentUserId);
  const assignedContext=useMemo(()=>resolveAssignedContext(ownScopeRows,{sites:orgSites,services:orgServices,units:orgUnits,equipment:orgEquipment,warehouses}),[ownScopeRows,orgSites,orgServices,orgUnits,orgEquipment,warehouses]);
  const isScopeLocked=(field:string)=>!!assignedContext.locked[field];
