@@ -381,7 +381,7 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
      <label>Désignation de la pièce compatible<input required={!compatForm.product_id} value={compatForm.part_designation||""} onChange={e=>setCompatForm({...compatForm,part_designation:e.target.value})} placeholder="Ex. Capteur inductif M18"/></label>
      <label>Référence pièce<input value={compatForm.part_reference||""} onChange={e=>setCompatForm({...compatForm,part_reference:e.target.value})}/></label>
      <label>Référence OEM<input value={compatForm.oem_reference||""} onChange={e=>setCompatForm({...compatForm,oem_reference:e.target.value})}/></label>
-     <label>Repère équipement<input value={compatForm.equipment_tag||""} onChange={e=>setCompatForm({...compatForm,equipment_tag:e.target.value})}/></label>
+     <label>Repère équipement *<input required value={compatForm.equipment_tag||""} onChange={e=>setCompatForm({...compatForm,equipment_tag:e.target.value.toUpperCase()})} placeholder="Tag exact de la machine"/></label>
      <label>Nom équipement<input value={compatForm.equipment_name||""} onChange={e=>setCompatForm({...compatForm,equipment_name:e.target.value})}/></label>
      <label>Famille<input value={compatForm.equipment_family||""} onChange={e=>setCompatForm({...compatForm,equipment_family:e.target.value})}/></label>
      <label>Modèle<input value={compatForm.equipment_model||""} onChange={e=>setCompatForm({...compatForm,equipment_model:e.target.value})}/></label>
