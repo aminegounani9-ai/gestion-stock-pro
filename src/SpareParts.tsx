@@ -80,7 +80,7 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
   return()=>window.clearTimeout(timer);
  },[focusProductId,view,loading]);
 
- useEffect(()=>{if(initialEquipmentId&&orgEquipment.some((x:any)=>x.id===initialEquipmentId)){const eq=orgEquipment.find((x:any)=>x.id===initialEquipmentId);setRequestForm((v:any)=>({...v,equipment_id:eq.id,site_id:eq.site_id||"",unit_id:eq.unit_id||"",service_id:eq.service_id||""}));}},[initialEquipmentId,orgEquipment]);
+ useEffect(()=>{if(initialEquipmentId&&orgEquipment.some((x:any)=>x.id===initialEquipmentId)){const eq=orgEquipment.find((x:any)=>x.id===initialEquipmentId);setRequestForm((v:any)=>({...v,requester_id:currentUserId,equipment_id:eq.id,site_id:eq.site_id||"",unit_id:eq.unit_id||"",service_id:eq.service_id||"",priority:v.priority||"normal"}));setRequestLines(v=>v.length?v:[{product_id:"",warehouse_id:"",quantity:"1",notes:""}]);setShowRequestForm(true);}},[initialEquipmentId,orgEquipment,currentUserId]);
  const load=useCallback(async()=>{
   setLoading(true);setLoadError("");
   const isAdmin=["owner","admin"].includes(role);
