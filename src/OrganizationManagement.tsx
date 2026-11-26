@@ -74,7 +74,8 @@ export default function OrganizationManagement({ companyId, members, currentUser
     const member=members.find(m=>m.user_id===a.user_id);
     const term=assignmentMemberFilter.trim().toLowerCase();
     if(!term)return true;
-    const haystack=[member?.email,member?.role,member?.name,member?.full_name,member?.first_name,member?.last_name,a.job_title,a.user_id].filter(Boolean).join(" ").toLowerCase();
+    const memberData=member as (Member & {name?:string;full_name?:string;first_name?:string;last_name?:string})|undefined;
+    const haystack=[memberData?.email,memberData?.role,memberData?.name,memberData?.full_name,memberData?.first_name,memberData?.last_name,a.job_title,a.user_id].filter(Boolean).join(" ").toLowerCase();
     return haystack.includes(term);
   }),[assignments,members,assignmentMemberFilter]);
   function scopeContext(row:Row){
