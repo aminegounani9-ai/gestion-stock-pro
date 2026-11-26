@@ -194,6 +194,25 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [inviteFlow] = useState(() => new URLSearchParams(window.location.search).get("invite") === "1");
   const [search, setSearch] = useState("");
+  useEffect(()=>{
+    const query=search.trim().toLocaleLowerCase();
+    if(!query)return;
+    const timer=window.setTimeout(()=>{
+      const root=document.querySelector(".page-content");
+      if(!root)return;
+      const candidates=Array.from(root.querySelectorAll<HTMLElement>("tbody tr, .equipment-list-row, .sp-compat-row, .spare-part-row, .product-row, .simple-row"));
+      const match=candidates.find(el=>el.innerText.toLocaleLowerCase().includes(query));
+      if(match){
+        match.scrollIntoView({behavior:"smooth",block:"center",inline:"nearest"});
+        match.classList.remove("global-search-hit");
+        void match.offsetWidth;
+        match.classList.add("global-search-hit");
+        window.setTimeout(()=>match.classList.remove("global-search-hit"),2200);
+      }
+    },350);
+    return ()=>window.clearTimeout(timer);
+  },[search,page]);
+
   const [movementSearch,setMovementSearch]=useState("");
   const [scannerOpen,setScannerOpen]=useState(false);
   const [scanChoice,setScanChoice]=useState<any>(null);
