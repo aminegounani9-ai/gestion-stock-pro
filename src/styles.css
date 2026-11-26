@@ -5267,3 +5267,139 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
     will-change: transform,opacity;
   }
 }
+
+
+/* =========================================================
+   GLOBAL UI SYSTEM — consistent typography, controls & spacing
+   Applied across every application module (desktop + mobile).
+   ========================================================= */
+:root{
+  --ui-font:'DM Sans',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --ui-heading-font:'Manrope','DM Sans',sans-serif;
+  --ui-text:#334155;
+  --ui-heading:#1e293b;
+  --ui-muted:#718096;
+  --ui-border:#dfe6ef;
+  --ui-border-soft:#e9eef5;
+  --ui-field-bg:#fff;
+  --ui-field-focus:#5276d4;
+  --ui-primary:#3157c8;
+  --ui-control-radius:9px;
+  --ui-control-height:40px;
+  --ui-control-gap:10px;
+}
+html,body,.app-shell,.app-shell button,.app-shell input,.app-shell select,.app-shell textarea,
+.modal-backdrop,.modal-backdrop button,.modal-backdrop input,.modal-backdrop select,.modal-backdrop textarea{
+  font-family:var(--ui-font);
+}
+body,.app-shell{color:var(--ui-text)}
+.app-shell :is(h1,h2,h3,h4,h5,.page-heading h1,.panel-head h3,.modal-head h2){
+  font-family:var(--ui-heading-font);
+  color:var(--ui-heading);
+}
+.app-shell :is(p,.helper-text,.form-hint,.field-hint,.muted){color:var(--ui-muted)}
+.app-shell :is(.page-heading,.panel-head,.modal-head,.equipment-control-heading){
+  column-gap:14px;
+  row-gap:9px;
+}
+.app-shell :is(.page-heading h1,.panel-head h3,.modal-head h2){
+  letter-spacing:-.25px;
+}
+.app-shell :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select,textarea),
+.modal-backdrop :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select,textarea){
+  min-width:0;
+  color:#334155;
+  font-family:var(--ui-font);
+  font-size:12px;
+  line-height:1.45;
+  border-color:var(--ui-border);
+  border-radius:var(--ui-control-radius);
+  background:var(--ui-field-bg);
+  transition:border-color .16s ease,box-shadow .16s ease,background-color .16s ease;
+}
+.app-shell :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select),
+.modal-backdrop :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select){
+  min-height:var(--ui-control-height);
+}
+.app-shell textarea,.modal-backdrop textarea{
+  min-height:88px;
+  padding:10px 12px;
+}
+.app-shell :is(input,select,textarea)::placeholder,
+.modal-backdrop :is(input,select,textarea)::placeholder{
+  color:#9aa6b6;
+  opacity:1;
+}
+.app-shell :is(input,select,textarea):focus,
+.modal-backdrop :is(input,select,textarea):focus{
+  outline:none;
+  border-color:var(--ui-field-focus);
+  box-shadow:0 0 0 3px rgba(49,87,200,.11);
+}
+.app-shell :is(form label,.form-grid label,.form-field label,.field label,.form-group label),
+.modal-backdrop :is(form label,.form-grid label,.form-field label,.field label,.form-group label){
+  color:#526176;
+  font-family:var(--ui-font);
+  font-size:11px;
+  font-weight:650;
+  line-height:1.4;
+}
+.app-shell :is(form label,.form-grid label,.form-field label,.field label,.form-group label),
+.modal-backdrop :is(form label,.form-grid label,.form-field label,.field label,.form-group label){
+  row-gap:7px;
+}
+.app-shell button:not(.icon-btn):not(.nav-item):not(.stock-ai-fab):not(.equipment-collapse-btn),
+.modal-backdrop button:not(.icon-btn){
+  font-family:var(--ui-font);
+  font-size:11px;
+  font-weight:650;
+  line-height:1.35;
+  border-radius:var(--ui-control-radius);
+}
+.app-shell :is(.primary-btn,.secondary-btn,.link-btn,.equipment-module button,.spare-parts-module button){
+  letter-spacing:0;
+}
+.app-shell :is(.form-actions,.modal-actions,.actions-row,.action-buttons,.toolbar-actions,.filter-actions,.equipment-heading-actions,.equipment-dossier-actions,.sp-compat-import-actions,.sp-compat-import-toolbar){
+  column-gap:10px;
+  row-gap:8px;
+}
+.app-shell :is(.form-grid,.form-row,.fields-grid,.filters-grid,.equipment-filters){
+  column-gap:14px;
+  row-gap:12px;
+}
+.app-shell :is(.panel,.stat-card,.modal-card){
+  color:var(--ui-text);
+}
+.app-shell table :is(th,td){
+  font-family:var(--ui-font);
+  line-height:1.45;
+}
+.app-shell table th{
+  color:#64748b;
+  font-weight:700;
+}
+.app-shell table td{
+  color:#475569;
+}
+.app-shell :is(.status-pill,.badge,.chip){
+  font-family:var(--ui-font);
+  letter-spacing:0;
+}
+@media(max-width:760px){
+  :root{--ui-control-height:42px;--ui-control-gap:8px}
+  .app-shell :is(.page-heading,.panel-head,.modal-head){
+    row-gap:10px;
+  }
+  .app-shell :is(.form-grid,.form-row,.fields-grid,.filters-grid,.equipment-filters){
+    column-gap:10px;
+    row-gap:11px;
+  }
+  .app-shell :is(.form-actions,.modal-actions,.actions-row,.action-buttons,.toolbar-actions,.filter-actions,.equipment-heading-actions,.equipment-dossier-actions,.sp-compat-import-actions){
+    column-gap:8px;
+    row-gap:8px;
+  }
+  .app-shell :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select),
+  .modal-backdrop :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select){
+    font-size:13px;
+  }
+}
