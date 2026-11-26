@@ -194,6 +194,7 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [inviteFlow] = useState(() => new URLSearchParams(window.location.search).get("invite") === "1");
   const [search, setSearch] = useState("");
+  const [spareFocusId,setSpareFocusId]=useState<string|null>(null);
   useEffect(()=>{
     const query=search.trim().toLocaleLowerCase();
     if(query.length<2||!company?.id)return;
@@ -225,7 +226,6 @@ export default function App() {
   const [scannerOpen,setScannerOpen]=useState(false);
   const [scanChoice,setScanChoice]=useState<any>(null);
   const [scanProductId,setScanProductId]=useState<string|null>(null);
-  const [spareFocusId,setSpareFocusId]=useState<string|null>(null);
   const [autoPrintEquipmentReport,setAutoPrintEquipmentReport]=useState(false);
   const [equipmentReportWindow,setEquipmentReportWindow]=useState<Window|null>(null);
   const [installPrompt,setInstallPrompt]=useState<any>(null);
