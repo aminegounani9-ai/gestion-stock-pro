@@ -5004,3 +5004,33 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
  .spare-parts-mobile .table-wrap{border:0}
 }
 @media(prefers-reduced-motion:reduce){.spare-parts-mobile .ops-kpi,.spare-parts-mobile .sp-open-form{transition:none}}
+
+
+/* Layout correction: keep module content inside the available viewport */
+@media(min-width:761px){
+ .main-area{min-width:0;width:calc(100% - 258px);overflow:hidden}
+ .page-content{width:100%;max-width:none;min-width:0;margin:0;padding-left:30px;padding-right:30px}
+ [dir=rtl] .page-content{margin:0}
+ .spare-parts-mobile{display:block;width:100%;max-width:100%;min-width:0;overflow-x:clip}
+ .spare-parts-mobile>.panel,.spare-parts-mobile>.ops-panel,.spare-parts-mobile>.sp-workspace-hero{width:100%;max-width:100%;min-width:0}
+ .spare-parts-mobile .abc-table{display:block;width:100%;max-width:100%;min-width:0;overflow-x:auto;overscroll-behavior-x:contain}
+ .spare-parts-mobile .abc-table table{width:100%;min-width:760px}
+}
+@media(min-width:761px) and (max-width:1100px){
+ .main-area{width:calc(100% - 220px)}
+ .page-content{padding-left:22px;padding-right:22px}
+}
+
+/* AI assistant floats above the application footer and has a subtle animated presence */
+.stock-ai-fab{right:26px;bottom:74px;animation:stockAiFabBob 4.2s ease-in-out infinite;will-change:transform}
+.stock-ai-fab:hover{animation-play-state:paused}
+.stock-ai-fab.is-open{animation:none}
+.stock-ai-fab-pulse{animation:stockAiPulse 2.1s ease-out infinite,stockAiHalo 5s linear infinite}
+.stock-ai-panel{right:26px;bottom:150px;max-height:calc(100dvh - 190px)}
+@keyframes stockAiFabBob{0%,100%{translate:0 0}50%{translate:0 -7px}}
+@keyframes stockAiHalo{to{rotate:360deg}}
+@media(max-width:760px){
+ .stock-ai-fab{right:16px;bottom:calc(78px + env(safe-area-inset-bottom));width:58px;height:58px}
+ .stock-ai-panel{right:12px;bottom:calc(145px + env(safe-area-inset-bottom));width:min(405px,calc(100vw - 24px));height:min(620px,calc(100dvh - 180px));min-height:340px}
+}
+@media(prefers-reduced-motion:reduce){.stock-ai-fab,.stock-ai-fab-pulse,.stock-ai-fab-icon{animation:none!important;transition:none!important}}
