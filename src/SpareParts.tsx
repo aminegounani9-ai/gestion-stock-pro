@@ -132,7 +132,7 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
  const assignedContext=useMemo(()=>resolveAssignedContext(ownScopeRows,{sites:orgSites,services:orgServices,units:orgUnits,equipment:orgEquipment,warehouses}),[ownScopeRows,orgSites,orgServices,orgUnits,orgEquipment,warehouses]);
  const isScopeLocked=(field:string)=>!!assignedContext.locked[field];
  const ownScopeIds=(type:string)=>ownScopeRows.filter((x:any)=>x.scope_type===type&&x.can_view!==false).map((x:any)=>x.scope_id);
- const permittedUnitIds=isAdmin?orgUnits.map((x:any)=>x.id):[...new Set([...ownScopeIds("unit"),...orgUnits.filter((x:any)=>ownScopeIds("site").includes(x.site_id)||ownScopeIds("service").includes(x.service_id)).map((x:any)=>x.id)])];
+ const permittedUnitIds=isAdmin?orgUnits.map((x:any)=>x.id):[...new Set([...ownScopeIds("unit"),...orgUnits.filter((x:any)=>ownScopeIds("site").includes(x.site_id)||ownScopeIds("service").includes(x.service_id)).map((x:any)=>x.id),...orgEquipment.filter((e:any)=>ownScopeIds("equipment").includes(e.id)).map((e:any)=>e.unit_id).filter(Boolean)])];
   // A spare part is visible to a non-admin only when it is explicitly assigned
   // to at least one unit in the user's effective organizational scope.
   const scopedDetails=useMemo(()=>isAdmin?details:details.filter((d:any)=>sparePartUnitAssignments.some((a:any)=>a.product_id===d.product_id&&permittedUnitIds.includes(a.unit_id))),[isAdmin,details,sparePartUnitAssignments,permittedUnitIds]);
