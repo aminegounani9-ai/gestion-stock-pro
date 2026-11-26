@@ -10,7 +10,8 @@ type Props = {
   lang: Lang;
   page: string;
   role: string;
-  context: Record<string, unknown>;
+  userId: string;
+  accessKey: string;
 };
 
 const words = {
@@ -19,7 +20,7 @@ const words = {
   ar: { title:"المساعد الذكي", sub:"مساعدك في التسيير", hello:"مرحباً! أنا مساعدك في Stock Pro. يمكنني مساعدتك في فهم المخزون والمشتريات والمبيعات والتقارير واستعمال البرنامج.", placeholder:"اكتب سؤالك…", send:"إرسال", listen:"تحدث", stop:"إيقاف", voiceOn:"تم تفعيل القراءة الصوتية", voiceOff:"تم إيقاف القراءة الصوتية", thinking:"أفكر…", error:"تعذر الاتصال بالمساعد. حاول مرة أخرى.", temp:"خدمة الذكاء الاصطناعي مشغولة مؤقتاً. عاود بعد ثوانٍ.", config:"المساعد الذكي غير مهيأ بعد. أضف مفتاح Gemini في أسرار Supabase لتفعيل الإجابات.", hint:"Enter للإرسال · Shift + Enter لسطر جديد", clear:"مسح المحادثة", online:"متصل" }
 };
 
-export default function StockAIAssistant({ companyName, companyId, lang, page, role, context }: Props) {
+export default function StockAIAssistant({ companyName, companyId, lang, page, role, userId, accessKey }: Props) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -41,6 +42,17 @@ export default function StockAIAssistant({ companyName, companyId, lang, page, r
     recognitionRef.current?.stop?.();
     if ("speechSynthesis" in window) window.speechSynthesis.cancel();
   }, []);
+
+  // A conversation must never carry over when the user changes company,
+  // signs into another account, or receives a different assignment.
+  useEffect(() => {
+    recognitionRef.current?.stop?.();
+    setListening(false);
+    setMessages([]);
+    setInput("");
+    setError("");
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+  }, [companyId, userId, role, accessKey]);
 
   const speak = (text: string) => {
     if (!voiceEnabled || !("speechSynthesis" in window)) return;
@@ -71,8 +83,7 @@ export default function StockAIAssistant({ companyName, companyId, lang, page, r
           company: { id: companyId, name: companyName },
           language: lang,
           currentPage: page,
-          userRole: role,
-          context
+          userRole: role
         }
       });
       if (invokeError) {
