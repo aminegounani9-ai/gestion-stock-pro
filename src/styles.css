@@ -4808,3 +4808,5 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
 .sp-compat-import-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.sp-compat-import-actions button,.sp-compat-import-actions .primary-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:36px;font-size:12px}
 .sp-compat-upload{position:relative;overflow:hidden;cursor:pointer}.sp-compat-upload input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
 @media(max-width:760px){.sp-compat-import-toolbar{align-items:flex-start;flex-direction:column}.sp-compat-import-actions{width:100%}.sp-compat-import-actions>*{flex:1}}
+
+.sp-compat-edit{display:inline-flex;align-items:center;justify-content:center;gap:6px;margin:4px 0;padding:7px 10px;border:1px solid #c9d6e8;border-radius:8px;background:#f7faff;color:#27456f;font-size:11px;font-weight:650;cursor:pointer;white-space:nowrap}.sp-compat-edit:hover{background:#eaf2ff;border-color:#91add4}
