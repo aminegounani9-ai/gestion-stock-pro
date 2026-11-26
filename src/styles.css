@@ -4810,3 +4810,21 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
 @media(max-width:760px){.sp-compat-import-toolbar{align-items:flex-start;flex-direction:column}.sp-compat-import-actions{width:100%}.sp-compat-import-actions>*{flex:1}}
 
 .sp-compat-edit{display:inline-flex;align-items:center;justify-content:center;gap:6px;margin:4px 0;padding:7px 10px;border:1px solid #c9d6e8;border-radius:8px;background:#f7faff;color:#27456f;font-size:11px;font-weight:650;cursor:pointer;white-space:nowrap}.sp-compat-edit:hover{background:#eaf2ff;border-color:#91add4}
+
+
+/* Refined multi-select pickers for equipment compatibility */
+.sp-compat-picker{min-width:0;padding:15px;border:1px solid #dfe7f2;border-radius:15px;background:linear-gradient(145deg,#fbfdff 0%,#f5f8fd 100%);box-shadow:0 5px 18px rgba(31,55,91,.045)}
+.sp-compat-picker-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.sp-compat-picker-head>div{display:grid;gap:4px}
+.sp-compat-picker-head b{font-size:13px;font-weight:800;color:#243653}
+.sp-compat-picker-head small{font-size:10px;font-weight:500;color:#8492a8}
+.sp-compat-picker-head>span{flex:none;padding:6px 10px;border:1px solid #d7e2f3;border-radius:999px;background:#edf3ff;color:#34589b;font-size:10px;font-weight:800}
+.sp-compat-multi-select{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:220px;overflow:auto;padding:2px 4px 3px 2px;scrollbar-width:thin;scrollbar-color:#c5d2e5 transparent}
+.sp-compat-option{display:flex!important;flex-direction:row!important;align-items:center!important;gap:10px!important;min-width:0;min-height:48px;margin:0!important;padding:9px 11px;border:1px solid #e1e7f0;border-radius:11px;background:#fff;color:#53647e!important;font-size:11px!important;font-weight:650!important;line-height:1.4;cursor:pointer;transition:border-color .16s ease,background .16s ease,box-shadow .16s ease}
+.sp-compat-option:hover{border-color:#a9bee4;background:#f8faff}
+.sp-compat-option.selected{border-color:#7695d2;background:linear-gradient(110deg,#edf3ff,#f8faff);color:#274b8e!important;box-shadow:0 0 0 2px rgba(66,105,180,.08)}
+.sp-compat-option input[type=checkbox]{flex:0 0 17px!important;width:17px!important;min-width:17px;height:17px!important;min-height:17px;margin:0;accent-color:#315dcc;cursor:pointer}
+.sp-compat-option span{display:block;min-width:0;overflow-wrap:anywhere}
+.sp-compat-option span b{color:#284a85;font-size:11px;font-weight:850}
+.sp-compat-empty-hint{grid-column:1/-1;display:flex;align-items:center;justify-content:center;min-height:70px;padding:14px;border:1px dashed #cbd6e5;border-radius:10px;background:#fafcff;color:#8391a6;font-size:11px;line-height:1.6;text-align:center}
+@media(max-width:760px){.sp-compat-picker{padding:12px}.sp-compat-multi-select{grid-template-columns:minmax(0,1fr);max-height:190px;gap:7px}.sp-compat-option{min-height:45px;padding:9px 10px}.sp-compat-picker-head b{font-size:12px}}
