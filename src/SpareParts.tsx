@@ -13,7 +13,26 @@ const text = {
 };
 type Detail = Record<string, any>;
 export default function SpareParts({companyId,warehouses,suppliers,categories,myScopes=[],role,access,lang,searchTerm,onSaved,view="parts",initialEquipmentId,initialProductId,focusProductId,onClearFocus}:Props){
- const t=text[lang]; const isAdmin=["owner","admin"].includes(role); const canCreate=access?(access.isAdmin||access.canCreate):["owner","admin","director","manager","warehouse"].includes(role); const canEdit=access?(access.isAdmin||access.canEdit):["owner","admin","director","manager","warehouse"].includes(role); const canDelete=access?(access.isAdmin||access.canDelete):["owner","admin","director","manager"].includes(role); const canWrite=canCreate||canEdit; const canIssue=["owner","admin","warehouse"].includes(role)||(access?.isAdmin===true); const canReserve=access?(access.isAdmin||access.canCreate):["owner","admin","director","manager","warehouse"].includes(role); const canReceive=access?(access.isAdmin||access.canReceive):["owner","admin","director","manager","warehouse"].includes(role); const canRequest=access?(access.isAdmin||access.canCreate):["owner","admin","director","manager","warehouse","technician","staff"].includes(role);
+ const t=text[lang];
+ useEffect(()=>{
+  const root=document.querySelector(".spare-parts-mobile");
+  if(!root)return;
+  const applyLabels=()=>{
+   root.querySelectorAll("table").forEach(table=>{
+    const headers=Array.from(table.querySelectorAll("thead th")).map(th=>(th.textContent||"").trim());
+    table.querySelectorAll("tbody tr").forEach(row=>{
+     Array.from(row.children).forEach((cell,index)=>{
+      if(cell instanceof HTMLElement&&headers[index])cell.dataset.label=headers[index];
+     });
+    });
+   });
+  };
+  applyLabels();
+  const observer=new MutationObserver(applyLabels);
+  observer.observe(root,{childList:true,subtree:true,characterData:true});
+  return()=>observer.disconnect();
+ },[]);
+ const isAdmin=["owner","admin"].includes(role); const canCreate=access?(access.isAdmin||access.canCreate):["owner","admin","director","manager","warehouse"].includes(role); const canEdit=access?(access.isAdmin||access.canEdit):["owner","admin","director","manager","warehouse"].includes(role); const canDelete=access?(access.isAdmin||access.canDelete):["owner","admin","director","manager"].includes(role); const canWrite=canCreate||canEdit; const canIssue=["owner","admin","warehouse"].includes(role)||(access?.isAdmin===true); const canReserve=access?(access.isAdmin||access.canCreate):["owner","admin","director","manager","warehouse"].includes(role); const canReceive=access?(access.isAdmin||access.canReceive):["owner","admin","director","manager","warehouse"].includes(role); const canRequest=access?(access.isAdmin||access.canCreate):["owner","admin","director","manager","warehouse","technician","staff"].includes(role);
  const [details,setDetails]=useState<Detail[]>([]); const [reservations,setReservations]=useState<any[]>([]); const [balances,setBalances]=useState<any[]>([]); const [compat,setCompat]=useState<any[]>([]); const [quotes,setQuotes]=useState<any[]>([]); const [repairs,setRepairs]=useState<any[]>([]); const [serials,setSerials]=useState<any[]>([]); const [serialForm,setSerialForm]=useState<Detail>({status:"in_stock"}); const [compatForm,setCompatForm]=useState<Detail>({quantity_per_equipment:1}); const [compatUnitIds,setCompatUnitIds]=useState<string[]>([]); const [compatEquipmentIds,setCompatEquipmentIds]=useState<string[]>([]); const [editingCompatibilityId,setEditingCompatibilityId]=useState<string|null>(null); const [compatImportBusy,setCompatImportBusy]=useState(false); const [quoteForm,setQuoteForm]=useState<Detail>({currency:"DZD",minimum_order_quantity:1}); const [repairForm,setRepairForm]=useState<Detail>({status:"sent",currency:"DZD"});
  const [showPartForm,setShowPartForm]=useState(false); const [showRequestForm,setShowRequestForm]=useState(false); const [catalogueOpen,setCatalogueOpen]=useState(true); const [promotingCompatibilityId,setPromotingCompatibilityId]=useState<string|null>(null); const [compatStatusFilter,setCompatStatusFilter]=useState("all"); const [compatSearch,setCompatSearch]=useState("");
  const [loading,setLoading]=useState(true); const [loadError,setLoadError]=useState(""); const [saving,setSaving]=useState(false); const [search,setSearch]=useState(""); const [editing,setEditing]=useState<string|null>(null); const [categoryFilter,setCategoryFilter]=useState("all"); const [selectedQrIds,setSelectedQrIds]=useState<string[]>([]);
@@ -329,7 +348,7 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
  const abcCounts={A:abcRows.filter(x=>x.abcClass==="A").length,B:abcRows.filter(x=>x.abcClass==="B").length,C:abcRows.filter(x=>x.abcClass==="C").length};
  const abcWords=lang==="ar"?{title:"تصنيف ABC للمخزون",desc:"تحليل حسب قيمة المخزون الحالية (الكمية × سعر الشراء)، وليس الاستهلاك السنوي.",method:"الحدود: A حتى 80% · B حتى 95% · C الباقي",value:"القيمة الإجمالية",parts:"قطع",qty:"الكمية",unitValue:"قيمة المخزون",share:"النسبة التراكمية",empty:"لا توجد قيمة مخزون كافية للتصنيف."}:lang==="en"?{title:"ABC inventory classification",desc:"Classification by current inventory value (on-hand quantity × purchase cost), not annual consumption.",method:"Thresholds: A up to 80% · B up to 95% · C remainder",value:"Total inventory value",parts:"Parts",qty:"On hand",unitValue:"Stock value",share:"Cumulative share",empty:"No valued stock available for classification."}:{title:"Classification ABC du stock",desc:"Classement selon la valeur actuelle du stock (quantité disponible × prix d'achat), et non la consommation annuelle.",method:"Seuils : A jusqu'à 80 % · B jusqu'à 95 % · C le solde",value:"Valeur totale du stock",parts:"Pièces",qty:"Qté disponible",unitValue:"Valeur du stock",share:"Part cumulée",empty:"Aucune valeur de stock disponible pour le classement."};
 
- return <section className="ops-section" dir={lang==="ar"?"rtl":"ltr"}>
+ return <section className="ops-section spare-parts-mobile" dir={lang==="ar"?"rtl":"ltr"}>
   {loadError&&<div className="ops-load-error" role="alert"><b>{lang==="ar"?"تعذر تحميل بيانات الوحدة":lang==="en"?"Module data could not be loaded":"Erreur de chargement du module"}</b><span>{loadError}</span><button type="button" className="secondary-btn" onClick={()=>void load().catch((error:any)=>setLoadError(error?.message||"Erreur de chargement"))}>{lang==="ar"?"إعادة المحاولة":lang==="en"?"Retry":"Réessayer"}</button></div>}
   {focusProductId&&view==="parts"&&<div className="ops-filter-banner" style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,padding:"12px 16px",marginBottom:14,border:"1px solid #93b4ee",borderRadius:12,background:"rgba(59,130,246,.08)"}}><b>{lang==="ar"?"عرض القطعة المحددة فقط":lang==="en"?"Showing only the scanned spare part":"Affichage de la pièce scannée uniquement"}</b><button type="button" className="secondary-btn" onClick={onClearFocus}>{lang==="ar"?"عرض كل القطع":lang==="en"?"Show all parts":"Afficher toutes les pièces"}</button></div>}
   {view==="parts"&&<>
