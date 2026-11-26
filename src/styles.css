@@ -5613,3 +5613,43 @@ body,.app-shell{color:var(--ui-text)}
   }
   .sp-dashboard .sp-hero h2{font-size:20px!important;line-height:1.25}
 }
+
+
+/* AI assistant composer: compact message textbox */
+.stock-ai-controls{
+  align-items:center!important;
+  gap:6px!important;
+  padding:8px 11px 5px!important;
+}
+.stock-ai-controls textarea{
+  min-height:32px!important;
+  max-height:58px!important;
+  height:32px!important;
+  padding:7px 9px!important;
+  border-radius:9px!important;
+  font-size:10px!important;
+  line-height:1.35!important;
+}
+.stock-ai-tool,.stock-ai-send{
+  width:34px!important;
+  height:34px!important;
+  flex:0 0 34px!important;
+  border-radius:9px!important;
+}
+.stock-ai-hint{
+  padding:0 8px 7px!important;
+  font-size:7.5px!important;
+}
+@media(max-width:760px){
+  .stock-ai-controls{gap:5px!important;padding:7px 9px 4px!important}
+  .stock-ai-controls textarea{
+    min-height:31px!important;
+    max-height:52px!important;
+    height:31px!important;
+    padding:6px 8px!important;
+    font-size:10px!important;
+  }
+  .stock-ai-tool,.stock-ai-send{
+    width:32px!important;height:32px!important;flex-basis:32px!important;
+  }
+}
