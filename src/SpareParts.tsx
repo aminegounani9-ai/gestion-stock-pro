@@ -225,7 +225,7 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
   if(!canCreate||!canEdit||row.product_id)return;
   const defaults:Detail={...assignedContext.values,warehouse_id:assignedContext.values.warehouse_id||(warehouses.length===1?warehouses[0].id:"")};
   const rawRef=String(row.part_reference||row.oem_reference||"").trim();
-  const suggestedSku=("COMP-"+(rawRef||Date.now().toString().slice(-8))).replace(/[^a-zA-Z0-9_-]/g,"-").slice(0,48);
+  const suggestedSku=("COMP-"+(rawRef?rawRef.replace(/[^a-zA-Z0-9_-]/g,"-")+"-":"")+Date.now().toString().slice(-6)).slice(0,48);
   setPromotingCompatibilityId(row.id);
   setEditing(null);
   setSelectedUnitIds(defaults.unit_id?[defaults.unit_id]:[]);
@@ -350,7 +350,7 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
    <label>Emplacement précis<select required={Number(form.initial_quantity||0)>0&&!editing} value={form.storage_location_id||""} onChange={e=>setForm({...form,storage_location_id:e.target.value})}><option value="">—</option>{storageLocations.filter(x=>!form.warehouse_id||x.warehouse_id===form.warehouse_id).map(x=><option key={x.id} value={x.id}>{x.code} · {x.name}</option>)}</select></label>
 
    <label>Stock minimum<input type="number" min="0" step="0.001" value={form.min_stock??"0"} onChange={e=>setForm({...form,min_stock:e.target.value,safety_stock:e.target.value})}/></label>
-  </div><div className="ops-actions"><button className="primary-btn" disabled={saving}>{t.save}</button><button type="button" className="secondary-btn" onClick={()=>{setShowPartForm(false);setEditing(null);setSelectedUnitIds([]);}}>{t.cancel}</button></div></form></div></div></div></ModalPortal>}
+  </div><div className="ops-actions"><button className="primary-btn" disabled={saving}>{t.save}</button><button type="button" className="secondary-btn" onClick={()=>{setShowPartForm(false);setEditing(null);setPromotingCompatibilityId(null);setSelectedUnitIds([]);}}>{t.cancel}</button></div></form></div></div></div></ModalPortal>}
   </>}
   {!canWrite&&<p className="ops-readonly">{t.permission}</p>}
   <div className="panel ops-panel"><div className="panel-head"><div><h3>{lang==='ar'?'قائمة قطع الغيار':lang==='en'?'Spare-parts catalogue':'Catalogue des pièces détachées'}</h3><p>{rows.length} / {details.length} {t.parts.toLowerCase()}</p></div><div className="table-search"><Search size={15}/><input placeholder={t.search} value={search} onChange={e=>setSearch(e.target.value)}/></div><button type="button" className="secondary-btn sp-catalogue-toggle" aria-expanded={catalogueOpen} aria-controls="spare-parts-catalogue-content" onClick={()=>setCatalogueOpen(v=>!v)}>{catalogueOpen?(lang==="ar"?"إخفاء القائمة":lang==="en"?"Collapse catalogue":"Réduire le catalogue"):(lang==="ar"?"عرض القائمة":lang==="en"?"Expand catalogue":"Afficher le catalogue")} {catalogueOpen?<ChevronUp size={16}/>:<ChevronDown size={16}/>}</button></div>
