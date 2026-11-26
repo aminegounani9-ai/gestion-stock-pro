@@ -5246,3 +5246,24 @@ html body .modal-backdrop.org-form-backdrop > form.modal-card.org-assignment-mod
 .global-search-hit{position:relative!important;z-index:1!important;animation:globalSearchHit 1.9s ease both;outline:2px solid #4f83c2!important;outline-offset:-2px;border-radius:8px}
 @keyframes globalSearchHit{0%,100%{background-color:transparent}18%,72%{background-color:rgba(92,145,215,.17)}}
 @media(prefers-reduced-motion:reduce){.global-search-hit{animation:none;background:rgba(92,145,215,.17)!important}}
+
+
+/* Desktop AI assistant orb: force a reliable transform-based animation. */
+@keyframes stockAiDesktopOrbFloat {
+  0%,100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-8px) scale(1.035); }
+}
+@keyframes stockAiDesktopOrbPulse {
+  0% { transform: scale(.88); opacity:.72; }
+  75%,100% { transform: scale(1.58); opacity:0; }
+}
+@media (min-width:761px) {
+  .stock-ai-fab:not(.is-open) {
+    animation: stockAiDesktopOrbFloat 3.2s ease-in-out infinite !important;
+    will-change: transform;
+  }
+  .stock-ai-fab:not(.is-open) .stock-ai-fab-pulse {
+    animation: stockAiDesktopOrbPulse 2s ease-out infinite !important;
+    will-change: transform,opacity;
+  }
+}
