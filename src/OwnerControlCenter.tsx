@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 import {
   Activity, AlertTriangle, CalendarDays, ChevronLeft, ChevronRight, Database,
-  Download, FileSpreadsheet, FileText, RefreshCw, ShieldCheck, Trash2, Bug, LockKeyhole, Rocket
+  Download, FileSpreadsheet, FileText, RefreshCw, ShieldCheck, Trash2, Bug, LockKeyhole, Rocket, HardDrive, Server, Users, PackageOpen
 } from "lucide-react";
 import { supabase } from "./lib/supabase";
 import "./OwnerControlCenter.css";
@@ -14,6 +14,13 @@ type Lang = "fr" | "en" | "ar";
 type SecurityEvent = { id:string; event_type:string; severity:string; description:string; ip_hash:string|null; created_at:string };
 type AppError = { id:string; actor_user_id:string|null; error_type:string; module:string|null; route:string|null; message:string; created_at:string };
 type Deployment = { id:string; provider:string; environment:string; commit_sha:string|null; commit_message:string|null; deployment_url:string|null; status:string; created_at:string };
+type PlatformMetrics = {
+  generated_at: string; database_name: string; database_size_bytes: number; database_size_pretty: string;
+  postgres_version: string; public_table_count: number; auth_user_count: number; storage_bucket_count: number;
+  storage_object_count: number; storage_size_bytes: number;
+  storage_by_bucket: { bucket_id:string; bucket_name:string; public:boolean; file_count:number; size_bytes:number }[];
+  largest_tables: { table_name:string; size_bytes:number; size_pretty:string; estimated_rows:number }[];
+};
 type AuditLog = {
   id: string;
   company_id: string | null;
@@ -57,7 +64,15 @@ const labels = {
     deploymentsTitle: "Historique des déploiements", deploymentsDesc: "Résultats du build GitHub Actions et déploiements Cloudflare Pages.",
     eventTypeLabel: "Événement", ipLabel: "IP anonymisée", messageLabel: "Détail", routeLabel: "Page",
     commitLabel: "Commit", deploymentLabel: "Déploiement", statusLabel: "Statut", noTelemetry: "Aucun événement pour le moment.",
-    provider: "Fournisseur", deploymentSetup: "Obligatoire : ajoute le même GSP_MONITOR_WEBHOOK_SECRET dans Supabase > Edge Functions > Secrets et GitHub > Settings > Secrets and variables > Actions. Optionnel : CLOUDFLARE_API_TOKEN (Cloudflare Pages Read) pour suivre le statut Cloudflare exact."
+    provider: "Fournisseur",
+    infraTitle: "État de l'infrastructure Supabase", infraDesc: "Mesures en direct de la base, de l'authentification et du stockage.",
+    dbStatus: "Connexion base de données", dbSize: "Taille base de données", pgVersion: "Version PostgreSQL",
+    tableCount: "Tables publiques", authUsers: "Utilisateurs Auth", storageTitle: "Stockage fichiers",
+    storageUsed: "Espace utilisé", storageFiles: "Fichiers", bucketCount: "Buckets", bucketName: "Bucket",
+    publicBucket: "Public", privateBucket: "Privé", largestTables: "Tables les plus volumineuses",
+    estimatedRows: "Lignes estimées", metricsUnavailable: "Mesures indisponibles",
+    quotaNote: "Les quotas du forfait et la facturation ne sont pas exposés par les statistiques SQL. Les valeurs ci-dessous sont les volumes réellement mesurés dans la base.",
+    lastChecked: "Dernière vérification", deploymentSetup: "Obligatoire : ajoute le même GSP_MONITOR_WEBHOOK_SECRET dans Supabase > Edge Functions > Secrets et GitHub > Settings > Secrets and variables > Actions. Optionnel : CLOUDFLARE_API_TOKEN (Cloudflare Pages Read) pour suivre le statut Cloudflare exact."
   },
   en: {
     eyebrow: "PRIVATE ADMINISTRATION", title: "Owner Control Center",
@@ -86,7 +101,15 @@ const labels = {
     deploymentsTitle: "Deployment History", deploymentsDesc: "GitHub Actions build results and Cloudflare Pages production deployments.",
     eventTypeLabel: "Event", ipLabel: "Anonymized IP", messageLabel: "Details", routeLabel: "Page",
     commitLabel: "Commit", deploymentLabel: "Deployment", statusLabel: "Status", noTelemetry: "No events recorded yet.",
-    provider: "Provider", deploymentSetup: "Required: set the same GSP_MONITOR_WEBHOOK_SECRET in Supabase > Edge Functions > Secrets and GitHub > Settings > Secrets and variables > Actions. Optional: CLOUDFLARE_API_TOKEN (Cloudflare Pages Read) for exact Cloudflare status."
+    provider: "Provider",
+    infraTitle: "Supabase infrastructure status", infraDesc: "Live measurements for database, authentication and file storage.",
+    dbStatus: "Database connection", dbSize: "Database size", pgVersion: "PostgreSQL version",
+    tableCount: "Public tables", authUsers: "Auth users", storageTitle: "File storage",
+    storageUsed: "Storage used", storageFiles: "Files", bucketCount: "Buckets", bucketName: "Bucket",
+    publicBucket: "Public", privateBucket: "Private", largestTables: "Largest tables",
+    estimatedRows: "Estimated rows", metricsUnavailable: "Metrics unavailable",
+    quotaNote: "Plan quotas and billing limits are not exposed through SQL metrics. Values below are measured usage in the database.",
+    lastChecked: "Last checked", deploymentSetup: "Required: set the same GSP_MONITOR_WEBHOOK_SECRET in Supabase > Edge Functions > Secrets and GitHub > Settings > Secrets and variables > Actions. Optional: CLOUDFLARE_API_TOKEN (Cloudflare Pages Read) for exact Cloudflare status."
   },
   ar: {
     eyebrow: "إدارة خاصة", title: "مركز تحكم مالك المنصة",
@@ -115,9 +138,24 @@ const labels = {
     deploymentsTitle: "سجل النشر", deploymentsDesc: "نتائج بناء GitHub Actions وعمليات النشر على Cloudflare Pages.",
     eventTypeLabel: "الحدث", ipLabel: "عنوان IP مخفي", messageLabel: "التفاصيل", routeLabel: "الصفحة",
     commitLabel: "Commit", deploymentLabel: "النشر", statusLabel: "الحالة", noTelemetry: "لا توجد أحداث مسجلة حاليا.",
-    provider: "المزود", deploymentSetup: "ضروري: أضف نفس GSP_MONITOR_WEBHOOK_SECRET في Supabase > Edge Functions > Secrets و GitHub > Settings > Secrets and variables > Actions. اختياري: CLOUDFLARE_API_TOKEN بصلاحية Pages Read لمراقبة حالة Cloudflare بدقة."
+    provider: "المزود",
+    infraTitle: "حالة بنية Supabase", infraDesc: "إحصائيات مباشرة لقاعدة البيانات والمستخدمين ومساحة الملفات.",
+    dbStatus: "اتصال قاعدة البيانات", dbSize: "حجم قاعدة البيانات", pgVersion: "إصدار PostgreSQL",
+    tableCount: "الجداول العامة", authUsers: "مستخدمو Auth", storageTitle: "تخزين الملفات",
+    storageUsed: "المساحة المستعملة", storageFiles: "الملفات", bucketCount: "عدد Buckets", bucketName: "Bucket",
+    publicBucket: "عام", privateBucket: "خاص", largestTables: "أكبر الجداول",
+    estimatedRows: "عدد الصفوف التقديري", metricsUnavailable: "الإحصائيات غير متاحة",
+    quotaNote: "حدود الباقة والفوترة لا تظهر عبر SQL. الأرقام أدناه هي الاستعمال الفعلي المقاس داخل قاعدة البيانات.",
+    lastChecked: "آخر فحص", deploymentSetup: "ضروري: أضف نفس GSP_MONITOR_WEBHOOK_SECRET في Supabase > Edge Functions > Secrets و GitHub > Settings > Secrets and variables > Actions. اختياري: CLOUDFLARE_API_TOKEN بصلاحية Pages Read لمراقبة حالة Cloudflare بدقة."
   }
 };
+
+function formatBytes(value: number): string {
+  if (!Number.isFinite(value) || value <= 0) return "0 B";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  const index = Math.min(Math.floor(Math.log(value) / Math.log(1024)), units.length - 1);
+  return `${(value / Math.pow(1024, index)).toFixed(index === 0 ? 0 : 2)} ${units[index]}`;
+}
 
 function saveBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
@@ -135,6 +173,8 @@ export default function OwnerControlCenter({ userId, lang = "fr" }: { userId: st
   const [securityEvents, setSecurityEvents] = useState<SecurityEvent[]>([]);
   const [appErrors, setAppErrors] = useState<AppError[]>([]);
   const [deployments, setDeployments] = useState<Deployment[]>([]);
+  const [platformMetrics, setPlatformMetrics] = useState<PlatformMetrics | null>(null);
+  const [metricsError, setMetricsError] = useState("");
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
   const [startDate, setStartDate] = useState("");
@@ -170,10 +210,11 @@ export default function OwnerControlCenter({ userId, lang = "fr" }: { userId: st
       if (queryError) throw queryError;
       setRows((data || []) as AuditLog[]);
       setTotal(count || 0);
-      const [securityResult, errorsResult, deploymentsResult] = await Promise.all([
+      const [securityResult, errorsResult, deploymentsResult, metricsResult] = await Promise.all([
         supabase.from("platform_security_events").select("*").order("created_at", { ascending: false }).limit(30),
         supabase.from("platform_app_errors").select("*").order("created_at", { ascending: false }).limit(30),
-        supabase.from("platform_deployments").select("*").order("created_at", { ascending: false }).limit(30)
+        supabase.from("platform_deployments").select("*").order("created_at", { ascending: false }).limit(30),
+        supabase.rpc("owner_platform_metrics")
       ]);
       if (securityResult.error) throw securityResult.error;
       if (errorsResult.error) throw errorsResult.error;
@@ -181,6 +222,8 @@ export default function OwnerControlCenter({ userId, lang = "fr" }: { userId: st
       setSecurityEvents((securityResult.data || []) as SecurityEvent[]);
       setAppErrors((errorsResult.data || []) as AppError[]);
       setDeployments((deploymentsResult.data || []) as Deployment[]);
+      setPlatformMetrics((metricsResult.data || null) as PlatformMetrics | null);
+      setMetricsError(metricsResult.error?.message || "");
     } catch (e: any) {
       setError(t.error + (e?.message || "Unknown error"));
     } finally {
@@ -377,6 +420,27 @@ export default function OwnerControlCenter({ userId, lang = "fr" }: { userId: st
       <article><span><Activity size={16}/>{t.shown}</span><strong>{visibleRows.length.toLocaleString()}</strong></article>
       <article><span><CalendarDays size={16}/>{t.latest}</span><strong className="owner-latest">{lastActivity}</strong></article>
     </div>
+
+    <section className="owner-card owner-infra">
+      <div className="owner-card-head"><div><h2><Server size={18}/> {t.infraTitle}</h2><p>{t.infraDesc}</p></div><span className={"owner-health-pill " + (platformMetrics ? "ok" : "down")}>{platformMetrics ? "● Connected" : "● Offline"}</span></div>
+      {platformMetrics ? <>
+        <div className="owner-infra-grid">
+          <article><span><Database size={15}/>{t.dbSize}</span><strong>{platformMetrics.database_size_pretty}</strong><small>{platformMetrics.database_name}</small></article>
+          <article><span><Server size={15}/>{t.pgVersion}</span><strong>{platformMetrics.postgres_version}</strong><small>{t.tableCount}: {platformMetrics.public_table_count}</small></article>
+          <article><span><Users size={15}/>{t.authUsers}</span><strong>{platformMetrics.auth_user_count.toLocaleString()}</strong><small>Supabase Auth</small></article>
+          <article><span><HardDrive size={15}/>{t.storageUsed}</span><strong>{formatBytes(platformMetrics.storage_size_bytes)}</strong><small>{platformMetrics.storage_object_count.toLocaleString()} {t.storageFiles} · {platformMetrics.storage_bucket_count} {t.bucketCount}</small></article>
+        </div>
+        <div className="owner-infra-columns">
+          <div><h3><PackageOpen size={15}/> {t.storageTitle}</h3><div className="owner-table-wrap"><table className="owner-table owner-mini-table"><thead><tr><th>{t.bucketName}</th><th>{t.storageFiles}</th><th>{t.storageUsed}</th><th>Access</th></tr></thead><tbody>
+            {platformMetrics.storage_by_bucket?.length ? platformMetrics.storage_by_bucket.map(b=><tr key={b.bucket_id}><td>{b.bucket_name}</td><td>{b.file_count}</td><td>{formatBytes(b.size_bytes)}</td><td>{b.public ? t.publicBucket : t.privateBucket}</td></tr>) : <tr><td colSpan={4} className="owner-empty">—</td></tr>}
+          </tbody></table></div></div>
+          <div><h3><Database size={15}/> {t.largestTables}</h3><div className="owner-table-wrap"><table className="owner-table owner-mini-table"><thead><tr><th>{t.module}</th><th>{t.dbSize}</th><th>{t.estimatedRows}</th></tr></thead><tbody>
+            {platformMetrics.largest_tables?.length ? platformMetrics.largest_tables.map(row=><tr key={row.table_name}><td>{row.table_name}</td><td>{row.size_pretty}</td><td>{Number(row.estimated_rows || 0).toLocaleString()}</td></tr>) : <tr><td colSpan={3} className="owner-empty">—</td></tr>}
+          </tbody></table></div></div>
+        </div>
+        <div className="owner-infra-foot"><span>{t.quotaNote}</span><small>{t.lastChecked}: {new Date(platformMetrics.generated_at).toLocaleString(lang === "ar" ? "ar-DZ" : lang === "en" ? "en-GB" : "fr-FR")}</small></div>
+      </> : <div className="owner-alert error"><AlertTriangle size={16}/>{t.metricsUnavailable}{metricsError ? " · " + metricsError : ""}</div>}
+    </section>
 
     <section className="owner-card">
       <div className="owner-card-head"><div><h2>{t.filters}</h2><p>{t.exportHint}</p></div><FileText size={20}/></div>
