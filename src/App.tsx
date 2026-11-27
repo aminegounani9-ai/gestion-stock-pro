@@ -905,7 +905,7 @@ export default function App() {
   const defaultWarehouseId=assignedContext.values.warehouse_id||(warehouses.length===1?warehouses[0].id:"");
   const canManageUsers = ["owner","admin","director","manager","supervisor"].includes(currentRole);
   const isDemoSession = session?.user?.is_anonymous === true;
-  const visibleNav = nav.filter(item=>{if(item.id==="ownerCenter")return session?.user?.id==="710901a9-7967-45ab-8e5a-038da8081ce2"&&session?.user?.email?.toLowerCase()==="gnnamine@gmail.com";if(isDemoSession&&["users","organization","settings","ownerCenter"].includes(item.id))return false;if(isDemoSession&&item.id==="projects")return true;if(item.id==="dashboard")return true;if(item.id==="users")return isAdmin||canManageUsers;if(item.id==="organization")return isAdmin;if(item.id==="settings")return isAdmin||modulePermissions.settings?.can_view===true;if(isAdmin)return true;if(item.id==="projects")return accessFor("projects").canView;if(item.id==="warehouseMap")return accessFor("locations").canView;if(item.id==="controlCenter")return accessFor("reports").canView;return accessFor(item.id).canView;});
+  const visibleNav = nav.filter(item=>{if(item.id==="ownerCenter")return session?.user?.id==="710901a9-7967-45ab-8e5a-038da8081ce2";if(isDemoSession&&["users","organization","settings","ownerCenter"].includes(item.id))return false;if(isDemoSession&&item.id==="projects")return true;if(item.id==="dashboard")return true;if(item.id==="users")return isAdmin||canManageUsers;if(item.id==="organization")return isAdmin;if(item.id==="settings")return isAdmin||modulePermissions.settings?.can_view===true;if(isAdmin)return true;if(item.id==="projects")return accessFor("projects").canView;if(item.id==="warehouseMap")return accessFor("locations").canView;if(item.id==="controlCenter")return accessFor("reports").canView;return accessFor(item.id).canView;});
   const visiblePageIds=visibleNav.map(item=>item.id).join("|");
   useEffect(()=>{if(company&&!visibleNav.some(item=>item.id===page)){setPage((visibleNav[0]?.id||"dashboard") as Page);}},[company?.id,page,visiblePageIds,hasProjectAccess]);
   const title = page==="ownerCenter" ? t.ownerCenter : t[page];
@@ -941,7 +941,7 @@ export default function App() {
         {!["settings","users","organization","dashboard","projects"].includes(page)&&<ProfessionalModuleReport companyId={company.id} company={company} page={page} title={title} lang={lang}/>}
         <Suspense fallback={<ModuleLoading/>}>
         <ModuleErrorBoundary resetKey={page} lang={lang}>
-        {page==="ownerCenter"&&isPlatformOwner&&<OwnerControlCenter userId={session.user.id} lang={lang}/>}
+        {page==="ownerCenter"&&session.user.id==="710901a9-7967-45ab-8e5a-038da8081ce2"&&<OwnerControlCenter userId={session.user.id} lang={lang}/>}
         {page==="dashboard"&&<SparePartsDashboard companyId={company.id} currency={company.currency_code||"DZD"} lang={lang} warehouses={warehouses} myScopes={myScopeAssignments} isAdmin={isAdmin} onNavigate={setPage}/> }
         {page==="warehouseMap"&&<WarehouseMap companyId={company.id} warehouses={warehouses} lang={lang} access={accessFor("locations")}/>}
          {page==="controlCenter"&&<ControlCenter companyId={company.id} lang={lang} onNavigate={setPage}/>}
