@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Activity, Camera, CheckCircle2, ClipboardList, PackageCheck, Search, Smartphone, Warehouse, X } from "lucide-react";
 import SpareParts from "./SpareParts";
+import { BrowserMultiFormatReader } from "@zxing/browser";
 import "./MobileWarehouseAssistant.css";
 
 type Props = {
@@ -18,6 +19,7 @@ export default function MobileWarehouseAssistant(props:Props) {
   const [selectedProductId,setSelectedProductId]=useState<string|null>(props.initialProductId||null);
   const videoRef=useRef<HTMLVideoElement|null>(null);
   const streamRef=useRef<MediaStream|null>(null);
+  const zxingRef=useRef<BrowserMultiFormatReader|null>(null);
   const [scanKey,setScanKey]=useState(0);
   const ar=lang==="ar", en=lang==="en";
   const t=ar
@@ -27,10 +29,10 @@ export default function MobileWarehouseAssistant(props:Props) {
     : {eyebrow:"ASSISTANT MAGASIN MOBILE",title:"Le magasin, simplement depuis votre téléphone",sub:"Recherchez une pièce, envoyez une demande et suivez sa préparation et sa délivrance depuis votre mobile.",parts:"Pièces référencées",stores:"Entrepôts",access:"Accès aux demandes",flow:"Un parcours simple",step1:"Rechercher la pièce",step2:"Envoyer la demande",step3:"Retirer après confirmation du magasin",hint:"Une demande ne diminue pas le stock. La sortie est enregistrée uniquement lors de la remise réelle par le magasinier.",requests:"Demandes & réservations",scan:"Scanner une pièce",manual:"Recherche manuelle",searchPlaceholder:"Saisir la référence ou le nom",notFound:"Aucune pièce ne correspond à ce code",cameraError:"Caméra indisponible. Vérifiez l’autorisation ou utilisez la recherche manuelle.",choose:"Choisir",selected:"Pièce sélectionnée",close:"Fermer"};
 
   useEffect(()=>{if(scanOpen&&streamRef.current&&videoRef.current){videoRef.current.srcObject=streamRef.current;void videoRef.current.play().catch(()=>setScanError(t.cameraError));}},[scanOpen]);
-  useEffect(()=>()=>{streamRef.current?.getTracks().forEach(track=>track.stop());streamRef.current=null;},[]);
-  const stopScanner=()=>{streamRef.current?.getTracks().forEach(track=>track.stop());streamRef.current=null;setScanOpen(false);};
-  const selectScannedCode=(code:string)=>{const normalized=code.trim().toLowerCase();const match=products.find((p:any)=>[p.sku,p.barcode,p.part_number,p.manufacturer_reference,p.name].some((v:any)=>String(v||"").trim().toLowerCase()===normalized));if(match){setSelectedProductId(match.id);setScanError("");stopScanner();setScanKey(v=>v+1);}else setScanError(t.notFound);};
-  const startScanner=async()=>{setScanError("");try{if(!navigator.mediaDevices?.getUserMedia)throw new Error("camera");const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});streamRef.current=stream;setScanOpen(true);if(videoRef.current){videoRef.current.srcObject=stream;await videoRef.current.play();}const Detector=(window as any).BarcodeDetector;if(Detector){const detector=new Detector({formats:["qr_code","code_128","code_39","ean_13","ean_8","upc_a","upc_e"]});const scan=async()=>{if(!streamRef.current)return;try{if(videoRef.current){const codes=await detector.detect(videoRef.current);if(codes.length&&codes[0].rawValue){selectScannedCode(codes[0].rawValue);return;}}}catch{}window.setTimeout(scan,350);};window.setTimeout(scan,400);}else setScanError(t.cameraError);}catch{setScanError(t.cameraError);}};
+  useEffect(()=>()=>{zxingRef.current?.reset();streamRef.current?.getTracks().forEach(track=>track.stop());streamRef.current=null;},[]);
+  const stopScanner=()=>{zxingRef.current?.reset();zxingRef.current=null;streamRef.current?.getTracks().forEach(track=>track.stop());streamRef.current=null;setScanOpen(false);};
+  const selectScannedCode=(code:string)=>{const raw=code.trim();let candidates=[raw];try{const parsed=new URL(raw);candidates.push(parsed.searchParams.get("sku")||"",parsed.searchParams.get("id")||"",decodeURIComponent(parsed.pathname.split("/").filter(Boolean).pop()||""));}catch{}try{const parsed=JSON.parse(raw);candidates.push(parsed.sku||"",parsed.barcode||"",parsed.product_id||parsed.productId||parsed.id||"");}catch{}const normalized=candidates.map(v=>String(v||"").trim().toLowerCase()).filter(Boolean);const match=products.find((p:any)=>[p.id,p.sku,p.barcode,p.part_number,p.manufacturer_reference].some((v:any)=>normalized.includes(String(v||"").trim().toLowerCase())));if(match){setSelectedProductId(match.id);setScanError("");stopScanner();setScanKey(v=>v+1);}else setScanError(t.notFound);};
+  const startScanner=async()=>{setScanError("");try{if(!navigator.mediaDevices?.getUserMedia)throw new Error("camera");const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});streamRef.current=stream;setScanOpen(true);window.setTimeout(async()=>{const video=videoRef.current;if(!video||!streamRef.current)return;video.srcObject=stream;try{await video.play();}catch{}const Detector=(window as any).BarcodeDetector;if(Detector){try{const detector=new Detector({formats:["qr_code","code_128","code_39","ean_13","ean_8","upc_a","upc_e"]});const scan=async()=>{if(!streamRef.current)return;try{const codes=await detector.detect(video);if(codes.length&&codes[0].rawValue){selectScannedCode(codes[0].rawValue);return;}}catch{}window.setTimeout(scan,300);};void scan();return;}catch{}}try{const reader=new BrowserMultiFormatReader();zxingRef.current=reader;reader.decodeFromVideoElement(video,(result)=>{if(result?.getText())selectScannedCode(result.getText());});}catch{setScanError(t.cameraError);}},120);}catch{setScanError(t.cameraError);}};
   const matches=products.filter((p:any)=>!manualSearch||[p.sku,p.name,p.barcode,p.part_number].some((v:any)=>String(v||"").toLowerCase().includes(manualSearch.toLowerCase()))).slice(0,8);
   const metrics=useMemo(()=>({parts:products.filter((p:any)=>p.is_active!==false).length,stores:warehouses.filter((w:any)=>w.is_active!==false).length}),[products,warehouses]);
   return <div className="mwa" dir={ar?"rtl":"ltr"}>
