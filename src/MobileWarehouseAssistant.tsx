@@ -81,7 +81,29 @@ export default function MobileWarehouseAssistant(props:Props) {
     };
   },[scanOpen]);
   useEffect(()=>()=>{(zxingRef.current as any)?.reset();streamRef.current?.getTracks().forEach(track=>track.stop());streamRef.current=null;},[]);
-  const stopScanner=()=>{if(scanTimerRef.current)window.clearTimeout(scanTimerRef.current);(zxingRef.current as any)?.reset();zxingRef.current=null;streamRef.current?.getTracks().forEach(track=>track.stop());streamRef.current=null;const video=videoRef.current;if(video){video.pause();video.srcObject=null;}setCameraReady(false);setCameraStarting(false);setScanOpen(false);};
+  const stopScanner=()=>{
+    // Stop decoding first, then release every camera track before hiding the
+    // dialog. This is important on Android, where hiding the preview alone
+    // can leave the camera indicator active.
+    if(scanTimerRef.current)window.clearTimeout(scanTimerRef.current);
+    scanTimerRef.current=undefined;
+    try{(zxingRef.current as any)?.reset();}catch(error){console.warn("Scanner reset failed",error);}
+    zxingRef.current=null;
+    const video=videoRef.current;
+    const activeStream=streamRef.current || (video?.srcObject instanceof MediaStream ? video.srcObject : null);
+    activeStream?.getTracks().forEach(track=>{try{track.stop();}catch{}});
+    streamRef.current=null;
+    if(video){try{video.pause();}catch{};video.srcObject=null;video.removeAttribute("src");}
+    setCameraReady(false);
+    setCameraStarting(false);
+    setScanOpen(false);
+  };
+  useEffect(()=>{
+    if(!scanOpen)return;
+    const closeOnEscape=(event:KeyboardEvent)=>{if(event.key==="Escape"){event.preventDefault();stopScanner();}};
+    document.addEventListener("keydown",closeOnEscape);
+    return()=>document.removeEventListener("keydown",closeOnEscape);
+  },[scanOpen]);
   const selectScannedCode=(code:string)=>{const raw=code.trim();let candidates=[raw];try{const parsed=new URL(raw);candidates.push(parsed.searchParams.get("sku")||"",parsed.searchParams.get("id")||"",decodeURIComponent(parsed.pathname.split("/").filter(Boolean).pop()||""));}catch{}try{const parsed=JSON.parse(raw);candidates.push(parsed.sku||"",parsed.barcode||"",parsed.product_id||parsed.productId||parsed.id||"");}catch{}const normalized=candidates.map(v=>String(v||"").trim().toLowerCase()).filter(Boolean);const match=products.find((p:any)=>[p.id,p.sku,p.barcode,p.part_number,p.manufacturer_reference].some((v:any)=>normalized.includes(String(v||"").trim().toLowerCase())));if(match){setSelectedProductId(match.id);setScanError("");stopScanner();setScanKey(v=>v+1);}else setScanError(t.notFound);};
   const startScanner=()=>{setScanError("");setScanValue("");setScanOpen(true);};
   const matches=products.filter((p:any)=>!manualSearch||[p.sku,p.name,p.barcode,p.part_number].some((v:any)=>String(v||"").toLowerCase().includes(manualSearch.toLowerCase()))).slice(0,8);
@@ -99,7 +121,7 @@ export default function MobileWarehouseAssistant(props:Props) {
     <section className="mwa-quick-actions"><button type="button" className="mwa-scan-btn" onClick={()=>void startScanner()}><Camera size={19}/><span>{t.scan}</span></button><label className="mwa-manual-search"><Search size={18}/><input value={manualSearch} onChange={e=>setManualSearch(e.target.value)} placeholder={t.searchPlaceholder}/></label></section>
     {manualSearch&&<section className="mwa-search-results">{matches.map((p:any)=><button type="button" key={p.id} onClick={()=>{setSelectedProductId(p.id);setManualSearch("");setScanKey(v=>v+1);}}><span><b>{p.sku||"—"}</b><small>{p.name}</small></span><CheckCircle2 size={17}/></button>)}{!matches.length&&<p>{t.notFound}</p>}</section>}
     {selectedProductId&&<div className="mwa-selected"><CheckCircle2 size={17}/>{t.selected}: {products.find((p:any)=>p.id===selectedProductId)?.name||"—"}<button type="button" onClick={()=>setSelectedProductId(null)}><X size={16}/></button></div>}
-    {scanOpen&&<ModalPortal><div className="mwa-scanner-backdrop" onClick={stopScanner}><section className="mwa-scanner" role="dialog" aria-modal="true" onClick={e=>e.stopPropagation()}><header><b>{t.scan}</b><button type="button" className="icon-btn mwa-scanner-close" aria-label={t.close} onPointerUp={e=>{e.preventDefault();e.stopPropagation();stopScanner();}} onClick={e=>{e.preventDefault();e.stopPropagation();stopScanner();}}><X size={20}/></button></header><div className="mwa-video-stage"><video ref={videoRef} playsInline muted autoPlay/><div className="mwa-camera-start" hidden={cameraReady}><Camera size={34}/><b>{cameraStarting?"Ouverture de la caméra…":"Activer la caméra"}</b><button type="button" disabled={cameraStarting} onClick={()=>void activateCamera()}>{cameraStarting?"Patientez…":"Autoriser et ouvrir la caméra"}</button></div></div><p role="status">{scanError|| (cameraReady?"Placez le code-barres ou QR devant la caméra.":"Appuyez sur le bouton pour autoriser l’accès à la caméra.")}</p><label><Search size={16}/><input value={scanValue} onChange={e=>setScanValue(e.target.value)} placeholder={t.searchPlaceholder}/><button type="button" onClick={()=>selectScannedCode(scanValue)}>{t.choose}</button></label><div className="mwa-scanner-actions"><button type="button" className="secondary-btn" onPointerUp={e=>{e.preventDefault();stopScanner();}} onClick={stopScanner}><X size={16}/>{t.close}</button></div></section></div></ModalPortal>}
+    {scanOpen&&<ModalPortal><div className="mwa-scanner-backdrop" onClick={stopScanner}><section className="mwa-scanner" role="dialog" aria-modal="true" onClick={e=>e.stopPropagation()}><header><b>{t.scan}</b><button type="button" className="icon-btn mwa-scanner-close" aria-label={t.close} title={t.close} onClick={e=>{e.preventDefault();e.stopPropagation();stopScanner();}}><X size={20}/></button></header><div className="mwa-video-stage"><video ref={videoRef} playsInline muted autoPlay/><div className="mwa-camera-start" hidden={cameraReady}><Camera size={34}/><b>{cameraStarting?"Ouverture de la caméra…":"Activer la caméra"}</b><button type="button" disabled={cameraStarting} onClick={()=>void activateCamera()}>{cameraStarting?"Patientez…":"Autoriser et ouvrir la caméra"}</button></div></div><p role="status">{scanError|| (cameraReady?"Placez le code-barres ou QR devant la caméra.":"Appuyez sur le bouton pour autoriser l’accès à la caméra.")}</p><label><Search size={16}/><input value={scanValue} onChange={e=>setScanValue(e.target.value)} placeholder={t.searchPlaceholder}/><button type="button" onClick={()=>selectScannedCode(scanValue)}>{t.choose}</button></label><div className="mwa-scanner-actions"><button type="button" className="secondary-btn" onClick={e=>{e.preventDefault();e.stopPropagation();stopScanner();}}><X size={16}/>{t.close}</button></div></section></div></ModalPortal>}
     <section className="mwa-flow">
       <div className="mwa-section-title"><Activity size={17}/><h3>{t.flow}</h3></div>
       <div className="mwa-steps"><div><b>01</b><span>{t.step1}</span></div><i/><div><b>02</b><span>{t.step2}</span></div><i/><div><b>03</b><span>{t.step3}</span></div></div>
