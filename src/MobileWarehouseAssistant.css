@@ -25,3 +25,9 @@
 .mwa-scanner label{display:flex;align-items:center;gap:8px;padding:9px;border:1px solid var(--border,#e4eaf2);border-radius:12px;color:#2867a6}
 .mwa-scanner label button{border:0;border-radius:9px;padding:9px 12px;background:#1e5c98;color:white;font-weight:700}
 @media(max-width:760px){.mwa-quick-actions{grid-template-columns:1fr}.mwa-scan-btn{min-height:52px}.mwa-manual-search{min-height:50px}}
+
+.mwa-camera-start{min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;border:1px dashed #8da6c4;border-radius:14px;background:linear-gradient(145deg,#edf4fc,#f8fbff);color:#315f94;text-align:center}
+.mwa-camera-start b{font-size:14px;color:#294568}
+.mwa-camera-start button{min-height:44px;padding:0 18px;border:0;border-radius:11px;background:linear-gradient(120deg,#16477b,#347bc0);color:#fff;font-weight:800}
+.mwa-camera-start button:disabled{opacity:.65}
+.mwa-scanner video{display:block;width:100%;max-height:55dvh;min-height:210px;object-fit:cover;border-radius:14px;background:#0a1728}
