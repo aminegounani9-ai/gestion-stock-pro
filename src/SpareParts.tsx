@@ -298,7 +298,7 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
  async function updateSerial(id:string,status:string){if(!canWrite)return;const {error}=await supabase!.from("stock_serial_numbers").update({status}).eq("id",id).eq("company_id",companyId);if(error)alert(error.message);else await load();}
  const qrUrl=(value:string)=>`https://api.qrserver.com/v1/create-qr-code/?size=256x256&margin=1&ecc=M&data=${encodeURIComponent(value)}`;
  
-  async function getPrintBranding(){if(!supabase)return {};const {data}=await supabase.from("companies").select("name,brand_display_name,brand_logo_url,brand_primary_color,brand_secondary_color").eq("id",companyId).maybeSingle();return data||{};}
+  async function getPrintBranding():Promise<any>{if(!supabase)return {};const {data}=await supabase.from("companies").select("name,brand_display_name,brand_logo_url,brand_primary_color,brand_secondary_color").eq("id",companyId).maybeSingle();return data||{};}
   async function printQrBatch(items:any[]){
     const list=items.filter(Boolean);if(!list.length){alert("Sélectionnez au moins une pièce.");return;}
     const w=window.open("","_blank","width=900,height=700");if(!w){alert("Autorisez les fenêtres pop-up pour imprimer.");return;}
