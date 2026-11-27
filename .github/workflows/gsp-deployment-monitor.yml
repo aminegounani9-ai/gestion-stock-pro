@@ -87,7 +87,11 @@ jobs:
                 success) CF_STATUS="success" ;;
                 failure|failed) CF_STATUS="failed" ;;
                 canceled|cancelled) CF_STATUS="canceled" ;;
-                *) CF_STATUS="building" ;;
+                *)
+                  echo "Cloudflare deployment is still running (stage status: $RAW_STATUS)."
+                  sleep 20
+                  continue
+                  ;;
               esac
 
               jq -n \
