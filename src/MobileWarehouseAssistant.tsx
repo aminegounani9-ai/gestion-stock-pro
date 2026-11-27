@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Activity, Camera, CheckCircle2, ClipboardList, PackageCheck, Search, Smartphone, Warehouse, X } from "lucide-react";
 import SpareParts from "./SpareParts";
+import ModalPortal from "./ModalPortal";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import "./MobileWarehouseAssistant.css";
 
@@ -42,23 +43,18 @@ export default function MobileWarehouseAssistant(props:Props) {
       if(!video)throw new Error("video-not-mounted");
       video.setAttribute("playsinline","true");video.setAttribute("webkit-playsinline","true");
       video.muted=true;video.autoplay=true;video.srcObject=stream;
+      // Android Chrome/WebView needs a rendered video box before playback.
+      await new Promise<void>((resolve,reject)=>{
+        if(video.readyState>=1){resolve();return;}
+        const cleanup=()=>{video.removeEventListener("loadedmetadata",onReady);video.removeEventListener("error",onError);};
+        const onReady=()=>{cleanup();resolve();};
+        const onError=()=>{cleanup();reject(new Error("video-metadata-error"));};
+        video.addEventListener("loadedmetadata",onReady,{once:true});
+        video.addEventListener("error",onError,{once:true});
+        window.setTimeout(()=>{cleanup();reject(new Error("video-metadata-timeout"));},8000);
+      });
       await video.play();
       setCameraReady(true);
-      const Detector=(window as any).BarcodeDetector;
-      if(Detector){
-        try{
-          const detector=new Detector({formats:["qr_code","code_128","code_39","ean_13","ean_8","upc_a","upc_e"]});
-          const scan=async()=>{
-            if(!streamRef.current)return;
-            if(video.readyState>=2){
-              try{const codes=await detector.detect(video);if(codes.length&&codes[0].rawValue){selectScannedCode(codes[0].rawValue);return;}}catch{}
-            }
-            scanTimerRef.current=window.setTimeout(scan,180);
-          };
-          void scan();
-          return;
-        }catch{}
-      }
       const reader=new BrowserMultiFormatReader();zxingRef.current=reader;
       reader.decodeFromVideoElement(video,(result)=>{if(result?.getText())selectScannedCode(result.getText());});
     }catch(error){
@@ -93,7 +89,7 @@ export default function MobileWarehouseAssistant(props:Props) {
     <section className="mwa-quick-actions"><button type="button" className="mwa-scan-btn" onClick={()=>void startScanner()}><Camera size={19}/><span>{t.scan}</span></button><label className="mwa-manual-search"><Search size={18}/><input value={manualSearch} onChange={e=>setManualSearch(e.target.value)} placeholder={t.searchPlaceholder}/></label></section>
     {manualSearch&&<section className="mwa-search-results">{matches.map((p:any)=><button type="button" key={p.id} onClick={()=>{setSelectedProductId(p.id);setManualSearch("");setScanKey(v=>v+1);}}><span><b>{p.sku||"—"}</b><small>{p.name}</small></span><CheckCircle2 size={17}/></button>)}{!matches.length&&<p>{t.notFound}</p>}</section>}
     {selectedProductId&&<div className="mwa-selected"><CheckCircle2 size={17}/>{t.selected}: {products.find((p:any)=>p.id===selectedProductId)?.name||"—"}<button type="button" onClick={()=>setSelectedProductId(null)}><X size={16}/></button></div>}
-    {scanOpen&&<div className="mwa-scanner-backdrop"><section className="mwa-scanner"><header><b>{t.scan}</b><button type="button" onClick={stopScanner}><X size={18}/></button></header><video ref={videoRef} playsInline muted autoPlay style={{display:cameraReady?"block":"none"}}/>{!cameraReady&&<div className="mwa-camera-start"><Camera size={34}/><b>{cameraStarting?"Ouverture de la caméra…":"Activer la caméra"}</b><button type="button" disabled={cameraStarting} onClick={()=>void activateCamera()}>{cameraStarting?"Patientez…":"Autoriser et ouvrir la caméra"}</button></div>}<p role="status">{scanError|| (cameraReady?"Placez le code-barres ou QR devant la caméra.":"Appuyez sur le bouton pour autoriser l’accès à la caméra.")}</p><label><Search size={16}/><input value={scanValue} onChange={e=>setScanValue(e.target.value)} placeholder={t.searchPlaceholder}/><button type="button" onClick={()=>selectScannedCode(scanValue)}>{t.choose}</button></label></section></div>}
+    {scanOpen&&<ModalPortal><div className="mwa-scanner-backdrop"><section className="mwa-scanner" role="dialog" aria-modal="true"><header><b>{t.scan}</b><button type="button" onClick={stopScanner}><X size={18}/></button></header><div className="mwa-video-stage"><video ref={videoRef} playsInline muted autoPlay/><div className="mwa-camera-start" hidden={cameraReady}><Camera size={34}/><b>{cameraStarting?"Ouverture de la caméra…":"Activer la caméra"}</b><button type="button" disabled={cameraStarting} onClick={()=>void activateCamera()}>{cameraStarting?"Patientez…":"Autoriser et ouvrir la caméra"}</button></div></div><p role="status">{scanError|| (cameraReady?"Placez le code-barres ou QR devant la caméra.":"Appuyez sur le bouton pour autoriser l’accès à la caméra.")}</p><label><Search size={16}/><input value={scanValue} onChange={e=>setScanValue(e.target.value)} placeholder={t.searchPlaceholder}/><button type="button" onClick={()=>selectScannedCode(scanValue)}>{t.choose}</button></label></section></div></ModalPortal>}
     <section className="mwa-flow">
       <div className="mwa-section-title"><Activity size={17}/><h3>{t.flow}</h3></div>
       <div className="mwa-steps"><div><b>01</b><span>{t.step1}</span></div><i/><div><b>02</b><span>{t.step2}</span></div><i/><div><b>03</b><span>{t.step3}</span></div></div>
