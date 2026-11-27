@@ -56,7 +56,7 @@ const labels = {
     deploymentsTitle: "Historique des déploiements", deploymentsDesc: "Versions publiées sur Cloudflare Pages.",
     eventTypeLabel: "Événement", ipLabel: "IP anonymisée", messageLabel: "Détail", routeLabel: "Page",
     commitLabel: "Commit", deploymentLabel: "Déploiement", statusLabel: "Statut", noTelemetry: "Aucun événement pour le moment.",
-    deploymentSetup: "Pour activer le suivi automatique des déploiements, ajoute les secrets GitHub indiqués dans les instructions."
+    provider: "Fournisseur", deploymentSetup: "Pour activer le suivi automatique des déploiements, ajoute les secrets GitHub indiqués dans les instructions."
   },
   en: {
     eyebrow: "PRIVATE ADMINISTRATION", title: "Owner Control Center",
@@ -84,7 +84,7 @@ const labels = {
     deploymentsTitle: "Deployment History", deploymentsDesc: "Production releases published to Cloudflare Pages.",
     eventTypeLabel: "Event", ipLabel: "Anonymized IP", messageLabel: "Details", routeLabel: "Page",
     commitLabel: "Commit", deploymentLabel: "Deployment", statusLabel: "Status", noTelemetry: "No events recorded yet.",
-    deploymentSetup: "To enable automatic deployment tracking, add the GitHub secrets described in the setup instructions."
+    provider: "Provider", deploymentSetup: "To enable automatic deployment tracking, add the GitHub secrets described in the setup instructions."
   },
   ar: {
     eyebrow: "إدارة خاصة", title: "مركز تحكم مالك المنصة",
@@ -112,7 +112,7 @@ const labels = {
     deploymentsTitle: "سجل النشر", deploymentsDesc: "إصدارات التطبيق المنشورة على Cloudflare Pages.",
     eventTypeLabel: "الحدث", ipLabel: "عنوان IP مخفي", messageLabel: "التفاصيل", routeLabel: "الصفحة",
     commitLabel: "Commit", deploymentLabel: "النشر", statusLabel: "الحالة", noTelemetry: "لا توجد أحداث مسجلة حاليا.",
-    deploymentSetup: "لتفعيل تتبع النشر تلقائيا، أضف أسرار GitHub الموضحة في تعليمات الإعداد."
+    provider: "المزود", deploymentSetup: "لتفعيل تتبع النشر تلقائيا، أضف أسرار GitHub الموضحة في تعليمات الإعداد."
   }
 };
 
