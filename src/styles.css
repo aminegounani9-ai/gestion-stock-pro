@@ -5820,3 +5820,25 @@ body,.app-shell{color:var(--ui-text)}
 @media(max-width:700px){.sp-trend-summary{gap:6px}.sp-trend-stat{padding:9px 8px;border-radius:9px}.sp-trend-stat span{font-size:8px}.sp-trend-stat b{font-size:14px}.sp-trend-chart{border-radius:9px}}
 @media(max-width:360px){.sp-trend-stat b{font-size:12px}.sp-trend-stat{padding:8px 6px}}
 @media(prefers-reduced-motion:reduce){.sp-trend-stat,.sp-trend-point circle,.sp-line-in,.sp-line-out{animation:none!important;stroke-dashoffset:0!important}}
+
+
+/* Executive dashboard analytics charts */
+.sp-analytics-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:16px 0}
+.sp-ranking-panel{min-width:0;overflow:hidden}
+.sp-ranking-panel .sp-panel-head{margin-bottom:17px}
+.sp-analytics-bars{display:grid;gap:16px;padding:2px 2px 6px}
+.sp-analytics-bar-row{display:grid;gap:6px;min-width:0;animation:sp-analytics-enter .55s both}
+.sp-analytics-bar-label{display:flex;justify-content:space-between;align-items:center;gap:12px;min-width:0}
+.sp-analytics-bar-label span{overflow:hidden;color:#304b6e;font-size:11px;font-weight:800;text-overflow:ellipsis;white-space:nowrap}
+.sp-analytics-bar-label b{flex:0 0 auto;color:#314e73;font-size:11px;font-weight:900;font-variant-numeric:tabular-nums}
+.sp-analytics-bar-row small{overflow:hidden;color:#8a99ad;font-size:9px;text-overflow:ellipsis;white-space:nowrap}
+.sp-analytics-track{height:9px;overflow:hidden;border-radius:12px;background:linear-gradient(90deg,#edf2f8,#f4f7fb);box-shadow:inset 0 1px 2px rgba(35,58,90,.05)}
+.sp-analytics-track i{display:block;width:var(--bar-width,0);height:100%;border-radius:inherit;transform-origin:left center;animation:sp-analytics-grow 1.05s cubic-bezier(.2,.75,.25,1) both;animation-delay:var(--bar-delay,0ms)}
+.sp-analytics-track i.is-value{background:linear-gradient(90deg,#397be0,#71a8fa);box-shadow:0 0 12px rgba(59,130,246,.22)}
+.sp-analytics-track i.is-warehouse{background:linear-gradient(90deg,#18a783,#63cfad);box-shadow:0 0 12px rgba(24,167,131,.18)}
+.sp-analytics-track i.is-movement{background:linear-gradient(90deg,#d99532,#f2c36d);box-shadow:0 0 12px rgba(231,163,62,.2)}
+.sp-analytics-note{margin-top:12px;padding:9px 10px;border-radius:9px;background:#f6f8fc;color:#8795a9;font-size:9px;line-height:1.5}
+@keyframes sp-analytics-grow{from{width:0;opacity:.45}to{width:var(--bar-width);opacity:1}}
+@keyframes sp-analytics-enter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:760px){.sp-analytics-grid{grid-template-columns:1fr;gap:12px;margin:12px 0}.sp-analytics-bars{gap:14px}.sp-analytics-bar-label span{font-size:10px}.sp-analytics-bar-label b{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.sp-analytics-bar-row,.sp-analytics-track i{animation:none!important}}
