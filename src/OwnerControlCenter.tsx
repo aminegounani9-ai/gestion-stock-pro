@@ -38,6 +38,7 @@ const labels = {
     all: "Tous les événements", data: "Modifications de données", search: "Rechercher dans les modules et descriptions…",
     refresh: "Actualiser", export: "Exporter les données", csv: "Exporter CSV", excel: "Exporter Excel",
     json: "Exporter JSON", exportHint: "L'export reprend tous les résultats correspondant aux filtres, pas seulement la page affichée.",
+    exportAll: "Exporter toute la surveillance",
     history: "Historique des activités", date: "Date", company: "ID entreprise", actor: "ID utilisateur",
     module: "Module / table", action: "Action", description: "Description", severity: "Niveau",
     noLogs: "Aucun événement enregistré pour le moment.", noAccess: "Accès réservé au propriétaire de la plateforme.",
@@ -66,6 +67,7 @@ const labels = {
     all: "All events", data: "Data changes", search: "Search modules and descriptions…",
     refresh: "Refresh", export: "Export data", csv: "Export CSV", excel: "Export Excel",
     json: "Export JSON", exportHint: "Exports all results matching the filters, not only the visible page.",
+    exportAll: "Export all monitoring data",
     history: "Activity history", date: "Date", company: "Company ID", actor: "User ID",
     module: "Module / table", action: "Action", description: "Description", severity: "Level",
     noLogs: "No events recorded yet.", noAccess: "Access restricted to the platform owner.",
@@ -94,6 +96,7 @@ const labels = {
     all: "كل الأحداث", data: "تغييرات البيانات", search: "ابحث في الوحدات والوصف…",
     refresh: "تحديث", export: "تصدير البيانات", csv: "تصدير CSV", excel: "تصدير Excel",
     json: "تصدير JSON", exportHint: "التصدير يشمل كل النتائج المطابقة للفلاتر وليس الصفحة الحالية فقط.",
+    exportAll: "تصدير كل بيانات المراقبة",
     history: "سجل النشاط", date: "التاريخ", company: "معرف الشركة", actor: "معرف المستخدم",
     module: "الوحدة / الجدول", action: "العملية", description: "الوصف", severity: "المستوى",
     noLogs: "لا توجد أحداث مسجلة حاليا.", noAccess: "الدخول مخصص لمالك المنصة فقط.",
@@ -218,6 +221,50 @@ export default function OwnerControlCenter({ userId, lang = "fr" }: { userId: st
     ) : result;
   }
 
+  async function exportAllMonitoring(format: "csv" | "xlsx" | "json") {
+    if (!supabase) return;
+    setBusy(true); setError(""); setMessage("");
+    try {
+      const tables = [
+        ["Audit Logs", "platform_audit_logs"],
+        ["Security Events", "platform_security_events"],
+        ["Application Errors", "platform_app_errors"],
+        ["Deployments", "platform_deployments"]
+      ] as const;
+      const datasets: Record<string, Record<string, unknown>[]> = {};
+      for (const [label, table] of tables) {
+        let query = supabase.from(table).select("*").order("created_at", { ascending: false });
+        if (startDate) query = query.gte("created_at", new Date(startDate + "T00:00:00").toISOString());
+        if (endDate) {
+          const end = new Date(endDate + "T00:00:00"); end.setDate(end.getDate() + 1);
+          query = query.lt("created_at", end.toISOString());
+        }
+        const { data, error: queryError } = await query;
+        if (queryError) throw queryError;
+        datasets[label] = (data || []) as Record<string, unknown>[];
+      }
+      const date = new Date().toISOString().slice(0, 10);
+      if (format === "json") {
+        saveBlob(new Blob([JSON.stringify(datasets, null, 2)], { type: "application/json;charset=utf-8" }), "GSP-all-monitoring-" + date + ".json");
+      } else if (format === "xlsx") {
+        const workbook = XLSX.utils.book_new();
+        for (const [label, rows] of Object.entries(datasets)) {
+          const normalized = rows.map(row => Object.fromEntries(Object.entries(row).map(([key, value]) => [key, typeof value === "object" && value !== null ? JSON.stringify(value) : value])));
+          XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(normalized.length ? normalized : [{ info: "No records" }]), label.slice(0, 31));
+        }
+        XLSX.writeFile(workbook, "GSP-all-monitoring-" + date + ".xlsx");
+      } else {
+        const combined = Object.entries(datasets).flatMap(([record_type, rows]) => rows.map(row => ({ record_type, ...row, metadata: row.metadata ? JSON.stringify(row.metadata) : "" })));
+        const sheet = XLSX.utils.json_to_sheet(combined);
+        saveBlob(new Blob(["\\uFEFF", XLSX.utils.sheet_to_csv(sheet)], { type: "text/csv;charset=utf-8" }), "GSP-all-monitoring-" + date + ".csv");
+      }
+      const totalRecords = Object.values(datasets).reduce((sum, rows) => sum + rows.length, 0);
+      setMessage(t.exportDone + " (" + totalRecords + ")");
+    } catch (e: any) {
+      setError(t.error + (e?.message || "Export failed"));
+    } finally { setBusy(false); }
+  }
+
   async function exportLogs(format: "csv" | "xlsx" | "json") {
     setBusy(true);
     setError("");
@@ -255,8 +302,9 @@ export default function OwnerControlCenter({ userId, lang = "fr" }: { userId: st
     try {
       const cutoff = new Date();
       cutoff.setDate(cutoff.getDate() - 90);
-      const { error: deleteError } = await supabase.from("platform_audit_logs").delete().lt("created_at", cutoff.toISOString());
-      if (deleteError) throw deleteError;
+      const results = await Promise.all(["platform_audit_logs","platform_security_events","platform_app_errors","platform_deployments"].map(table => supabase.from(table).delete().lt("created_at", cutoff.toISOString())));
+      const failed = results.find(result => result.error);
+      if (failed?.error) throw failed.error;
       setPage(0); setMessage(t.done); await load();
     } catch (e: any) { setError(t.error + (e?.message || "Delete failed")); }
     finally { setBusy(false); }
@@ -289,8 +337,9 @@ export default function OwnerControlCenter({ userId, lang = "fr" }: { userId: st
     if (!supabase) return;
     setBusy(true); setError(""); setMessage("");
     try {
-      const { error: deleteError } = await supabase.from("platform_audit_logs").delete().gte("created_at", "1970-01-01T00:00:00.000Z");
-      if (deleteError) throw deleteError;
+      const results = await Promise.all(["platform_audit_logs","platform_security_events","platform_app_errors","platform_deployments"].map(table => supabase.from(table).delete().gte("created_at", "1970-01-01T00:00:00.000Z")));
+      const failed = results.find(result => result.error);
+      if (failed?.error) throw failed.error;
       setPage(0); setMessage(t.done); await load();
     } catch (e: any) { setError(t.error + (e?.message || "Delete failed")); }
     finally { setBusy(false); }
@@ -324,6 +373,7 @@ export default function OwnerControlCenter({ userId, lang = "fr" }: { userId: st
         <button type="button" onClick={() => void exportLogs("csv")} disabled={busy}><Download size={15}/>{t.csv}</button>
         <button type="button" onClick={() => void exportLogs("xlsx")} disabled={busy}><FileSpreadsheet size={15}/>{t.excel}</button>
         <button type="button" onClick={() => void exportLogs("json")} disabled={busy}><FileText size={15}/>{t.json}</button>
+        <button type="button" className="owner-export-all" onClick={() => void exportAllMonitoring("xlsx")} disabled={busy}><Database size={15}/>{t.exportAll}</button>
       </div>
     </section>
 
