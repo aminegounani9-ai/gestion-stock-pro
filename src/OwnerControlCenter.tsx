@@ -54,10 +54,10 @@ const labels = {
     retention: "Conseil : exporte une archive avant de supprimer les anciens journaux.",
     securityTitle: "Centre de sécurité", securityDesc: "Échecs de connexion et événements de sécurité récents.",
     errorsTitle: "Erreurs de l’application", errorsDesc: "Erreurs JavaScript, promesses non gérées et erreurs de rendu React.",
-    deploymentsTitle: "Historique des déploiements", deploymentsDesc: "Versions publiées sur Cloudflare Pages.",
+    deploymentsTitle: "Historique des déploiements", deploymentsDesc: "Résultats du build GitHub Actions et déploiements Cloudflare Pages.",
     eventTypeLabel: "Événement", ipLabel: "IP anonymisée", messageLabel: "Détail", routeLabel: "Page",
     commitLabel: "Commit", deploymentLabel: "Déploiement", statusLabel: "Statut", noTelemetry: "Aucun événement pour le moment.",
-    provider: "Fournisseur", deploymentSetup: "Activation auto : GitHub > Settings > Secrets and variables > Actions. Ajoute CLOUDFLARE_API_TOKEN (Cloudflare Pages Read) et GSP_MONITOR_WEBHOOK_SECRET (secret aléatoire partagé)."
+    provider: "Fournisseur", deploymentSetup: "Obligatoire : ajoute le même GSP_MONITOR_WEBHOOK_SECRET dans Supabase > Edge Functions > Secrets et GitHub > Settings > Secrets and variables > Actions. Optionnel : CLOUDFLARE_API_TOKEN (Cloudflare Pages Read) pour suivre le statut Cloudflare exact."
   },
   en: {
     eyebrow: "PRIVATE ADMINISTRATION", title: "Owner Control Center",
@@ -83,10 +83,10 @@ const labels = {
     retention: "Tip: export an archive before deleting older logs.",
     securityTitle: "Security Center", securityDesc: "Recent failed sign-ins and security events.",
     errorsTitle: "Application Errors", errorsDesc: "JavaScript errors, unhandled promises and React rendering failures.",
-    deploymentsTitle: "Deployment History", deploymentsDesc: "Production releases published to Cloudflare Pages.",
+    deploymentsTitle: "Deployment History", deploymentsDesc: "GitHub Actions build results and Cloudflare Pages production deployments.",
     eventTypeLabel: "Event", ipLabel: "Anonymized IP", messageLabel: "Details", routeLabel: "Page",
     commitLabel: "Commit", deploymentLabel: "Deployment", statusLabel: "Status", noTelemetry: "No events recorded yet.",
-    provider: "Provider", deploymentSetup: "Enable auto tracking in GitHub > Settings > Secrets and variables > Actions. Add CLOUDFLARE_API_TOKEN (Cloudflare Pages Read) and GSP_MONITOR_WEBHOOK_SECRET (random shared secret)."
+    provider: "Provider", deploymentSetup: "Required: set the same GSP_MONITOR_WEBHOOK_SECRET in Supabase > Edge Functions > Secrets and GitHub > Settings > Secrets and variables > Actions. Optional: CLOUDFLARE_API_TOKEN (Cloudflare Pages Read) for exact Cloudflare status."
   },
   ar: {
     eyebrow: "إدارة خاصة", title: "مركز تحكم مالك المنصة",
@@ -112,10 +112,10 @@ const labels = {
     retention: "نصيحة: صدّر نسخة احتياطية قبل حذف السجلات القديمة.",
     securityTitle: "مركز الأمان", securityDesc: "محاولات الدخول الفاشلة وأحداث الأمان الأخيرة.",
     errorsTitle: "أخطاء التطبيق", errorsDesc: "أخطاء JavaScript والوعود غير المعالجة وأخطاء عرض React.",
-    deploymentsTitle: "سجل النشر", deploymentsDesc: "إصدارات التطبيق المنشورة على Cloudflare Pages.",
+    deploymentsTitle: "سجل النشر", deploymentsDesc: "نتائج بناء GitHub Actions وعمليات النشر على Cloudflare Pages.",
     eventTypeLabel: "الحدث", ipLabel: "عنوان IP مخفي", messageLabel: "التفاصيل", routeLabel: "الصفحة",
     commitLabel: "Commit", deploymentLabel: "النشر", statusLabel: "الحالة", noTelemetry: "لا توجد أحداث مسجلة حاليا.",
-    provider: "المزود", deploymentSetup: "لتفعيل التتبع الآلي، أضف في GitHub > Settings > Secrets and variables > Actions: CLOUDFLARE_API_TOKEN بصلاحية Pages Read و GSP_MONITOR_WEBHOOK_SECRET كسِر عشوائي مشترك."
+    provider: "المزود", deploymentSetup: "ضروري: أضف نفس GSP_MONITOR_WEBHOOK_SECRET في Supabase > Edge Functions > Secrets و GitHub > Settings > Secrets and variables > Actions. اختياري: CLOUDFLARE_API_TOKEN بصلاحية Pages Read لمراقبة حالة Cloudflare بدقة."
   }
 };
 
