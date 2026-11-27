@@ -5796,3 +5796,27 @@ body,.app-shell{color:var(--ui-text)}
 @media(max-width:900px){.pm-radar-layout{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;padding:10px 6px}.pm-radar-metric{padding:10px 9px;gap:8px}.pm-radar-metric-icon{flex-basis:31px;width:31px;height:31px}.pm-radar-metric>strong{flex-basis:38px;font-size:15px}}
 @media(max-width:620px){.pm-radar-layout{grid-template-columns:1fr;gap:8px;padding:8px 4px 12px}.pm-radar-layout .pm-radar-visual svg{width:min(100%,360px)}.pm-radar-metrics{grid-template-columns:1fr 1fr;gap:7px}.pm-radar-metric{align-items:flex-start;gap:7px;padding:9px 8px;border-left-width:2px}.pm-radar-metric-icon{flex:0 0 27px;width:27px;height:27px;border-radius:8px;font-size:9px}.pm-radar-metric-copy>b{font-size:9px}.pm-radar-metric-copy>small{font-size:8px}.pm-radar-metric>strong{flex:0 0 auto;margin-left:auto;font-size:13px}.pm-radar-metric-track{height:4px}}
 @media(prefers-reduced-motion:reduce){.pm-radar-area,.pm-radar-point,.pm-radar-metric{animation:none!important}.pm-radar-metric,.pm-radar-metric-track i{transition:none!important}}
+
+
+/* Stock flow trend — executive analytics treatment */
+.sp-trend-wrap{display:grid;gap:10px;min-width:0}
+.sp-trend-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:2px 0 1px}
+.sp-trend-stat{display:grid;gap:5px;min-width:0;padding:10px 12px;border:1px solid #e9eef6;border-radius:11px;background:linear-gradient(145deg,#fff,#f8faff);box-shadow:0 4px 12px rgba(32,55,91,.035);animation:sp-trend-stat-in .5s both}
+.sp-trend-stat:nth-child(2){animation-delay:.07s}.sp-trend-stat:nth-child(3){animation-delay:.14s}
+.sp-trend-stat span{overflow:hidden;color:#8492a7;font-size:9px;font-weight:700;text-overflow:ellipsis;white-space:nowrap}
+.sp-trend-stat b{color:#294568;font-size:17px;font-weight:900;letter-spacing:-.3px;font-variant-numeric:tabular-nums}
+.sp-trend-stat.is-in{border-top:2px solid #3b82f6}.sp-trend-stat.is-in b{color:#3475d4}
+.sp-trend-stat.is-out{border-top:2px solid #e7a33e}.sp-trend-stat.is-out b{color:#c8892d}
+.sp-trend-stat.is-net-positive{border-top:2px solid #31a77e}.sp-trend-stat.is-net-positive b{color:#22966f}
+.sp-trend-stat.is-net-negative{border-top:2px solid #d95e58}.sp-trend-stat.is-net-negative b{color:#c64f49}
+.sp-trend-chart{position:relative;border-radius:12px;background:radial-gradient(ellipse at 50% 0%,rgba(61,125,220,.045),transparent 68%);padding:3px 0 0}
+.sp-trend-point circle{animation:sp-trend-point-in .55s cubic-bezier(.2,.8,.2,1) both;transition:r .18s,filter .18s}
+.sp-trend-point:nth-child(2n) circle{animation-delay:.025s}
+.sp-trend-point circle:hover{r:6.5;filter:drop-shadow(0 0 4px rgba(59,130,246,.35))}
+.sp-line-in,.sp-line-out{stroke-dasharray:1800;stroke-dashoffset:1800;animation:sp-draw-line 1.45s cubic-bezier(.2,.7,.2,1) forwards}
+.sp-line-out{animation-delay:.16s}
+@keyframes sp-trend-point-in{from{opacity:0;transform:scale(.25)}to{opacity:1;transform:scale(1)}}
+@keyframes sp-trend-stat-in{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:700px){.sp-trend-summary{gap:6px}.sp-trend-stat{padding:9px 8px;border-radius:9px}.sp-trend-stat span{font-size:8px}.sp-trend-stat b{font-size:14px}.sp-trend-chart{border-radius:9px}}
+@media(max-width:360px){.sp-trend-stat b{font-size:12px}.sp-trend-stat{padding:8px 6px}}
+@media(prefers-reduced-motion:reduce){.sp-trend-stat,.sp-trend-point circle,.sp-line-in,.sp-line-out{animation:none!important;stroke-dashoffset:0!important}}
