@@ -1,4 +1,5 @@
 import React from "react";
+import { reportPlatformError } from "./lib/platformTelemetry";
 
 type Props = { children: React.ReactNode; resetKey: string; lang: "fr"|"en"|"ar" };
 type State = { error: Error | null };
@@ -8,6 +9,7 @@ export default class ModuleErrorBoundary extends React.Component<Props, State> {
   static getDerivedStateFromError(error: Error): State { return { error }; }
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error("[Gestion Stock Pro] Module render error:", error, info.componentStack);
+    void reportPlatformError({ error_type: "react_render_error", module: this.props.resetKey, message: error.message || "React render error" });
   }
   componentDidUpdate(previous: Props) {
     if (previous.resetKey !== this.props.resetKey && this.state.error) this.setState({ error: null });
