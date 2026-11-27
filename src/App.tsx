@@ -542,6 +542,8 @@ export default function App() {
     setCompanies(list);
     const chosen = (preferredCompanyId ? list.find(item=>item.id===preferredCompanyId) : null) ?? list[0] ?? null;
     setCompany(chosen);
+    setBrandLogoFile(null);
+    setSettingsForm({name:chosen?.name||"",legal_name:chosen?.legal_name||"",tax_number:chosen?.tax_number||"",phone:chosen?.phone||"",email:chosen?.email||"",address:chosen?.address||"",city:chosen?.city||"",country:chosen?.country||"Algeria",currency_code:chosen?.currency_code||"DZD",brand_display_name:chosen?.brand_display_name||"",brand_logo_url:chosen?.brand_logo_url||"",brand_primary_color:chosen?.brand_primary_color||"#315FAE",brand_secondary_color:chosen?.brand_secondary_color||"#1E3A5F",brand_accent_color:chosen?.brand_accent_color||"#38A6A0",custom_domain:chosen?.custom_domain||"",custom_domain_status:chosen?.custom_domain_status||"not_configured"});
     const chosenRole = chosen ? (roleMap[chosen.id]||"viewer") : "viewer";
     setCurrentRole(chosenRole);
     const chosenIsAdmin = ["owner","admin"].includes(chosenRole);
@@ -804,7 +806,7 @@ export default function App() {
     e.preventDefault();if(!supabase||!company||!isAdmin)return;setBusy(true);
     try{
       const payload={name:settingsForm.name?.trim(),legal_name:settingsForm.legal_name?.trim()||null,tax_number:settingsForm.tax_number?.trim()||null,phone:settingsForm.phone?.trim()||null,email:settingsForm.email?.trim()||null,address:settingsForm.address?.trim()||null,city:settingsForm.city?.trim()||null,country:settingsForm.country?.trim()||"Algeria",currency_code:settingsForm.currency_code||"DZD"};
-      const {data,error}=await supabase.from("companies").update(payload).eq("id",company.id).select("id,name,currency_code,legal_name,tax_number,phone,email,address,city,country").single();
+      const {data,error}=await supabase.from("companies").update(payload).eq("id",company.id).select("id,name,currency_code,legal_name,tax_number,phone,email,address,city,country,brand_display_name,brand_logo_url,brand_primary_color,brand_secondary_color,brand_accent_color,custom_domain,custom_domain_status").single();
       if(error)throw error;setCompany(data as Company);setCompanies(list=>list.map(x=>x.id===company.id?data as Company:x));flash("success","Paramètres de l'entreprise enregistrés.");
     }catch(e:any){flash("error",e.message)}finally{setBusy(false)}
   }
