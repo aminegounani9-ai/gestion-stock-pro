@@ -16,7 +16,7 @@ type Page = "dashboard" | "projects" | "requests" | "products" | "categories" | 
 type Lang = "fr" | "en" | "ar";
 const tr=(lang:Lang,fr:string,en:string,ar:string)=>lang==="ar"?ar:lang==="en"?en:fr;
 type Notice = { type: "success" | "error"; text: string } | null;
-type AppNotification = { id:string; title:string; message:string; notification_type:string; entity_type:string|null; entity_id:string|null; is_read:boolean; created_at:string };
+type AppNotification = { id:string; recipient_user_id:string; title:string; message:string; notification_type:string; entity_type:string|null; entity_id:string|null; is_read:boolean; created_at:string };
 
 const copy = {
   fr: {
