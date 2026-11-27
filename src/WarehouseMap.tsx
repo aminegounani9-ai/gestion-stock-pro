@@ -14,6 +14,10 @@ export default function WarehouseMap({companyId,warehouses,lang,access}:Props){
  const [error,setError]=useState("");
  const [search,setSearch]=useState("");
  const [expanded,setExpanded]=useState<Record<string,boolean>>({});
+ const [viewMode,setViewMode]=useState<"tree"|"floor">("tree");
+ const [layout,setLayout]=useState<Record<string,{x:number;y:number;width:number;height:number}>>({});
+ const [drag,setDrag]=useState<{id:string;offsetX:number;offsetY:number}|null>(null);
+ const [savingPosition,setSavingPosition]=useState(false);
  const [showForm,setShowForm]=useState(false);
  const [form,setForm]=useState({name:"",code:"",location_type:"zone",parent_id:"",capacity:"",capacity_unit:"",notes:""});
  const rtl=lang==="ar";
@@ -25,7 +29,7 @@ export default function WarehouseMap({companyId,warehouses,lang,access}:Props){
   const client=supabase;
   if(!client){setError("Supabase is not configured.");setBusy(false);return;}
   const {data,error}=await client.from("storage_locations").select("id,warehouse_id,parent_id,code,name,location_type,capacity,capacity_unit,notes,is_active,created_at").eq("company_id",companyId).eq("warehouse_id",selected.id).order("code").limit(1500);
-  if(error)setError(error.message);else{setRows(data||[]);setExpanded(Object.fromEntries((data||[]).map((x:any)=>[x.id,true])));}
+  if(error)setError(error.message);else{const loaded=data||[];setRows(loaded);setExpanded(Object.fromEntries(loaded.map((x:any)=>[x.id,true])));setLayout(Object.fromEntries(loaded.map((x:any,i:number)=>[x.id,{x:Number(x.floorplan_x??(3+(i%4)*24)),y:Number(x.floorplan_y??(4+Math.floor(i/4)*20)),width:Number(x.floorplan_width??20),height:Number(x.floorplan_height??13)}])));}
   setBusy(false);
  },[companyId,selected?.id]);
  useEffect(()=>{void load()},[load]);
@@ -33,6 +37,9 @@ export default function WarehouseMap({companyId,warehouses,lang,access}:Props){
  const roots=filtered.filter(r=>!r.parent_id||!rows.some(p=>p.id===r.parent_id));
  const children=(id:string)=>filtered.filter(r=>r.parent_id===id);
  const capacityConfigured=rows.filter(r=>r.capacity!==null&&r.capacity!==undefined).length;
+ const beginFloorDrag=(e:React.PointerEvent<HTMLDivElement>,row:any)=>{if(!access?.canEdit||savingPosition)return;const card=e.currentTarget;const rect=card.getBoundingClientRect();setDrag({id:row.id,offsetX:e.clientX-rect.left,offsetY:e.clientY-rect.top});card.setPointerCapture(e.pointerId);e.preventDefault();};
+ const moveFloorDrag=(e:React.PointerEvent<HTMLDivElement>)=>{if(!drag)return;const rect=e.currentTarget.getBoundingClientRect();const current=layout[drag.id];if(!current)return;const x=Math.max(0,Math.min(100-current.width,((e.clientX-rect.left-drag.offsetX)/rect.width)*100));const y=Math.max(0,Math.min(100-current.height,((e.clientY-rect.top-drag.offsetY)/rect.height)*100));setLayout(v=>({...v,[drag.id]:{...v[drag.id],x,y}}));};
+ const finishFloorDrag=async()=>{if(!drag)return;const id=drag.id;const pos=layout[id];setDrag(null);if(!pos||!access?.canEdit)return;setSavingPosition(true);setError("");const client=supabase;if(!client){setError("Supabase is not configured.");setSavingPosition(false);return;}const {error}=await client.from("storage_locations").update({floorplan_x:Number(pos.x.toFixed(2)),floorplan_y:Number(pos.y.toFixed(2)),floorplan_width:Number(pos.width.toFixed(2)),floorplan_height:Number(pos.height.toFixed(2))}).eq("id",id).eq("company_id",companyId).eq("warehouse_id",selected.id).select("id").maybeSingle();if(error)setError(error.message);else setRows(v=>v.map(r=>r.id===id?{...r,floorplan_x:pos.x,floorplan_y:pos.y,floorplan_width:pos.width,floorplan_height:pos.height}:r));setSavingPosition(false);};
  const save=async(e:React.FormEvent)=>{
   e.preventDefault();if(!selected?.id)return;
   setBusy(true);setError("");
