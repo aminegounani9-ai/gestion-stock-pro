@@ -132,7 +132,6 @@ export default function MobileWarehouseAssistant(props:Props) {
   const startScanner=()=>{setScanError("");setScanValue("");setScanOpen(true);};
   const matches=products.filter((p:any)=>!manualSearch||[p.sku,p.name,p.barcode,p.part_number].some((v:any)=>String(v||"").toLowerCase().includes(manualSearch.toLowerCase()))).slice(0,8);
   const equipmentMatches=equipmentRows.filter((e:any)=>!manualSearch||[e.equipment_tag,e.name,e.model,e.serial_number].some((v:any)=>String(v||"").toLowerCase().includes(manualSearch.toLowerCase()))).slice(0,8);
-  const selectedEquipment=equipmentRows.find((e:any)=>e.id===selectedEquipmentId);
   const metrics=useMemo(()=>({parts:products.filter((p:any)=>p.is_active!==false).length,stores:warehouses.filter((w:any)=>w.is_active!==false).length}),[products,warehouses]);
   return <div className="mwa" dir={ar?"rtl":"ltr"}>
     <section className="mwa-hero">
