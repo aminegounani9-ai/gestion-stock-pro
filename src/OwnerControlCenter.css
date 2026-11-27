@@ -51,3 +51,4 @@
 
 .owner-count{display:inline-flex;align-items:center;justify-content:center;min-width:27px;height:27px;padding:0 8px;border-radius:20px;background:#e8f1fb;color:#245b91;font-size:11px;font-weight:800}.owner-card-head h2{display:flex;align-items:center;gap:8px}.owner-setup-note{margin:12px 0 0;color:var(--muted,#718096);font-size:11px}.owner-severity.failed,.owner-severity.critical{background:#fff0ed;color:#ad3b30}.owner-severity.success{background:#e8f7ef;color:#23734a}.owner-severity.building{background:#fff5df;color:#95630b}
 .owner-export-all{background:linear-gradient(135deg,#1b4f80,#357fba)!important;color:#fff!important;border-color:#357fba!important}.owner-export-all:hover{filter:brightness(1.06)}
+.owner-export-all-label{width:100%;font-size:11px;color:var(--muted,#718096);margin-top:4px}
