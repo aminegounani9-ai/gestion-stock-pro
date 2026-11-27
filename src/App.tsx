@@ -2,7 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useState, useRef } fro
 import ModalPortal from "./ModalPortal";
 import type { FormEvent } from "react";
 import {
-  Activity, Bell, Boxes, Building2, CheckCheck, ChevronDown, CircleHelp, FileSpreadsheet, Download, FolderKanban, Map, Gauge,
+  Activity, Bell, Boxes, Building2, CheckCheck, ChevronDown, CircleHelp, FileSpreadsheet, Download, FolderKanban, Map as MapIcon, Gauge,
   LayoutDashboard, LogOut, Package, Plus, Search, Settings,
   Truck, Users, Warehouse, X, Languages, ShieldCheck, ArrowLeftRight, ClipboardCheck, BarChart3, Printer, ScanBarcode, Wrench, Trash2, PlayCircle
 } from "lucide-react";
@@ -114,7 +114,7 @@ const nav: { id: Page; icon: typeof LayoutDashboard; group: string }[] = [
   { id:"stock", icon:Activity, group:"workspace" },
   { id:"warehouses", icon:Warehouse, group:"workspace" },
   { id:"locations", icon:Boxes, group:"workspace" },
-  { id:"warehouseMap", icon:Map, group:"workspace" },
+  { id:"warehouseMap", icon:MapIcon, group:"workspace" },
   { id:"controlCenter", icon:Gauge, group:"workspace" },
   { id:"transfers", icon:ArrowLeftRight, group:"workspace" },
   { id:"inventory", icon:ClipboardCheck, group:"workspace" },
