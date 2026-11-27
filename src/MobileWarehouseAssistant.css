@@ -123,3 +123,21 @@
  .mwa-request-area .request-kpi span{font-size:10px!important}
  .mwa-request-area .request-tracking-toolbar{grid-template-columns:minmax(0,1fr) 78px!important}
 }
+
+/* Assigned spare parts — compact mobile cards */
+.mwa-request-area .mwa-assigned-parts-panel{margin:0 0 12px;padding:13px;border:1px solid #dce6f2;border-radius:15px;background:linear-gradient(145deg,#fff 0%,#f7f9fd 100%);box-shadow:0 4px 15px rgba(32,63,105,.05)}
+.mwa-assigned-parts-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.mwa-assigned-parts-head h3{margin:0;color:#203653;font-size:14px;font-weight:850}
+.mwa-assigned-parts-head small{display:block;margin-top:3px;color:#74839a;font-size:10px}
+.mwa-assigned-parts-head>span{display:grid;place-items:center;min-width:30px;height:30px;padding:0 8px;border-radius:9px;background:#eaf2ff;color:#245f9f;font-weight:850}
+.mwa-assigned-parts-search{display:flex;align-items:center;gap:8px;min-height:38px;margin-bottom:9px;padding:0 10px;border:1px solid #dce5f0;border-radius:10px;background:#fff;color:#73839a}
+.mwa-assigned-parts-search input{width:100%;min-width:0;border:0!important;outline:0!important;box-shadow:none!important;background:transparent!important}
+.mwa-assigned-parts-list{display:grid;gap:7px}
+.mwa-assigned-part{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px;border:1px solid #e5ebf3;border-radius:11px;background:#fff}
+.mwa-assigned-part-copy{display:grid;gap:3px;min-width:0}
+.mwa-assigned-part-copy b{font-size:12px;color:#263a56;overflow-wrap:anywhere}
+.mwa-assigned-part-copy small{font-size:10px;color:#73839a}
+.mwa-assigned-part-copy span{font-size:10px;font-weight:750;color:#326d59}
+.mwa-assigned-part>button{flex:0 0 auto;min-height:34px!important;padding:0 11px!important;border:0!important;border-radius:9px!important;background:linear-gradient(135deg,#3975d6,#2860b5)!important;color:#fff!important;font-size:11px!important;font-weight:800!important}
+.mwa-assigned-part>button:disabled{opacity:.5}
+.mwa-assigned-parts-more{display:block;margin-top:8px;color:#78879b;font-size:10px}
