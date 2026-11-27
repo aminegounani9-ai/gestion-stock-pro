@@ -824,8 +824,8 @@ export default function App() {
         if(uploadError)throw uploadError;
         logoUrl=supabase.storage.from("company-branding").getPublicUrl(path).data.publicUrl;
       }
-      const rawDomain=(settingsForm.custom_domain||"").trim().toLowerCase().replace(/^https?:\\/\\//,"").replace(/\\/$/,"");
-      if(rawDomain&&!/^(?=.{4,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$/.test(rawDomain))throw new Error("Entrez un domaine valide, sans https:// ni chemin.");
+      const rawDomain=(settingsForm.custom_domain||"").trim().toLowerCase().replace(/^https?:\/\//,"").replace(/\/$/,"");
+      if(rawDomain&&!/^(?=.{4,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/.test(rawDomain))throw new Error("Entrez un domaine valide, sans https:// ni chemin.");
       const domainChanged=rawDomain!==(company.custom_domain||"");
       const payload={brand_display_name:settingsForm.brand_display_name?.trim()||null,brand_logo_url:logoUrl,brand_primary_color:settingsForm.brand_primary_color||"#315FAE",brand_secondary_color:settingsForm.brand_secondary_color||"#1E3A5F",brand_accent_color:settingsForm.brand_accent_color||"#38A6A0",custom_domain:rawDomain||null,custom_domain_status:rawDomain?(domainChanged?"pending":(company.custom_domain_status||"pending")):"not_configured"};
       const {data,error}=await supabase.from("companies").update(payload).eq("id",company.id).select("id,name,currency_code,legal_name,tax_number,phone,email,address,city,country,brand_display_name,brand_logo_url,brand_primary_color,brand_secondary_color,brand_accent_color,custom_domain,custom_domain_status").single();
