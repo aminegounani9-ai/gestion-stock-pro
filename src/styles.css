@@ -5703,3 +5703,11 @@ body,.app-shell{color:var(--ui-text)}
  .wm-floor-item small{font-size:8px}
  .wm-floor-label{font-size:8px}
 }
+
+
+/* Rotate controls for interactive floor-plan components */
+.wm-floor-item{transform-origin:center center}
+.wm-floor-rotate{position:absolute;top:5px;inset-inline-start:6px;z-index:3;width:25px;height:25px;display:grid;place-items:center;border:1px solid #d8e3f2;border-radius:7px;background:rgba(255,255,255,.94);color:#315fae;box-shadow:0 2px 6px rgba(35,65,110,.12);cursor:pointer;touch-action:manipulation}
+.wm-floor-rotate:hover{background:#315fae;color:#fff;border-color:#315fae;transform:scale(1.06)}
+.wm-floor-item[style*="rotate(90deg)"] .wm-floor-rotate,.wm-floor-item[style*="rotate(180deg)"] .wm-floor-rotate,.wm-floor-item[style*="rotate(270deg)"] .wm-floor-rotate{opacity:1}
+@media(max-width:760px){.wm-floor-rotate{width:28px;height:28px;top:4px;inset-inline-start:4px}}
