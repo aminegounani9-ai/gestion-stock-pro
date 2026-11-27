@@ -66,12 +66,22 @@ export default function MobileWarehouseAssistant(props:Props) {
     }finally{setCameraStarting(false);}
   };
   const scanTimerRef=useRef<number|undefined>(undefined);
+  // Open the camera automatically when the scanner dialog is mounted.
+  // Chrome remembers the site's permission; users should not need a second
+  // in-app activation tap on every scan.
   useEffect(()=>{
     if(!scanOpen)return;
-    return()=>{if(scanTimerRef.current)window.clearTimeout(scanTimerRef.current);(zxingRef.current as any)?.reset();zxingRef.current=null;streamRef.current?.getTracks().forEach(track=>track.stop());streamRef.current=null;setCameraReady(false);};
+    const timer=window.setTimeout(()=>{if(!streamRef.current)void activateCamera();},120);
+    return()=>{
+      window.clearTimeout(timer);
+      if(scanTimerRef.current)window.clearTimeout(scanTimerRef.current);
+      (zxingRef.current as any)?.reset();zxingRef.current=null;
+      streamRef.current?.getTracks().forEach(track=>track.stop());streamRef.current=null;
+      setCameraReady(false);
+    };
   },[scanOpen]);
   useEffect(()=>()=>{(zxingRef.current as any)?.reset();streamRef.current?.getTracks().forEach(track=>track.stop());streamRef.current=null;},[]);
-  const stopScanner=()=>{if(scanTimerRef.current)window.clearTimeout(scanTimerRef.current);(zxingRef.current as any)?.reset();zxingRef.current=null;streamRef.current?.getTracks().forEach(track=>track.stop());streamRef.current=null;setCameraReady(false);setScanOpen(false);};
+  const stopScanner=()=>{if(scanTimerRef.current)window.clearTimeout(scanTimerRef.current);(zxingRef.current as any)?.reset();zxingRef.current=null;streamRef.current?.getTracks().forEach(track=>track.stop());streamRef.current=null;const video=videoRef.current;if(video){video.pause();video.srcObject=null;}setCameraReady(false);setCameraStarting(false);setScanOpen(false);};
   const selectScannedCode=(code:string)=>{const raw=code.trim();let candidates=[raw];try{const parsed=new URL(raw);candidates.push(parsed.searchParams.get("sku")||"",parsed.searchParams.get("id")||"",decodeURIComponent(parsed.pathname.split("/").filter(Boolean).pop()||""));}catch{}try{const parsed=JSON.parse(raw);candidates.push(parsed.sku||"",parsed.barcode||"",parsed.product_id||parsed.productId||parsed.id||"");}catch{}const normalized=candidates.map(v=>String(v||"").trim().toLowerCase()).filter(Boolean);const match=products.find((p:any)=>[p.id,p.sku,p.barcode,p.part_number,p.manufacturer_reference].some((v:any)=>normalized.includes(String(v||"").trim().toLowerCase())));if(match){setSelectedProductId(match.id);setScanError("");stopScanner();setScanKey(v=>v+1);}else setScanError(t.notFound);};
   const startScanner=()=>{setScanError("");setScanValue("");setScanOpen(true);};
   const matches=products.filter((p:any)=>!manualSearch||[p.sku,p.name,p.barcode,p.part_number].some((v:any)=>String(v||"").toLowerCase().includes(manualSearch.toLowerCase()))).slice(0,8);
@@ -89,7 +99,7 @@ export default function MobileWarehouseAssistant(props:Props) {
     <section className="mwa-quick-actions"><button type="button" className="mwa-scan-btn" onClick={()=>void startScanner()}><Camera size={19}/><span>{t.scan}</span></button><label className="mwa-manual-search"><Search size={18}/><input value={manualSearch} onChange={e=>setManualSearch(e.target.value)} placeholder={t.searchPlaceholder}/></label></section>
     {manualSearch&&<section className="mwa-search-results">{matches.map((p:any)=><button type="button" key={p.id} onClick={()=>{setSelectedProductId(p.id);setManualSearch("");setScanKey(v=>v+1);}}><span><b>{p.sku||"—"}</b><small>{p.name}</small></span><CheckCircle2 size={17}/></button>)}{!matches.length&&<p>{t.notFound}</p>}</section>}
     {selectedProductId&&<div className="mwa-selected"><CheckCircle2 size={17}/>{t.selected}: {products.find((p:any)=>p.id===selectedProductId)?.name||"—"}<button type="button" onClick={()=>setSelectedProductId(null)}><X size={16}/></button></div>}
-    {scanOpen&&<ModalPortal><div className="mwa-scanner-backdrop"><section className="mwa-scanner" role="dialog" aria-modal="true"><header><b>{t.scan}</b><button type="button" onClick={stopScanner}><X size={18}/></button></header><div className="mwa-video-stage"><video ref={videoRef} playsInline muted autoPlay/><div className="mwa-camera-start" hidden={cameraReady}><Camera size={34}/><b>{cameraStarting?"Ouverture de la caméra…":"Activer la caméra"}</b><button type="button" disabled={cameraStarting} onClick={()=>void activateCamera()}>{cameraStarting?"Patientez…":"Autoriser et ouvrir la caméra"}</button></div></div><p role="status">{scanError|| (cameraReady?"Placez le code-barres ou QR devant la caméra.":"Appuyez sur le bouton pour autoriser l’accès à la caméra.")}</p><label><Search size={16}/><input value={scanValue} onChange={e=>setScanValue(e.target.value)} placeholder={t.searchPlaceholder}/><button type="button" onClick={()=>selectScannedCode(scanValue)}>{t.choose}</button></label></section></div></ModalPortal>}
+    {scanOpen&&<ModalPortal><div className="mwa-scanner-backdrop" onClick={stopScanner}><section className="mwa-scanner" role="dialog" aria-modal="true" onClick={e=>e.stopPropagation()}><header><b>{t.scan}</b><button className="mwa-scanner-close" type="button" aria-label={t.close} onClick={e=>{e.preventDefault();e.stopPropagation();stopScanner();}}><X size={20}/><span>{t.close}</span></button></header><div className="mwa-video-stage"><video ref={videoRef} playsInline muted autoPlay/><div className="mwa-camera-start" hidden={cameraReady}><Camera size={34}/><b>{cameraStarting?"Ouverture de la caméra…":"Activer la caméra"}</b><button type="button" disabled={cameraStarting} onClick={()=>void activateCamera()}>{cameraStarting?"Patientez…":"Autoriser et ouvrir la caméra"}</button></div></div><p role="status">{scanError|| (cameraReady?"Placez le code-barres ou QR devant la caméra.":"Appuyez sur le bouton pour autoriser l’accès à la caméra.")}</p><label><Search size={16}/><input value={scanValue} onChange={e=>setScanValue(e.target.value)} placeholder={t.searchPlaceholder}/><button type="button" onClick={()=>selectScannedCode(scanValue)}>{t.choose}</button></label></section></div></ModalPortal>}
     <section className="mwa-flow">
       <div className="mwa-section-title"><Activity size={17}/><h3>{t.flow}</h3></div>
       <div className="mwa-steps"><div><b>01</b><span>{t.step1}</span></div><i/><div><b>02</b><span>{t.step2}</span></div><i/><div><b>03</b><span>{t.step3}</span></div></div>
