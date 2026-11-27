@@ -38,13 +38,13 @@ const labels = {
     all: "Tous les événements", data: "Modifications de données", search: "Rechercher dans les modules et descriptions…",
     refresh: "Actualiser", export: "Exporter les données", csv: "Exporter CSV", excel: "Exporter Excel",
     json: "Exporter JSON", exportHint: "L'export reprend tous les résultats correspondant aux filtres, pas seulement la page affichée.",
-    exportAll: "Exporter toute la surveillance",
+    exportAll: "Export complet", exportAllCSV: "Tout CSV", exportAllExcel: "Tout Excel", exportAllJSON: "Tout JSON",
     history: "Historique des activités", date: "Date", company: "ID entreprise", actor: "ID utilisateur",
     module: "Module / table", action: "Action", description: "Description", severity: "Niveau",
     noLogs: "Aucun événement enregistré pour le moment.", noAccess: "Accès réservé au propriétaire de la plateforme.",
     loading: "Chargement…", previous: "Précédent", next: "Suivant", page: "Page",
     maintenance: "Nettoyage des journaux", cleanupHint: "Ces actions suppriment uniquement les journaux de surveillance (audit, sécurité, erreurs et déploiements). Les ventes, articles, stocks et données métier ne sont jamais touchés.",
-    older: "Supprimer les journaux de plus de 90 jours", filtered: "Supprimer les résultats filtrés",
+    older: "Supprimer les journaux de plus de 90 jours", filtered: "Supprimer les journaux filtrés (audit)",
     allLogs: "Supprimer tous les journaux", danger: "Action irréversible",
     filterRequired: "Ajoute au moins un filtre (date ou type) avant de supprimer les résultats filtrés.",
     confirm90: "Tape PURGER 90 JOURS pour confirmer.", confirmFiltered: "Tape SUPPRIMER FILTRES pour confirmer.",
@@ -67,13 +67,13 @@ const labels = {
     all: "All events", data: "Data changes", search: "Search modules and descriptions…",
     refresh: "Refresh", export: "Export data", csv: "Export CSV", excel: "Export Excel",
     json: "Export JSON", exportHint: "Exports all results matching the filters, not only the visible page.",
-    exportAll: "Export all monitoring data",
+    exportAll: "Full export", exportAllCSV: "All CSV", exportAllExcel: "All Excel", exportAllJSON: "All JSON",
     history: "Activity history", date: "Date", company: "Company ID", actor: "User ID",
     module: "Module / table", action: "Action", description: "Description", severity: "Level",
     noLogs: "No events recorded yet.", noAccess: "Access restricted to the platform owner.",
     loading: "Loading…", previous: "Previous", next: "Next", page: "Page",
     maintenance: "Log cleanup", cleanupHint: "These actions delete only monitoring records (audit, security, errors and deployments). Sales, products, stock and all business data remain untouched.",
-    older: "Delete logs older than 90 days", filtered: "Delete filtered results",
+    older: "Delete logs older than 90 days", filtered: "Delete filtered audit logs",
     allLogs: "Delete all logs", danger: "Irreversible action",
     filterRequired: "Add at least one date or event-type filter before deleting filtered results.",
     confirm90: "Type PURGE 90 DAYS to confirm.", confirmFiltered: "Type DELETE FILTERS to confirm.",
@@ -96,13 +96,13 @@ const labels = {
     all: "كل الأحداث", data: "تغييرات البيانات", search: "ابحث في الوحدات والوصف…",
     refresh: "تحديث", export: "تصدير البيانات", csv: "تصدير CSV", excel: "تصدير Excel",
     json: "تصدير JSON", exportHint: "التصدير يشمل كل النتائج المطابقة للفلاتر وليس الصفحة الحالية فقط.",
-    exportAll: "تصدير كل بيانات المراقبة",
+    exportAll: "تصدير شامل", exportAllCSV: "الكل CSV", exportAllExcel: "الكل Excel", exportAllJSON: "الكل JSON",
     history: "سجل النشاط", date: "التاريخ", company: "معرف الشركة", actor: "معرف المستخدم",
     module: "الوحدة / الجدول", action: "العملية", description: "الوصف", severity: "المستوى",
     noLogs: "لا توجد أحداث مسجلة حاليا.", noAccess: "الدخول مخصص لمالك المنصة فقط.",
     loading: "جار التحميل…", previous: "السابق", next: "التالي", page: "الصفحة",
     maintenance: "تنظيف السجلات", cleanupHint: "هذه العمليات تحذف سجلات المراقبة فقط (التدقيق والأمان والأخطاء والنشر)، ولا تمس المبيعات أو المنتجات أو المخزون أو بيانات الشركات.",
-    older: "حذف السجلات الأقدم من 90 يوما", filtered: "حذف النتائج المصفاة",
+    older: "حذف السجلات الأقدم من 90 يوما", filtered: "حذف سجلات التدقيق المصفاة",
     allLogs: "حذف جميع السجلات", danger: "عملية لا يمكن التراجع عنها",
     filterRequired: "أضف فلتر تاريخ أو نوع حدث قبل حذف النتائج المصفاة.",
     confirm90: "اكتب PURGE 90 DAYS للتأكيد.", confirmFiltered: "اكتب DELETE FILTERS للتأكيد.",
@@ -391,7 +391,10 @@ export default function OwnerControlCenter({ userId, lang = "fr" }: { userId: st
         <button type="button" onClick={() => void exportLogs("csv")} disabled={busy}><Download size={15}/>{t.csv}</button>
         <button type="button" onClick={() => void exportLogs("xlsx")} disabled={busy}><FileSpreadsheet size={15}/>{t.excel}</button>
         <button type="button" onClick={() => void exportLogs("json")} disabled={busy}><FileText size={15}/>{t.json}</button>
-        <button type="button" className="owner-export-all" onClick={() => void exportAllMonitoring("xlsx")} disabled={busy}><Database size={15}/>{t.exportAll}</button>
+        <b className="owner-export-all-label">{t.exportAll}</b>
+        <button type="button" className="owner-export-all" onClick={() => void exportAllMonitoring("csv")} disabled={busy}>{t.exportAllCSV}</button>
+        <button type="button" className="owner-export-all" onClick={() => void exportAllMonitoring("xlsx")} disabled={busy}><Database size={15}/>{t.exportAllExcel}</button>
+        <button type="button" className="owner-export-all" onClick={() => void exportAllMonitoring("json")} disabled={busy}>{t.exportAllJSON}</button>
       </div>
     </section>
 
