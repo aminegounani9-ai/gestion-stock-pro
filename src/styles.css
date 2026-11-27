@@ -5857,3 +5857,21 @@ body,.app-shell{color:var(--ui-text)}
 .request-timeline-pending,.request-timeline-reason{display:block;padding:7px 9px;border-radius:8px;background:#fff}
 .request-timeline-reason{color:#a33b3b;margin-top:6px}
 @media(max-width:760px){.request-inline-timeline{min-width:0;width:100%;box-sizing:border-box}.request-action.timeline-toggle{min-height:36px}}
+
+/* Focused mobile workspace for technicians and shift leaders */
+@media(max-width:760px){
+ .field-mobile-shell .sidebar{display:none!important}
+ .field-mobile-shell .main-area{width:100%!important;margin:0!important;padding:0!important;min-width:0!important}
+ .field-mobile-shell .topbar{position:sticky;top:0;z-index:100;display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:8px!important;min-height:56px!important;height:auto!important;padding:8px 12px!important;margin:0!important;border:0!important;border-bottom:1px solid #e4eaf2!important;border-radius:0!important;background:rgba(255,255,255,.97)!important;box-shadow:0 3px 14px rgba(31,57,91,.07)!important;backdrop-filter:blur(12px)}
+ .field-mobile-shell .topbar>.mobile-brand,.field-mobile-shell .topbar>.demo-session-badge,.field-mobile-shell .topbar>.top-company-select,.field-mobile-shell .topbar>.breadcrumbs{display:none!important}
+ .field-mobile-shell .top-actions{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:8px!important;width:auto!important;margin:0!important}
+ .field-mobile-shell .top-actions>.global-search,.field-mobile-shell .top-actions>.icon-btn[title="Import / Export Excel"],.field-mobile-shell .top-actions>.scanner-trigger,.field-mobile-shell .top-actions>.top-avatar{display:none!important}
+ .field-mobile-shell .top-actions>.install-trigger,.field-mobile-shell .top-actions>.language-trigger,.field-mobile-shell .top-actions>.notification-wrap,.field-mobile-shell .top-actions>.mobile-logout{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 38px!important;width:38px!important;height:38px!important;min-width:38px!important;padding:0!important;border:1px solid #e1e9f4!important;border-radius:11px!important;background:#f5f8fd!important;color:#315b91!important}
+ .field-mobile-shell .top-actions>.install-trigger span,.field-mobile-shell .top-actions>.language-trigger span{display:none!important}
+ .field-mobile-shell .top-actions>.notification-wrap{position:relative!important}
+ .field-mobile-shell .top-actions>.notification-wrap>.icon-btn{display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;height:100%!important;padding:0!important;border:0!important;background:transparent!important}
+ .field-mobile-shell .top-actions>.notification-wrap .notification-popover{position:fixed!important;top:62px!important;left:10px!important;right:10px!important;width:auto!important;max-width:none!important;max-height:70dvh!important;overflow:auto!important}
+ .field-mobile-shell .page-content{padding:0 10px 12px!important}
+ .field-mobile-shell .page-heading{display:none!important}
+ .field-mobile-shell .app-footer{display:none!important}
+}
