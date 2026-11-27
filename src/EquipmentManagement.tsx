@@ -110,21 +110,24 @@ export default function EquipmentManagement({companyId,lang,equipmentSeed,autoPr
   setBusy(false);if(e){setError(e.message);return;}setModal(false);setProductId("");setCompatDesignation("");setCompatReference("");setCompatOem("");setQty("1");setCritical(false);await loadDetail(current.id);
  }
  async function removePart(id:string){if(!supabase||!current||!window.confirm(t.remove+" ?"))return;const {error:e}=await supabase.from("spare_part_equipment_compatibility").delete().eq("id",id).eq("company_id",companyId);if(e)setError(e.message);else await loadDetail(current.id);}
- function printQrLabels(items:Equipment[]){
+ async function printQrLabels(items:Equipment[]){
   if(!items.length)return;
   const w=window.open("","_blank","width=900,height=700");if(!w)return;
-  const esc=(v:any)=>String(v??"").replace(/[&<>"]/g,(m:string)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]??m));
-  const labelsHtml=items.map(e=>{
-   const src="https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=1&ecc=H&data="+encodeURIComponent(e.equipment_tag);
-   const unit=orgNames[e.unit_id||""]||"";
-   return "<article class='label'><div class='brand'>GESTION STOCK PRO <span>SOPHAL</span></div><img src='"+src+"' alt='QR "+esc(e.equipment_tag)+"'><h2>"+esc(e.name)+"</h2><p>"+esc(e.equipment_tag)+"</p>"+(unit?"<small>"+esc(unit)+"</small>":"")+"</article>";
-  }).join("");
-  w.document.write("<!doctype html><html lang='fr'><head><meta charset='utf-8'><title>Étiquettes QR équipements</title><style>@page{size:A4;margin:9mm}*{box-sizing:border-box}body{font:10px Arial,sans-serif;color:#17233b;margin:0}.sheet{display:grid;grid-template-columns:repeat(3,1fr);gap:5mm;align-content:start}.label{height:61mm;border:1.5px solid #24477d;border-radius:3mm;padding:3mm;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;break-inside:avoid;overflow:hidden;background:linear-gradient(145deg,#fff 70%,#f3f6fc)}.brand{width:100%;display:flex;justify-content:space-between;color:#64748b;font-size:6.5pt;font-weight:800;letter-spacing:.5px;border-bottom:1px solid #dce4f0;padding-bottom:1.5mm}.brand span{color:#24477d}.label img{width:29mm;height:29mm;object-fit:contain;margin:2mm auto 1mm}.label h2{font-size:10pt;line-height:1.2;margin:0 0 1mm;max-width:100%;overflow-wrap:anywhere;color:#172b4d}.label p{font-size:8pt;font-weight:800;letter-spacing:.5px;margin:0;color:#3158b5;overflow-wrap:anywhere}.label small{font-size:7pt;color:#66758c;margin-top:1mm}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><main class='sheet'>"+labelsHtml+"</main><script>window.onload=async()=>{const imgs=[...document.images];await Promise.all(imgs.map(i=>i.decode?i.decode().catch(()=>{}):new Promise(r=>{i.onload=r;i.onerror=r})));window.focus();window.print()}</script></body></html>");
-  w.document.close();
+  try{
+   const {data:brand}=await supabase!.from("companies").select("name,brand_display_name,brand_logo_url,brand_primary_color").eq("id",companyId).maybeSingle();
+   const brandName=brand?.brand_display_name||brand?.name||"Gestion Stock Pro",logo=brand?.brand_logo_url||"",primary=/^#[0-9a-f]{6}$/i.test(brand?.brand_primary_color||"")?brand!.brand_primary_color!:"#315FAE";
+   const esc=(v:any)=>String(v??"").replace(/[&<>"]/g,(m:string)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]??m));
+   const labelsHtml=items.map(e=>{
+    const src="https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=1&ecc=H&data="+encodeURIComponent(e.equipment_tag),unit=orgNames[e.unit_id||""]||"";
+    return "<article class='label'><div class='brand'>"+(logo?"<img class='company-logo' src='"+esc(logo)+"'>":"")+"<span>"+esc(brandName)+"</span></div><img src='"+src+"' alt='QR "+esc(e.equipment_tag)+"'><h2>"+esc(e.name)+"</h2><p>"+esc(e.equipment_tag)+"</p>"+(unit?"<small>"+esc(unit)+"</small>":"")+"</article>";
+   }).join("");
+   w.document.write("<!doctype html><html lang='fr'><head><meta charset='utf-8'><title>Étiquettes QR équipements</title><style>@page{size:A4;margin:9mm}*{box-sizing:border-box}body{font:10px Arial,sans-serif;color:#17233b;margin:0}.sheet{display:grid;grid-template-columns:repeat(3,1fr);gap:5mm;align-content:start}.label{height:61mm;border:1.5px solid "+primary+";border-radius:3mm;padding:3mm;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;break-inside:avoid;overflow:hidden;background:linear-gradient(145deg,#fff 70%,#f3f6fc)}.brand{width:100%;display:flex;align-items:center;justify-content:center;gap:2mm;color:"+primary+";font-size:6.5pt;font-weight:800;letter-spacing:.4px;border-bottom:1px solid #dce4f0;padding-bottom:1.5mm}.company-logo{width:9mm;height:9mm;object-fit:contain}.label img:not(.company-logo){width:29mm;height:29mm;object-fit:contain;margin:2mm auto 1mm}.label h2{font-size:10pt;line-height:1.2;margin:0 0 1mm;max-width:100%;overflow-wrap:anywhere;color:#172b4d}.label p{font-size:8pt;font-weight:800;letter-spacing:.5px;margin:0;color:"+primary+";overflow-wrap:anywhere}.label small{font-size:7pt;color:#66758c;margin-top:1mm}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><main class='sheet'>"+labelsHtml+"</main><script>window.onload=async()=>{const imgs=[...document.images];await Promise.all(imgs.map(i=>i.decode?i.decode().catch(()=>{}):new Promise(r=>{i.onload=r;i.onerror=r})));window.focus();window.print()}</script></body></html>");
+   w.document.close();
+  }catch(e:any){w.close();setError(e.message||"Impossible de préparer les étiquettes QR.");}
  }
- function printQr(){if(current)printQrLabels([current]);}
+ function printQr(){if(current)void printQrLabels([current]);}
  function toggleQrSelection(id:string){setQrSelected(old=>old.includes(id)?old.filter(x=>x!==id):[...old,id]);}
- function printSelectedQrs(){const chosen=equipment.filter(e=>qrSelected.includes(e.id));if(chosen.length)printQrLabels(chosen);}
+ function printSelectedQrs(){const chosen=equipment.filter(e=>qrSelected.includes(e.id));if(chosen.length)void printQrLabels(chosen);}
 
  async function exportDossierPdf(targetWindow?:Window|null){
   if(!current)return;
