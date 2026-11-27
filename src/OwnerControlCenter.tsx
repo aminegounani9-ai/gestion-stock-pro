@@ -43,7 +43,7 @@ const labels = {
     module: "Module / table", action: "Action", description: "Description", severity: "Niveau",
     noLogs: "Aucun événement enregistré pour le moment.", noAccess: "Accès réservé au propriétaire de la plateforme.",
     loading: "Chargement…", previous: "Précédent", next: "Suivant", page: "Page",
-    maintenance: "Nettoyage des journaux", cleanupHint: "Ces actions suppriment uniquement les lignes de platform_audit_logs. Les ventes, articles, stocks et autres données métier ne sont jamais touchés.",
+    maintenance: "Nettoyage des journaux", cleanupHint: "Ces actions suppriment uniquement les journaux de surveillance (audit, sécurité, erreurs et déploiements). Les ventes, articles, stocks et données métier ne sont jamais touchés.",
     older: "Supprimer les journaux de plus de 90 jours", filtered: "Supprimer les résultats filtrés",
     allLogs: "Supprimer tous les journaux", danger: "Action irréversible",
     filterRequired: "Ajoute au moins un filtre (date ou type) avant de supprimer les résultats filtrés.",
@@ -57,7 +57,7 @@ const labels = {
     deploymentsTitle: "Historique des déploiements", deploymentsDesc: "Versions publiées sur Cloudflare Pages.",
     eventTypeLabel: "Événement", ipLabel: "IP anonymisée", messageLabel: "Détail", routeLabel: "Page",
     commitLabel: "Commit", deploymentLabel: "Déploiement", statusLabel: "Statut", noTelemetry: "Aucun événement pour le moment.",
-    provider: "Fournisseur", deploymentSetup: "Pour activer le suivi automatique des déploiements, ajoute les secrets GitHub indiqués dans les instructions."
+    provider: "Fournisseur", deploymentSetup: "Activation auto : GitHub > Settings > Secrets and variables > Actions. Ajoute CLOUDFLARE_API_TOKEN (Cloudflare Pages Read) et GSP_MONITOR_WEBHOOK_SECRET (secret aléatoire partagé)."
   },
   en: {
     eyebrow: "PRIVATE ADMINISTRATION", title: "Owner Control Center",
@@ -72,7 +72,7 @@ const labels = {
     module: "Module / table", action: "Action", description: "Description", severity: "Level",
     noLogs: "No events recorded yet.", noAccess: "Access restricted to the platform owner.",
     loading: "Loading…", previous: "Previous", next: "Next", page: "Page",
-    maintenance: "Log cleanup", cleanupHint: "These actions only delete rows from platform_audit_logs. Sales, products, stock and all business data remain untouched.",
+    maintenance: "Log cleanup", cleanupHint: "These actions delete only monitoring records (audit, security, errors and deployments). Sales, products, stock and all business data remain untouched.",
     older: "Delete logs older than 90 days", filtered: "Delete filtered results",
     allLogs: "Delete all logs", danger: "Irreversible action",
     filterRequired: "Add at least one date or event-type filter before deleting filtered results.",
@@ -86,7 +86,7 @@ const labels = {
     deploymentsTitle: "Deployment History", deploymentsDesc: "Production releases published to Cloudflare Pages.",
     eventTypeLabel: "Event", ipLabel: "Anonymized IP", messageLabel: "Details", routeLabel: "Page",
     commitLabel: "Commit", deploymentLabel: "Deployment", statusLabel: "Status", noTelemetry: "No events recorded yet.",
-    provider: "Provider", deploymentSetup: "To enable automatic deployment tracking, add the GitHub secrets described in the setup instructions."
+    provider: "Provider", deploymentSetup: "Enable auto tracking in GitHub > Settings > Secrets and variables > Actions. Add CLOUDFLARE_API_TOKEN (Cloudflare Pages Read) and GSP_MONITOR_WEBHOOK_SECRET (random shared secret)."
   },
   ar: {
     eyebrow: "إدارة خاصة", title: "مركز تحكم مالك المنصة",
@@ -101,7 +101,7 @@ const labels = {
     module: "الوحدة / الجدول", action: "العملية", description: "الوصف", severity: "المستوى",
     noLogs: "لا توجد أحداث مسجلة حاليا.", noAccess: "الدخول مخصص لمالك المنصة فقط.",
     loading: "جار التحميل…", previous: "السابق", next: "التالي", page: "الصفحة",
-    maintenance: "تنظيف السجلات", cleanupHint: "هذه العمليات تحذف فقط سجلات platform_audit_logs ولا تمس المبيعات أو المنتجات أو المخزون أو بيانات الشركات.",
+    maintenance: "تنظيف السجلات", cleanupHint: "هذه العمليات تحذف سجلات المراقبة فقط (التدقيق والأمان والأخطاء والنشر)، ولا تمس المبيعات أو المنتجات أو المخزون أو بيانات الشركات.",
     older: "حذف السجلات الأقدم من 90 يوما", filtered: "حذف النتائج المصفاة",
     allLogs: "حذف جميع السجلات", danger: "عملية لا يمكن التراجع عنها",
     filterRequired: "أضف فلتر تاريخ أو نوع حدث قبل حذف النتائج المصفاة.",
@@ -115,7 +115,7 @@ const labels = {
     deploymentsTitle: "سجل النشر", deploymentsDesc: "إصدارات التطبيق المنشورة على Cloudflare Pages.",
     eventTypeLabel: "الحدث", ipLabel: "عنوان IP مخفي", messageLabel: "التفاصيل", routeLabel: "الصفحة",
     commitLabel: "Commit", deploymentLabel: "النشر", statusLabel: "الحالة", noTelemetry: "لا توجد أحداث مسجلة حاليا.",
-    provider: "المزود", deploymentSetup: "لتفعيل تتبع النشر تلقائيا، أضف أسرار GitHub الموضحة في تعليمات الإعداد."
+    provider: "المزود", deploymentSetup: "لتفعيل التتبع الآلي، أضف في GitHub > Settings > Secrets and variables > Actions: CLOUDFLARE_API_TOKEN بصلاحية Pages Read و GSP_MONITOR_WEBHOOK_SECRET كسِر عشوائي مشترك."
   }
 };
 
@@ -239,9 +239,15 @@ export default function OwnerControlCenter({ userId, lang = "fr" }: { userId: st
           const end = new Date(endDate + "T00:00:00"); end.setDate(end.getDate() + 1);
           query = query.lt("created_at", end.toISOString());
         }
-        const { data, error: queryError } = await query;
-        if (queryError) throw queryError;
-        datasets[label] = (data || []) as Record<string, unknown>[];
+        const collected: Record<string, unknown>[] = [];
+        for (let offset = 0; ; offset += 1000) {
+          const { data, error: queryError } = await query.range(offset, offset + 999);
+          if (queryError) throw queryError;
+          const part = (data || []) as Record<string, unknown>[];
+          collected.push(...part);
+          if (part.length < 1000) break;
+        }
+        datasets[label] = collected;
       }
       const date = new Date().toISOString().slice(0, 10);
       if (format === "json") {
