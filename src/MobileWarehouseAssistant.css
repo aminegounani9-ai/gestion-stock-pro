@@ -93,3 +93,33 @@
  .mwa-equipment-detail-modal .equipment-qr{max-width:none!important}
  .mwa-equipment-detail-modal .equipment-dossier-actions{grid-template-columns:repeat(2,minmax(0,1fr))!important}
 }
+
+/* Mobile Warehouse — concise, assignment-aware request tracking */
+.mwa-request-area .spare-parts-mobile{min-width:0}
+.mwa-request-area .request-tracking-panel{padding:12px!important;border:1px solid #dfe7f2!important;border-radius:16px!important;background:linear-gradient(145deg,#fff 0%,#f7f9fd 100%)!important;box-shadow:0 5px 18px rgba(32,63,105,.06)!important}
+.mwa-request-area .request-tracking-hero{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;margin:0 0 10px!important;padding:0!important}
+.mwa-request-area .request-tracking-hero>div:first-child{min-width:0}
+.mwa-request-area .request-tracking-hero .request-eyebrow{display:none!important}
+.mwa-request-area .request-tracking-hero h2{margin:0!important;font-size:15px!important;line-height:1.3!important;color:#203653!important}
+.mwa-request-area .request-tracking-hero p{display:none!important}
+.mwa-request-area .request-total{display:flex!important;align-items:center!important;gap:6px!important;padding:6px 10px!important;border:1px solid #dce7f5!important;border-radius:10px!important;background:#edf4ff!important;white-space:nowrap}
+.mwa-request-area .request-total b{font-size:18px!important;color:#245f9f!important}
+.mwa-request-area .request-total span{font-size:10px!important;color:#647895!important}
+.mwa-request-area .request-kpi-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;margin:0 0 10px!important}
+.mwa-request-area .request-kpi{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:6px!important;min-height:42px!important;padding:8px 10px!important;border-radius:10px!important}
+.mwa-request-area .request-kpi span{font-size:11px!important;line-height:1.2!important}
+.mwa-request-area .request-kpi b{font-size:16px!important}
+.mwa-request-area .request-tracking-toolbar{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:7px!important;align-items:center!important;margin:0 0 8px!important}
+.mwa-request-area .request-tracking-toolbar .request-search{grid-column:1/-1!important;min-width:0}
+.mwa-request-area .request-tracking-toolbar select{min-width:0!important;width:100%!important}
+.mwa-request-area .request-results{font-size:10px!important;color:#71819a!important;white-space:nowrap}
+.mwa-request-area .request-tracking-table{overflow-x:auto!important}
+.mwa-request-area .request-empty{padding:20px 12px!important;border-radius:12px!important}
+@media(max-width:600px){
+ .mwa-request-area .request-tracking-panel{padding:10px!important}
+ .mwa-request-area .request-tracking-hero h2{font-size:14px!important}
+ .mwa-request-area .request-total{padding:5px 8px!important}
+ .mwa-request-area .request-kpi{min-height:39px!important;padding:7px 8px!important}
+ .mwa-request-area .request-kpi span{font-size:10px!important}
+ .mwa-request-area .request-tracking-toolbar{grid-template-columns:minmax(0,1fr) 78px!important}
+}
