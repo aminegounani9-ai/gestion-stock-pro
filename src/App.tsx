@@ -599,6 +599,34 @@ export default function App() {
 
   useEffect(()=>{if(!company||!session?.user?.id)return;void loadNotifications();const timer=window.setInterval(()=>void loadNotifications(),30000);return()=>window.clearInterval(timer)},[company?.id,session?.user?.id,loadNotifications]);
 
+  // Realtime delivery; periodic refresh remains as a fallback.
+  useEffect(()=>{
+    if(!supabase||!company?.id||!session?.user?.id)return;
+    const client=supabase;
+    const userId=session.user.id;
+    const channel=client.channel("user-notifications:"+company.id+":"+userId);
+    const handleInsert=(payload:any)=>{
+      const row=payload.new as AppNotification;
+      if(!row?.id||row.recipient_user_id!==userId)return;
+      setNotifications(current=>current.some(item=>item.id===row.id)?current:[row,...current].slice(0,30));
+      playNotificationSound();
+      if(desktopNotificationsEnabled&&"Notification" in window&&Notification.permission==="granted"){
+        if("serviceWorker" in navigator)void navigator.serviceWorker.ready.then(reg=>reg.showNotification(row.title,{body:row.message,icon:"/icon-192.svg",badge:"/icon-192.svg",tag:row.id,data:{url:"/"}})).catch(()=>{});
+        else new Notification(row.title,{body:row.message,icon:"/icon-192.svg"});
+      }
+    };
+    const handleUpdate=(payload:any)=>{
+      const row=payload.new as AppNotification;
+      if(!row?.id||row.recipient_user_id!==userId)return;
+      setNotifications(current=>current.map(item=>item.id===row.id?{...item,...row}:item));
+    };
+    channel
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"notifications",filter:"company_id=eq."+company.id},handleInsert)
+      .on("postgres_changes",{event:"UPDATE",schema:"public",table:"notifications",filter:"company_id=eq."+company.id},handleUpdate)
+      .subscribe();
+    return()=>{void client.removeChannel(channel);};
+  },[company?.id,session?.user?.id,playNotificationSound,desktopNotificationsEnabled]);
+
   async function markNotificationRead(item:AppNotification){
     if(!supabase||!session?.user?.id)return;
     if(!item.is_read){const {error}=await supabase.from("notifications").update({is_read:true}).eq("id",item.id).eq("recipient_user_id",session.user.id);if(error){flash("error",error.message);return;}setNotifications(list=>list.map(n=>n.id===item.id?{...n,is_read:true}:n));}
