@@ -69,3 +69,27 @@
 .owner-infra-foot small{white-space:nowrap}
 @media(max-width:900px){.owner-infra-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.owner-infra-columns{grid-template-columns:1fr}}
 @media(max-width:600px){.owner-infra-grid{grid-template-columns:1fr 1fr}.owner-infra-grid article{padding:12px}.owner-infra-grid article strong{font-size:18px}.owner-infra-foot{flex-direction:column}.owner-infra-foot small{white-space:normal}}
+
+
+/* Owner-only global user administration */
+.owner-user-toolbar{display:flex;align-items:center;gap:12px;margin:14px 0;padding:0 2px}
+.owner-user-toolbar input{flex:1;min-width:0;height:40px;padding:0 12px;border:1px solid #dce5f0;border-radius:10px;background:#f9fbfe;color:#263d5b;font:inherit;font-size:12px;outline:none}
+.owner-user-toolbar input:focus{border-color:#6b9ce5;box-shadow:0 0 0 3px rgba(76,132,218,.1)}
+.owner-user-toolbar>span{color:#8292a8;font-size:11px;font-weight:800;white-space:nowrap}
+.owner-user-email{display:block;margin-top:3px;color:#71839b;font-size:11px}
+.owner-user-membership{display:grid;gap:2px;margin:3px 0}
+.owner-user-membership b{font-size:11px;color:#344e70}
+.owner-user-membership small{font-size:10px;color:#8493a8}
+.owner-user-state{display:inline-flex;align-items:center;padding:5px 9px;border-radius:20px;font-size:10px;font-weight:850;white-space:nowrap}
+.owner-user-state.is-active{background:#e7f7f0;color:#16865f}
+.owner-user-state.is-disabled{background:#fff0ed;color:#c64f49}
+.owner-user-actions{display:flex;flex-wrap:wrap;gap:6px;min-width:175px}
+.owner-user-actions button{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:7px 9px;border:1px solid #dce6f2;border-radius:8px;background:#f7faff;color:#385a83;font-size:10px;font-weight:800;cursor:pointer;white-space:nowrap}
+.owner-user-actions button:hover:not(:disabled){background:#edf4ff;border-color:#a9c4e8}
+.owner-user-actions button.is-danger{background:#fff5f3;border-color:#f2d5d0;color:#c24e47}
+.owner-user-actions button:disabled{opacity:.5;cursor:wait}
+.owner-users-card .owner-table td{vertical-align:middle}
+.owner-users-card .owner-table td:first-child{min-width:190px}
+.owner-users-card .owner-table td:nth-child(2){min-width:170px}
+.owner-users-card .owner-table td:last-child{min-width:190px}
+@media(max-width:700px){.owner-user-toolbar{align-items:stretch;flex-direction:column;gap:7px}.owner-user-toolbar input{width:100%;box-sizing:border-box}.owner-user-actions{min-width:160px}}
