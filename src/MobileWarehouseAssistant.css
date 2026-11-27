@@ -42,3 +42,9 @@
 .mwa-scanner{max-height:calc(100dvh - 32px);overflow-y:auto}
 .gsp-modal-portal-root{position:relative;z-index:2147483647}
 @media(max-width:760px){.mwa-scanner-backdrop{align-items:center;padding:12px}.mwa-scanner{width:100%;max-width:520px}.mwa-video-stage video{height:52dvh;min-height:220px}}
+
+/* Keep the scanner close action above the camera preview on touch devices. */
+.mwa-scanner header{position:relative;z-index:5;min-height:42px}
+.mwa-scanner .mwa-scanner-close{position:relative;z-index:6;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:44px;min-height:44px;padding:8px 10px;border:1px solid var(--border,#d7e0eb);border-radius:11px;background:var(--panel,#fff);color:var(--text,#172b4d);cursor:pointer;touch-action:manipulation;pointer-events:auto}
+.mwa-scanner .mwa-scanner-close span{font-size:12px;font-weight:700}
+.mwa-scanner-backdrop{touch-action:pan-y}
