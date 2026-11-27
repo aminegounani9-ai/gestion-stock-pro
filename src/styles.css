@@ -5711,3 +5711,23 @@ body,.app-shell{color:var(--ui-text)}
 .wm-floor-rotate:hover{background:#315fae;color:#fff;border-color:#315fae;transform:scale(1.06)}
 .wm-floor-item[style*="rotate(90deg)"] .wm-floor-rotate,.wm-floor-item[style*="rotate(180deg)"] .wm-floor-rotate,.wm-floor-item[style*="rotate(270deg)"] .wm-floor-rotate{opacity:1}
 @media(max-width:760px){.wm-floor-rotate{width:28px;height:28px;top:4px;inset-inline-start:4px}}
+
+
+/* Company white-label identity */
+.app-shell{--company-primary:#315FAE;--company-secondary:#1E3A5F;--company-accent:#38A6A0}
+.app-shell .nav-item.active{background:color-mix(in srgb,var(--company-primary) 12%,white)!important;color:var(--company-primary)!important;border-color:color-mix(in srgb,var(--company-primary) 22%,white)!important}
+.app-shell .primary-btn,.app-shell .wm-view-switch button.active{background:linear-gradient(135deg,var(--company-primary),color-mix(in srgb,var(--company-primary) 72%,white))!important;border-color:var(--company-primary)!important}
+.app-shell .brand b{color:var(--company-secondary)!important}
+.app-shell .brand-mark{border-color:color-mix(in srgb,var(--company-primary) 20%,white)!important}
+.app-shell a:focus-visible,.app-shell button:focus-visible,.app-shell input:focus-visible,.app-shell select:focus-visible{outline-color:var(--company-accent)!important}
+.white-label-panel .panel-head>svg{color:var(--company-primary)}
+.white-label-panel .white-label-color{display:grid;gap:8px;align-content:start}
+.white-label-panel .white-label-color input[type=color]{width:100%;height:44px;min-height:44px;padding:4px;border:1px solid #dce4ef;border-radius:9px;background:#fff;cursor:pointer}
+.white-label-panel input[type=file]{min-height:42px;padding:7px;background:#fff;border:1px dashed #cbd7e7;border-radius:9px}
+.white-label-panel label small{font-size:10px;color:#7a899d;font-weight:500}
+.white-label-logo-preview{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid #e4eaf2;border-radius:10px;background:#f8faff}
+.white-label-logo-preview img{width:52px;height:52px;object-fit:contain;border-radius:8px;background:#fff;border:1px solid #edf1f6}
+.white-label-logo-preview span{font-size:11px;color:#71819a;font-weight:700}
+.white-label-domain-help{display:grid;grid-template-columns:auto auto;justify-content:start;align-items:center;gap:8px;color:#60718a;font-size:11px}
+.white-label-domain-help small{grid-column:1/-1;max-width:760px;line-height:1.55;color:#8491a4}
+@media(max-width:600px){.white-label-domain-help{grid-template-columns:1fr}.white-label-domain-help small{grid-column:auto}.white-label-logo-preview{grid-column:1/-1}}
