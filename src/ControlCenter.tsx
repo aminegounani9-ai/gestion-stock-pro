@@ -8,11 +8,13 @@ export default function ControlCenter({companyId,lang,onNavigate}:Props){
  const [busy,setBusy]=useState(false);const [error,setError]=useState("");
  const load=useCallback(async()=>{
   setBusy(true);setError("");
+  const client=supabase;
+  if(!client){setError("Supabase is not configured.");setBusy(false);return;}
   const [n,r,p,b]=await Promise.all([
-   supabase.from("notifications").select("id,title,message,notification_type,entity_type,entity_id,is_read,created_at").eq("company_id",companyId).order("created_at",{ascending:false}).limit(30),
-   supabase.from("spare_part_requests").select("id,request_number,status,priority,required_date,equipment_tag,created_at").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100),
-   supabase.from("purchase_orders").select("id,order_number,status,expected_date,created_at,suppliers(name)").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100),
-   supabase.from("stock_balances").select("product_id,warehouse_id,quantity_on_hand").eq("company_id",companyId).limit(2000)
+   client.from("notifications").select("id,title,message,notification_type,entity_type,entity_id,is_read,created_at").eq("company_id",companyId).order("created_at",{ascending:false}).limit(30),
+   client.from("spare_part_requests").select("id,request_number,status,priority,required_date,equipment_tag,created_at").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100),
+   client.from("purchase_orders").select("id,order_number,status,expected_date,created_at,suppliers(name)").eq("company_id",companyId).order("created_at",{ascending:false}).limit(100),
+   client.from("stock_balances").select("product_id,warehouse_id,quantity_on_hand").eq("company_id",companyId).limit(2000)
   ]);
   const err=[n,r,p,b].find(x=>x.error)?.error;if(err)setError(err.message);
   setData({notifications:n.data||[],requests:r.data||[],purchases:p.data||[],balances:b.data||[]});setBusy(false);
@@ -23,12 +25,12 @@ export default function ControlCenter({companyId,lang,onNavigate}:Props){
  const overdue=pendingPurchases.filter(x=>x.expected_date&&new Date(x.expected_date+"T23:59:59")<new Date());
  const unread=data.notifications.filter(x=>!x.is_read);
  const lowStock=data.balances.filter(x=>Number(x.quantity_on_hand)<=0).length;
- const markRead=async(id:string)=>{const {error}=await supabase.from("notifications").update({is_read:true,read_at:new Date().toISOString()}).eq("id",id);if(!error)setData(v=>({...v,notifications:v.notifications.map(n=>n.id===id?{...n,is_read:true}:n)}));else setError(error.message)};
+ const markRead=async(id:string)=>{const client=supabase;if(!client){setError("Supabase is not configured.");return;}const {error}=await client.from("notifications").update({is_read:true,read_at:new Date().toISOString()}).eq("id",id);if(!error)setData(v=>({...v,notifications:v.notifications.map(n=>n.id===id?{...n,is_read:true}:n)}));else setError(error.message)};
  const openNotice=(n:any)=>{if(n.entity_type?.includes("request"))onNavigate("requests");else if(n.entity_type?.includes("purchase"))onNavigate("purchases");else if(n.entity_type?.includes("stock")||n.entity_type?.includes("product"))onNavigate("stock");else onNavigate("reports");if(!n.is_read)void markRead(n.id)};
  const stat=(icon:any,label:string,value:number,tone:string,action:string)=>{const I=icon;return <button className={"cc-stat "+tone} onClick={()=>onNavigate(action)}><span><I size={19}/></span><small>{label}</small><b>{value}</b></button>};
  return <div className="control-center-module" dir={lang==="ar"?"rtl":"ltr"}>
   <section className="cc-hero"><div className="cc-hero-icon"><Activity size={26}/></div><div><span>{tr(lang,"SUPERVISION & PILOTAGE","OPERATIONS COMMAND","المراقبة والتحكم")}</span><h2>{tr(lang,"Centre de contrôle","Control Center","مركز التحكم")}</h2><p>{tr(lang,"Une vue centralisée des alertes, validations et opérations à surveiller.","A centralized view of alerts, approvals and operations that need attention.","نظرة موحدة على التنبيهات والموافقات والعمليات التي تحتاج متابعة.")}</p></div><button className="cc-refresh" onClick={()=>void load()} disabled={busy}><RefreshCw size={16}/></button></section>
-  <div className="cc-stats">{stat(AlertTriangle,tr(lang,"Demandes à traiter","Requests to review","طلبات قيد المعالجة"),pendingRequests.length,"warning","requests")}{stat(ShoppingCart,tr(lang,"Commandes ouvertes","Open purchase orders","طلبات شراء مفتوحة"),pendingPurchases.length,"blue","purchases")}{stat(Clock3,tr(lang,"Commandes en retard","Overdue orders","طلبات متأخرة"),overdue.length,"danger","purchases")}{stat(Bell,tr(lang,"Notifications non lues","Unread notifications","إشعارات غير مقروءة"),unread.length,"violet","reports")}{stat(Package,tr(lang,"Lignes de stock à zéro","Zero-stock balances","أرصدة منعدمة"),lowStock.length,"neutral","stock")}</div>
+  <div className="cc-stats">{stat(AlertTriangle,tr(lang,"Demandes à traiter","Requests to review","طلبات قيد المعالجة"),pendingRequests.length,"warning","requests")}{stat(ShoppingCart,tr(lang,"Commandes ouvertes","Open purchase orders","طلبات شراء مفتوحة"),pendingPurchases.length,"blue","purchases")}{stat(Clock3,tr(lang,"Commandes en retard","Overdue orders","طلبات متأخرة"),overdue.length,"danger","purchases")}{stat(Bell,tr(lang,"Notifications non lues","Unread notifications","إشعارات غير مقروءة"),unread.length,"violet","reports")}{stat(Package,tr(lang,"Lignes de stock à zéro","Zero-stock balances","أرصدة منعدمة"),lowStock,"neutral","stock")}</div>
   {error&&<div className="cc-error">{error}</div>}
   <div className="cc-grid">
    <section className="panel cc-panel"><div className="panel-head"><div><h3><Bell size={17}/> {tr(lang,"Centre des notifications","Notification center","مركز الإشعارات")}</h3><p>{unread.length} {tr(lang,"non lues","unread","غير مقروءة")}</p></div><button className="secondary-btn" onClick={()=>onNavigate("reports")}>{tr(lang,"Voir rapports","View reports","عرض التقارير")}</button></div>
