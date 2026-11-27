@@ -48,3 +48,8 @@
 .mwa-scanner .mwa-scanner-close{position:relative;z-index:6;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:44px;min-height:44px;padding:8px 10px;border:1px solid var(--border,#d7e0eb);border-radius:11px;background:var(--panel,#fff);color:var(--text,#172b4d);cursor:pointer;touch-action:manipulation;pointer-events:auto}
 .mwa-scanner .mwa-scanner-close span{font-size:12px;font-weight:700}
 .mwa-scanner-backdrop{touch-action:pan-y}
+
+.mwa-scanner header{position:relative;z-index:20;display:flex;align-items:center;justify-content:space-between}
+.mwa-scanner .mwa-scanner-close{position:relative;z-index:21;display:grid;place-items:center;width:46px;height:46px;min-width:46px;min-height:46px;padding:0;border-radius:12px;touch-action:manipulation;pointer-events:auto}
+.mwa-scanner-actions{position:relative;z-index:20;display:flex;justify-content:flex-end;padding-top:2px}
+.mwa-scanner-actions button{min-height:46px;min-width:112px;display:inline-flex;align-items:center;justify-content:center;gap:7px;touch-action:manipulation;pointer-events:auto}
