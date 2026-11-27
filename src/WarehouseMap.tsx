@@ -22,7 +22,9 @@ export default function WarehouseMap({companyId,warehouses,lang,access}:Props){
  const load=useCallback(async()=>{
   if(!selected?.id){setRows([]);return}
   setBusy(true);setError("");
-  const {data,error}=await supabase.from("storage_locations").select("id,warehouse_id,parent_id,code,name,location_type,capacity,capacity_unit,notes,is_active,created_at").eq("company_id",companyId).eq("warehouse_id",selected.id).order("code").limit(1500);
+  const client=supabase;
+  if(!client){setError("Supabase is not configured.");setBusy(false);return;}
+  const {data,error}=await client.from("storage_locations").select("id,warehouse_id,parent_id,code,name,location_type,capacity,capacity_unit,notes,is_active,created_at").eq("company_id",companyId).eq("warehouse_id",selected.id).order("code").limit(1500);
   if(error)setError(error.message);else{setRows(data||[]);setExpanded(Object.fromEntries((data||[]).map((x:any)=>[x.id,true])));}
   setBusy(false);
  },[companyId,selected?.id]);
@@ -35,7 +37,9 @@ export default function WarehouseMap({companyId,warehouses,lang,access}:Props){
   e.preventDefault();if(!selected?.id)return;
   setBusy(true);setError("");
   const payload={company_id:companyId,warehouse_id:selected.id,parent_id:form.parent_id||null,code:form.code.trim(),name:form.name.trim(),location_type:form.location_type,capacity:form.capacity===""?null:Number(form.capacity),capacity_unit:form.capacity_unit.trim()||null,notes:form.notes.trim()||null,is_active:true};
-  const {error}=await supabase.from("storage_locations").insert(payload);
+  const client=supabase;
+  if(!client){setError("Supabase is not configured.");setBusy(false);return;}
+  const {error}=await client.from("storage_locations").insert(payload);
   if(error)setError(error.message);else{setForm({name:"",code:"",location_type:"zone",parent_id:"",capacity:"",capacity_unit:"",notes:""});setShowForm(false);await load()}
   setBusy(false);
  };
