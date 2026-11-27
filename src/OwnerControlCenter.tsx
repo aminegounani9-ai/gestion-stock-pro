@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 import {
   Activity, AlertTriangle, CalendarDays, ChevronLeft, ChevronRight, Database,
-  Download, FileSpreadsheet, FileText, RefreshCw, ShieldCheck, Trash2, Bug, LockKeyhole, Rocket, HardDrive, Server, Users, PackageOpen
+  Download, FileSpreadsheet, FileText, RefreshCw, ShieldCheck, Trash2, Bug, LockKeyhole, Rocket, HardDrive, Server, Users, PackageOpen, UserCheck, UserX
 } from "lucide-react";
 import { supabase } from "./lib/supabase";
 import "./OwnerControlCenter.css";
@@ -21,6 +21,7 @@ type PlatformMetrics = {
   storage_by_bucket: { bucket_id:string; bucket_name:string; public:boolean; file_count:number; size_bytes:number }[];
   largest_tables: { table_name:string; size_bytes:number; size_pretty:string; estimated_rows:number }[];
 };
+type ManagedAuthUser = {id:string;email:string;full_name:string;created_at:string;last_sign_in_at:string|null;banned_until:string|null;is_disabled:boolean;memberships:{company_id:string;company_name:string;role:string;is_active:boolean}[]};
 type AuditLog = {
   id: string;
   company_id: string | null;
@@ -174,6 +175,11 @@ export default function OwnerControlCenter({ userId, lang = "fr" }: { userId: st
   const [appErrors, setAppErrors] = useState<AppError[]>([]);
   const [deployments, setDeployments] = useState<Deployment[]>([]);
   const [platformMetrics, setPlatformMetrics] = useState<PlatformMetrics | null>(null);
+  const [managedUsers, setManagedUsers] = useState<ManagedAuthUser[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [userSearch, setUserSearch] = useState("");
+  const [userActionBusy, setUserActionBusy] = useState("");
+
   const [metricsError, setMetricsError] = useState("");
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
@@ -185,6 +191,43 @@ export default function OwnerControlCenter({ userId, lang = "fr" }: { userId: st
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+
+  const loadManagedUsers = useCallback(async () => {
+    if (!isOwner || !supabase) return;
+    setUsersLoading(true);
+    try {
+      const {data,error} = await supabase.functions.invoke("owner-user-admin",{body:{action:"list"}});
+      if(error) throw error;
+      if(data?.error) throw new Error(data.error);
+      setManagedUsers((data?.users||[]) as ManagedAuthUser[]);
+    } catch(e:any) { setError(t.error+(e?.message||"User list unavailable")); }
+    finally { setUsersLoading(false); }
+  },[isOwner,t.error]);
+
+  async function manageUser(user:ManagedAuthUser,action:"disable"|"enable"|"delete") {
+    if(!supabase||!isOwner||user.id===OWNER_ID)return;
+    if(action==="disable"&&!window.confirm(t.confirmDisable))return;
+    if(action==="enable"&&!window.confirm(t.confirmEnable))return;
+    if(action==="delete") {
+      const typed=window.prompt(t.deletePrompt);
+      if(typed!=="DELETE USER")return;
+    }
+    setUserActionBusy(user.id);
+    setError("");setMessage("");
+    try {
+      const {data,error}=await supabase.functions.invoke("owner-user-admin",{body:{action,user_id:user.id}});
+      if(error) throw error;
+      if(data?.error) throw new Error(data.error);
+      setMessage(action==="disable"?t.userDisabled:action==="enable"?t.userEnabled:t.userDeleted);
+      await loadManagedUsers();
+    } catch(e:any) { setError(t.error+(e?.message||"User action failed")); }
+    finally { setUserActionBusy(""); }
+  }
+
+  const filteredManagedUsers = useMemo(() => {
+    const q=userSearch.trim().toLowerCase();
+    return managedUsers.filter(u=>!q||[u.email,u.full_name,...u.memberships.map(m=>m.company_name),...u.memberships.map(m=>m.role)].join(" ").toLowerCase().includes(q));
+  },[managedUsers,userSearch]);
 
   const makeQuery = useCallback((count = false) => {
     if (!supabase) throw new Error("Supabase is not configured.");
@@ -232,6 +275,7 @@ export default function OwnerControlCenter({ userId, lang = "fr" }: { userId: st
   }, [isOwner, makeQuery, page, t.error]);
 
   useEffect(() => { void load(); }, [load]);
+  useEffect(() => { void loadManagedUsers(); }, [loadManagedUsers]);
 
   const visibleRows = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -440,6 +484,15 @@ export default function OwnerControlCenter({ userId, lang = "fr" }: { userId: st
         </div>
         <div className="owner-infra-foot"><span>{t.quotaNote}</span><small>{t.lastChecked}: {new Date(platformMetrics.generated_at).toLocaleString(lang === "ar" ? "ar-DZ" : lang === "en" ? "en-GB" : "fr-FR")}</small></div>
       </> : <div className="owner-alert error"><AlertTriangle size={16}/>{t.metricsUnavailable}{metricsError ? " · " + metricsError : ""}</div>}
+    </section>
+
+    <section className="owner-card owner-users-card">
+      <div className="owner-card-head"><div><h2><Users size={18}/> {t.usersTitle}</h2><p>{t.usersDesc}</p></div><button className="owner-refresh" type="button" onClick={()=>void loadManagedUsers()} disabled={usersLoading||!!userActionBusy}><RefreshCw size={15}/>{t.refresh}</button></div>
+      <div className="owner-user-toolbar"><input value={userSearch} onChange={e=>setUserSearch(e.target.value)} placeholder={t.usersSearch}/><span>{filteredManagedUsers.length} / {managedUsers.length}</span></div>
+      <div className="owner-table-wrap"><table className="owner-table"><thead><tr><th>{t.userEmail}</th><th>{t.userCompanies}</th><th>{t.userLastLogin}</th><th>{t.userStatus}</th><th>{t.userActions}</th></tr></thead><tbody>
+       {usersLoading&&!managedUsers.length?<tr><td colSpan={5} className="owner-empty">{t.loading}</td></tr>:filteredManagedUsers.length?filteredManagedUsers.map(u=>{const protectedUser=u.id===OWNER_ID||u.memberships.some(m=>m.role==="owner");return <tr key={u.id}><td><b>{u.full_name||u.email||"—"}</b><small className="owner-user-email">{u.email}</small><small className="owner-id">{u.id}</small></td><td>{u.memberships.length?u.memberships.map(m=><div className="owner-user-membership" key={m.company_id}><b>{m.company_name}</b><small>{m.role} · {m.is_active?t.active:t.disabled}</small></div>):"—"}</td><td>{u.last_sign_in_at?new Date(u.last_sign_in_at).toLocaleString(lang==="ar"?"ar-DZ":lang==="en"?"en-GB":"fr-FR"):"—"}</td><td><span className={"owner-user-state "+(u.is_disabled?"is-disabled":"is-active")}>{u.is_disabled?t.disabled:t.active}</span></td><td><div className="owner-user-actions">{!protectedUser&&(u.is_disabled?<button type="button" onClick={()=>void manageUser(u,"enable")} disabled={!!userActionBusy}><UserCheck size={14}/>{t.enable}</button>:<button type="button" onClick={()=>void manageUser(u,"disable")} disabled={!!userActionBusy}><UserX size={14}/>{t.disable}</button>)}{!protectedUser&&<button type="button" className="is-danger" onClick={()=>void manageUser(u,"delete")} disabled={!!userActionBusy}><Trash2 size={14}/>{t.deleteUser}</button>}{userActionBusy===u.id&&<small>{t.loading}</small>}</div></td></tr>}):<tr><td colSpan={5} className="owner-empty">{t.noUsers}</td></tr>}
+      </tbody></table></div>
+      <p className="owner-setup-note">{t.protectedOwner}</p>
     </section>
 
     <section className="owner-card">
