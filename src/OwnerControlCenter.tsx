@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 import {
   Activity, AlertTriangle, CalendarDays, ChevronLeft, ChevronRight, Database,
-  Download, FileSpreadsheet, FileText, RefreshCw, ShieldCheck, Trash2
+  Download, FileSpreadsheet, FileText, RefreshCw, ShieldCheck, Trash2, Bug, LockKeyhole, Rocket
 } from "lucide-react";
 import { supabase } from "./lib/supabase";
 import "./OwnerControlCenter.css";
@@ -11,6 +11,9 @@ const OWNER_ID = "710901a9-7967-45ab-8e5a-038da8081ce2";
 const PAGE_SIZE = 100;
 
 type Lang = "fr" | "en" | "ar";
+type SecurityEvent = { id:string; event_type:string; severity:string; description:string; ip_hash:string|null; created_at:string };
+type AppError = { id:string; actor_user_id:string|null; error_type:string; module:string|null; route:string|null; message:string; created_at:string };
+type Deployment = { id:string; provider:string; environment:string; commit_sha:string|null; commit_message:string|null; deployment_url:string|null; status:string; created_at:string };
 type AuditLog = {
   id: string;
   company_id: string | null;
@@ -47,7 +50,13 @@ const labels = {
     confirmAll: "Tape SUPPRIMER TOUT pour effacer tous les journaux de surveillance.",
     done: "Nettoyage terminé.", exportDone: "Export téléchargé.", error: "Une erreur est survenue : ",
     ownerOnly: "Visible uniquement par le propriétaire de la plateforme.",
-    retention: "Conseil : exporte une archive avant de supprimer les anciens journaux."
+    retention: "Conseil : exporte une archive avant de supprimer les anciens journaux.",
+    securityTitle: "Centre de sécurité", securityDesc: "Échecs de connexion et événements de sécurité récents.",
+    errorsTitle: "Erreurs de l’application", errorsDesc: "Erreurs JavaScript, promesses non gérées et erreurs de rendu React.",
+    deploymentsTitle: "Historique des déploiements", deploymentsDesc: "Versions publiées sur Cloudflare Pages.",
+    eventTypeLabel: "Événement", ipLabel: "IP anonymisée", messageLabel: "Détail", routeLabel: "Page",
+    commitLabel: "Commit", deploymentLabel: "Déploiement", statusLabel: "Statut", noTelemetry: "Aucun événement pour le moment.",
+    deploymentSetup: "Pour activer le suivi automatique des déploiements, ajoute les secrets GitHub indiqués dans les instructions."
   },
   en: {
     eyebrow: "PRIVATE ADMINISTRATION", title: "Owner Control Center",
@@ -69,7 +78,13 @@ const labels = {
     confirmAll: "Type DELETE ALL to erase all monitoring logs.",
     done: "Cleanup completed.", exportDone: "Export downloaded.", error: "An error occurred: ",
     ownerOnly: "Visible only to the platform owner.",
-    retention: "Tip: export an archive before deleting older logs."
+    retention: "Tip: export an archive before deleting older logs.",
+    securityTitle: "Security Center", securityDesc: "Recent failed sign-ins and security events.",
+    errorsTitle: "Application Errors", errorsDesc: "JavaScript errors, unhandled promises and React rendering failures.",
+    deploymentsTitle: "Deployment History", deploymentsDesc: "Production releases published to Cloudflare Pages.",
+    eventTypeLabel: "Event", ipLabel: "Anonymized IP", messageLabel: "Details", routeLabel: "Page",
+    commitLabel: "Commit", deploymentLabel: "Deployment", statusLabel: "Status", noTelemetry: "No events recorded yet.",
+    deploymentSetup: "To enable automatic deployment tracking, add the GitHub secrets described in the setup instructions."
   },
   ar: {
     eyebrow: "إدارة خاصة", title: "مركز تحكم مالك المنصة",
@@ -91,7 +106,13 @@ const labels = {
     confirmAll: "اكتب DELETE ALL لحذف جميع سجلات المراقبة.",
     done: "اكتمل التنظيف.", exportDone: "تم تنزيل الملف.", error: "حدث خطأ: ",
     ownerOnly: "مرئي لمالك المنصة فقط.",
-    retention: "نصيحة: صدّر نسخة احتياطية قبل حذف السجلات القديمة."
+    retention: "نصيحة: صدّر نسخة احتياطية قبل حذف السجلات القديمة.",
+    securityTitle: "مركز الأمان", securityDesc: "محاولات الدخول الفاشلة وأحداث الأمان الأخيرة.",
+    errorsTitle: "أخطاء التطبيق", errorsDesc: "أخطاء JavaScript والوعود غير المعالجة وأخطاء عرض React.",
+    deploymentsTitle: "سجل النشر", deploymentsDesc: "إصدارات التطبيق المنشورة على Cloudflare Pages.",
+    eventTypeLabel: "الحدث", ipLabel: "عنوان IP مخفي", messageLabel: "التفاصيل", routeLabel: "الصفحة",
+    commitLabel: "Commit", deploymentLabel: "النشر", statusLabel: "الحالة", noTelemetry: "لا توجد أحداث مسجلة حاليا.",
+    deploymentSetup: "لتفعيل تتبع النشر تلقائيا، أضف أسرار GitHub الموضحة في تعليمات الإعداد."
   }
 };
 
@@ -108,6 +129,9 @@ export default function OwnerControlCenter({ userId, lang = "fr" }: { userId: st
   const t = labels[lang];
   const isOwner = userId === OWNER_ID;
   const [rows, setRows] = useState<AuditLog[]>([]);
+  const [securityEvents, setSecurityEvents] = useState<SecurityEvent[]>([]);
+  const [appErrors, setAppErrors] = useState<AppError[]>([]);
+  const [deployments, setDeployments] = useState<Deployment[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
   const [startDate, setStartDate] = useState("");
@@ -143,6 +167,17 @@ export default function OwnerControlCenter({ userId, lang = "fr" }: { userId: st
       if (queryError) throw queryError;
       setRows((data || []) as AuditLog[]);
       setTotal(count || 0);
+      const [securityResult, errorsResult, deploymentsResult] = await Promise.all([
+        supabase.from("platform_security_events").select("*").order("created_at", { ascending: false }).limit(30),
+        supabase.from("platform_app_errors").select("*").order("created_at", { ascending: false }).limit(30),
+        supabase.from("platform_deployments").select("*").order("created_at", { ascending: false }).limit(30)
+      ]);
+      if (securityResult.error) throw securityResult.error;
+      if (errorsResult.error) throw errorsResult.error;
+      if (deploymentsResult.error) throw deploymentsResult.error;
+      setSecurityEvents((securityResult.data || []) as SecurityEvent[]);
+      setAppErrors((errorsResult.data || []) as AppError[]);
+      setDeployments((deploymentsResult.data || []) as Deployment[]);
     } catch (e: any) {
       setError(t.error + (e?.message || "Unknown error"));
     } finally {
@@ -310,6 +345,28 @@ export default function OwnerControlCenter({ userId, lang = "fr" }: { userId: st
         <button type="button" disabled={page === 0 || loading} onClick={() => setPage(p => Math.max(0, p - 1))}><ChevronLeft size={16}/>{t.previous}</button>
         <button type="button" disabled={(page + 1) * PAGE_SIZE >= total || loading} onClick={() => setPage(p => p + 1)}>{t.next}<ChevronRight size={16}/></button>
       </div></div>
+    </section>
+
+    <section className="owner-card">
+      <div className="owner-card-head"><div><h2><LockKeyhole size={17}/> {t.securityTitle}</h2><p>{t.securityDesc}</p></div><span className="owner-count">{securityEvents.length}</span></div>
+      <div className="owner-table-wrap"><table className="owner-table"><thead><tr><th>{t.date}</th><th>{t.eventTypeLabel}</th><th>{t.description}</th><th>{t.ipLabel}</th><th>{t.severity}</th></tr></thead><tbody>
+        {securityEvents.length ? securityEvents.map(row=><tr key={row.id}><td>{new Date(row.created_at).toLocaleString(lang==="ar"?"ar-DZ":lang==="en"?"en-GB":"fr-FR")}</td><td><b>{row.event_type}</b></td><td>{row.description}</td><td className="owner-id">{row.ip_hash || "—"}</td><td><span className="owner-severity">{row.severity}</span></td></tr>) : <tr><td colSpan={5} className="owner-empty">{t.noTelemetry}</td></tr>}
+      </tbody></table></div>
+    </section>
+
+    <section className="owner-card">
+      <div className="owner-card-head"><div><h2><Bug size={17}/> {t.errorsTitle}</h2><p>{t.errorsDesc}</p></div><span className="owner-count">{appErrors.length}</span></div>
+      <div className="owner-table-wrap"><table className="owner-table"><thead><tr><th>{t.date}</th><th>{t.eventTypeLabel}</th><th>{t.module}</th><th>{t.routeLabel}</th><th>{t.messageLabel}</th><th>{t.actor}</th></tr></thead><tbody>
+        {appErrors.length ? appErrors.map(row=><tr key={row.id}><td>{new Date(row.created_at).toLocaleString(lang==="ar"?"ar-DZ":lang==="en"?"en-GB":"fr-FR")}</td><td><b>{row.error_type}</b></td><td>{row.module || "—"}</td><td>{row.route || "—"}</td><td>{row.message}</td><td className="owner-id">{row.actor_user_id || "—"}</td></tr>) : <tr><td colSpan={6} className="owner-empty">{t.noTelemetry}</td></tr>}
+      </tbody></table></div>
+    </section>
+
+    <section className="owner-card">
+      <div className="owner-card-head"><div><h2><Rocket size={17}/> {t.deploymentsTitle}</h2><p>{t.deploymentsDesc}</p></div><span className="owner-count">{deployments.length}</span></div>
+      <div className="owner-table-wrap"><table className="owner-table"><thead><tr><th>{t.date}</th><th>{t.provider}</th><th>{t.deploymentLabel}</th><th>{t.commitLabel}</th><th>{t.statusLabel}</th><th>URL</th></tr></thead><tbody>
+        {deployments.length ? deployments.map(row=><tr key={row.id}><td>{new Date(row.created_at).toLocaleString(lang==="ar"?"ar-DZ":lang==="en"?"en-GB":"fr-FR")}</td><td>{row.provider} · {row.environment}</td><td className="owner-id">{row.id}</td><td title={row.commit_message || ""} className="owner-id">{row.commit_sha?.slice(0,12) || "—"}</td><td><span className={"owner-severity " + row.status}>{row.status}</span></td><td>{row.deployment_url ? <a href={row.deployment_url} target="_blank" rel="noreferrer">Open</a> : "—"}</td></tr>) : <tr><td colSpan={6} className="owner-empty">{t.noTelemetry}</td></tr>}
+      </tbody></table></div>
+      <p className="owner-setup-note">{t.deploymentSetup}</p>
     </section>
 
     <section className="owner-card owner-cleanup">
