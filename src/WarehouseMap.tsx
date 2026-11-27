@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import type { FormEvent } from "react";
 import { Boxes, Building2, ChevronDown, ChevronRight, Layers3, MapPin, Plus, RefreshCw, Search, Warehouse, X } from "lucide-react";
 import { supabase } from "./lib/supabase";
 
@@ -22,14 +23,14 @@ export default function WarehouseMap({companyId,warehouses,lang,access}:Props){
   if(!selected?.id){setRows([]);return}
   setBusy(true);setError("");
   const {data,error}=await supabase.from("storage_locations").select("id,warehouse_id,parent_id,code,name,location_type,capacity,capacity_unit,notes,is_active,created_at").eq("company_id",companyId).eq("warehouse_id",selected.id).order("code").limit(1500);
-  if(error)setError(error.message);else setRows(data||[]);
+  if(error)setError(error.message);else{setRows(data||[]);setExpanded(Object.fromEntries((data||[]).map((x:any)=>[x.id,true])));}
   setBusy(false);
  },[companyId,selected?.id]);
  useEffect(()=>{void load()},[load]);
  const filtered=useMemo(()=>rows.filter(r=>(r.name+" "+r.code+" "+r.location_type).toLowerCase().includes(search.toLowerCase())),[rows,search]);
  const roots=filtered.filter(r=>!r.parent_id||!rows.some(p=>p.id===r.parent_id));
  const children=(id:string)=>filtered.filter(r=>r.parent_id===id);
- const totalCapacity=rows.reduce((n,r)=>n+(Number(r.capacity)||0),0);
+ const capacityConfigured=rows.filter(r=>r.capacity!==null&&r.capacity!==undefined).length;
  const save=async(e:React.FormEvent)=>{
   e.preventDefault();if(!selected?.id)return;
   setBusy(true);setError("");
@@ -49,11 +50,11 @@ export default function WarehouseMap({companyId,warehouses,lang,access}:Props){
  </div>;
  return <div className="warehouse-map-module" dir={rtl?"rtl":"ltr"}>
   <section className="wm-hero"><div className="wm-hero-icon"><MapPin size={25}/></div><div><span>{tr(lang,"ORGANISATION PHYSIQUE","PHYSICAL STORAGE LAYOUT","التنظيم المكاني للمخزن")}</span><h2>{tr(lang,"Cartographie des magasins","Warehouse mapping","خريطة المخازن")}</h2><p>{tr(lang,"Visualisez la structure réelle de vos zones, allées, rayonnages et emplacements.","Visualize your zones, aisles, racks and storage locations.","شوف التنظيم تاع المناطق والممرات والرفوف ومواقع التخزين.")}</p></div><button className="wm-refresh" onClick={()=>void load()} disabled={busy}><RefreshCw size={16}/></button></section>
-  <div className="wm-kpis"><div><Warehouse/><span>{tr(lang,"Entrepôts accessibles","Accessible warehouses","المخازن المتاحة")}<b>{warehouses.length}</b></span></div><div><Boxes/><span>{tr(lang,"Emplacements définis","Defined locations","مواقع التخزين")}<b>{rows.length}</b></span></div><div><Layers3/><span>{tr(lang,"Capacité configurée","Configured capacity","السعة المسجلة")}<b>{totalCapacity.toLocaleString()} {rows.find(r=>r.capacity_unit)?.capacity_unit||""}</b></span></div></div>
+  <div className="wm-kpis"><div><Warehouse/><span>{tr(lang,"Entrepôts accessibles","Accessible warehouses","المخازن المتاحة")}<b>{warehouses.length}</b></span></div><div><Boxes/><span>{tr(lang,"Emplacements définis","Defined locations","مواقع التخزين")}<b>{rows.length}</b></span></div><div><Layers3/><span>{tr(lang,"Capacité configurée","Configured capacity","السعة المسجلة")}<b>{capacityConfigured.toLocaleString()}</b></span></div></div>
   <section className="panel wm-panel"><div className="panel-head wm-toolbar"><div><h3>{tr(lang,"Plan hiérarchique","Hierarchical layout","المخطط الهرمي")}</h3><p>{tr(lang,"Sélectionnez un entrepôt pour explorer ses emplacements.","Select a warehouse to explore its locations.","اختار المخزن باش تشوف مواقع التخزين.")}</p></div><div className="wm-actions"><select value={selected?.id||""} onChange={e=>setWarehouseId(e.target.value)}>{warehouses.map(w=><option key={w.id} value={w.id}>{w.code} · {w.name}</option>)}</select>{access?.canCreate&&<button className="primary-btn" onClick={()=>setShowForm(v=>!v)}><Plus size={16}/>{tr(lang,"Ajouter un emplacement","Add location","إضافة موقع")}</button>}</div></div>
    <div className="wm-search"><Search size={16}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder={tr(lang,"Rechercher code, zone ou emplacement...","Search code, zone or location...","ابحث عن رمز أو موقع...")}/></div>
    {error&&<div className="wm-error">{error}</div>}
-   {showForm&&<form className="wm-form" onSubmit={save}><div className="wm-form-head"><b>{tr(lang,"Nouvel emplacement","New location","موقع جديد")}</b><button type="button" onClick={()=>setShowForm(false)}><X size={16}/></button></div>
+   {showForm&&<form className="wm-form" onSubmit={save as (e:FormEvent<HTMLFormElement>)=>void}><div className="wm-form-head"><b>{tr(lang,"Nouvel emplacement","New location","موقع جديد")}</b><button type="button" onClick={()=>setShowForm(false)}><X size={16}/></button></div>
     <label>{tr(lang,"Nom","Name","الاسم")}<input required value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/></label>
     <label>{tr(lang,"Code unique","Unique code","رمز فريد")}<input required value={form.code} onChange={e=>setForm({...form,code:e.target.value})}/></label>
     <label>{tr(lang,"Type d'emplacement","Location type","نوع الموقع")}<select value={form.location_type} onChange={e=>setForm({...form,location_type:e.target.value})}>{types.map(t=><option key={t} value={t}>{typeLabel(t,lang)}</option>)}</select></label>
