@@ -667,9 +667,27 @@ export default function App() {
       const reason = event.reason;
       report("unhandled_rejection", reason instanceof Error ? reason.message : String(reason || "Unhandled promise rejection"));
     };
+    const originalFetch = window.fetch;
+    window.fetch = async (...args: Parameters<typeof fetch>) => {
+      const response = await originalFetch.apply(window, args);
+      try {
+        const input = args[0];
+        const requestUrl = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+        const parsedUrl = new URL(requestUrl, window.location.origin);
+        const isSupabaseApi = parsedUrl.pathname.includes("/rest/v1/") || parsedUrl.pathname.includes("/functions/v1/");
+        const isTelemetryCall = parsedUrl.pathname.includes("/functions/v1/platform-telemetry");
+        const isPasswordLogin = parsedUrl.pathname.includes("/auth/v1/token");
+        if (isSupabaseApi && !isTelemetryCall && !isPasswordLogin && response.status >= 400) {
+          const method = args[1]?.method || (input instanceof Request ? input.method : "GET");
+          report("api_error", method + " " + parsedUrl.pathname + " returned HTTP " + response.status);
+        }
+      } catch { /* Monitoring must not interfere with network requests. */ }
+      return response;
+    };
     window.addEventListener("error", onError);
     window.addEventListener("unhandledrejection", onRejection);
     return () => {
+      window.fetch = originalFetch;
       window.removeEventListener("error", onError);
       window.removeEventListener("unhandledrejection", onRejection);
     };
