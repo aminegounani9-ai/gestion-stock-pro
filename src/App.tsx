@@ -11,7 +11,7 @@ import { isSupabaseConfigured, supabase } from "./lib/supabase";
 import { resolveAssignedContext, applyAssignedScopeFilter } from "./lib/assignmentScope";
 import type { Company, Product } from "./lib/supabase";
 
-type Page = "dashboard" | "projects" | "requests" | "products" | "categories" | "stock" | "warehouses" | "suppliers" | "customers" | "purchases" | "sales" | "transfers" | "inventory" | "locations" | "lots" | "spareParts" | "returns" | "expenses" | "payments" | "reports" | "users" | "settings" | "organization" | "equipment" | "warehouseMap" | "controlCenter";
+type Page = "dashboard" | "projects" | "requests" | "products" | "categories" | "stock" | "warehouses" | "suppliers" | "customers" | "purchases" | "sales" | "transfers" | "inventory" | "locations" | "lots" | "spareParts" | "returns" | "expenses" | "payments" | "reports" | "users" | "settings" | "organization" | "equipment" | "warehouseMap" | "controlCenter" | "ownerCenter";
 type Lang = "fr" | "en" | "ar";
 const tr=(lang:Lang,fr:string,en:string,ar:string)=>lang==="ar"?ar:lang==="en"?en:fr;
 type Notice = { type: "success" | "error"; text: string } | null;
@@ -19,7 +19,7 @@ type AppNotification = { id:string; title:string; message:string; notification_t
 
 const copy = {
   fr: {
-    dashboard:"Tableau de bord", projects:"Gestion des projets", requests:"Demande de pièces", organization:"Organisation & affectations", locations:"Emplacements de stockage", warehouseMap:"Cartographie des magasins", controlCenter:"Centre de contrôle", lots:"Lots & péremption", spareParts:"Pièces de rechange", equipment:"Équipements", products:"Articles", categories:"Catégories", stock:"Mouvements de stock", warehouses:"Entrepôts", transfers:"Transferts", inventory:"Inventaires", returns:"Retours", expenses:"Dépenses", payments:"Paiements", reports:"Rapports", users:"Utilisateurs", settings:"Paramètres",
+    dashboard:"Tableau de bord", projects:"Gestion des projets", requests:"Demande de pièces", organization:"Organisation & affectations", locations:"Emplacements de stockage", warehouseMap:"Cartographie des magasins", controlCenter:"Centre de contrôle", ownerCenter:"Owner Control Center", lots:"Lots & péremption", spareParts:"Pièces de rechange", equipment:"Équipements", products:"Articles", categories:"Catégories", stock:"Mouvements de stock", warehouses:"Entrepôts", transfers:"Transferts", inventory:"Inventaires", returns:"Retours", expenses:"Dépenses", payments:"Paiements", reports:"Rapports", users:"Utilisateurs", settings:"Paramètres",
     suppliers:"Fournisseurs", customers:"Clients", purchases:"Achats", sales:"Ventes",
     search:"Rechercher un article, un code...", welcome:"Vue d'ensemble", subtitle:"Suivez votre activité et votre stock en temps réel.",
     items:"Articles actifs", suppliersCount:"Fournisseurs", warehousesCount:"Entrepôts", movements:"Mouvements", movementSearch:"Rechercher une opération...", exportMovements:"Exporter CSV",
@@ -43,7 +43,7 @@ const copy = {
     actions:"Actions",archived:"Archivé",reactivate:"Réactiver",activeStatus:"Actif",records:"enregistrement(s)",scanEyebrow:"SCAN QR / CODE-BARRES",scanTitle:"Scanner un équipement ou un article",cameraUnavailable:"Caméra indisponible. Ouvrez le site en HTTPS et autorisez la caméra.",allowCamera:"Autorisez l’accès à la caméra pour ce site.",noCamera:"Aucune caméra détectée sur cet appareil.",scannerHint:"Placez le QR de l’équipement ou le code-barres de l’article devant la caméra arrière.",enterCode:"Ou saisir le code / tag équipement",tagPlaceholder:"Tag équipement, QR ou code-barres",openSearch:"Ouvrir / rechercher",close:"Fermer",dateLabel:"Date",statusLabel:"Statut",totalLabel:"Total",documentLabel:"Document",invoiceNumber:"N° facture",purchaseNumber:"N° commande",newPurchase:"Nouvel achat",newSale:"Nouvelle vente",purchaseReceipt:"réception automatique en stock",automaticIssue:"sortie de stock automatique",printInvoice:"Imprimer la facture",printOrder:"Imprimer le bon",newRecord:"NOUVEL ENREGISTREMENT",description:"Description",piece:"Pièce",kg:"Kg",gram:"g",liter:"Litre",meter:"Mètre",carton:"Carton",maxStock:"Stock maximum",reorderQty:"Quantité de réapprovisionnement",leadTime:"Délai d’approvisionnement (jours)",weight:"Poids",volume:"Volume",trackLots:"Suivi des lots et dates d’expiration",trackSerials:"Suivi des numéros de série",allCategories:"Toutes les catégories",edit:"Modifier",delete:"Supprimer",print:"Imprimer",purchaseOrder:"Nouvelle commande d’achat (CA)",margin:"Marge théorique", purchaseOrders:"Commandes d'achat", invoices:"Factures de vente",
   },
   en: {
-    dashboard:"Dashboard", projects:"Project management", requests:"Spare-part requests", organization:"Organization & assignments", locations:"Storage locations", warehouseMap:"Warehouse mapping", controlCenter:"Control Center", lots:"Lots & expiry", spareParts:"Spare parts", equipment:"Equipment", products:"Products", categories:"Categories", stock:"Stock movements", warehouses:"Warehouses", transfers:"Transfers", inventory:"Stock counts", returns:"Returns", expenses:"Expenses", payments:"Payments", reports:"Reports", users:"Users", settings:"Settings", suppliers:"Suppliers",
+    dashboard:"Dashboard", projects:"Project management", requests:"Spare-part requests", organization:"Organization & assignments", locations:"Storage locations", warehouseMap:"Warehouse mapping", controlCenter:"Control Center", ownerCenter:"Owner Control Center", lots:"Lots & expiry", spareParts:"Spare parts", equipment:"Equipment", products:"Products", categories:"Categories", stock:"Stock movements", warehouses:"Warehouses", transfers:"Transfers", inventory:"Stock counts", returns:"Returns", expenses:"Expenses", payments:"Payments", reports:"Reports", users:"Users", settings:"Settings", suppliers:"Suppliers",
     customers:"Customers", purchases:"Purchases", sales:"Sales", search:"Search products or SKU...", welcome:"Overview",
     subtitle:"Monitor your business and stock in real time.", items:"Active products", suppliersCount:"Suppliers",
     warehousesCount:"Warehouses", movements:"Movements", movementSearch:"Search movements...", exportMovements:"Export CSV", recent:"Recently added products", all:"View all",
@@ -64,7 +64,7 @@ const copy = {
     language:"Language", profile:"My workspace", actions:"Actions",archived:"Archived",reactivate:"Reactivate",activeStatus:"Active",records:"record(s)",scanEyebrow:"QR / BARCODE SCAN",scanTitle:"Scan equipment or an item",cameraUnavailable:"Camera unavailable. Open the site over HTTPS and allow camera access.",allowCamera:"Allow camera access for this site.",noCamera:"No camera detected on this device.",scannerHint:"Place the equipment QR code or item barcode in front of the rear camera.",enterCode:"Or enter an equipment code / tag",tagPlaceholder:"Equipment tag, QR or barcode",openSearch:"Open / search",close:"Close", dateLabel:"Date",statusLabel:"Status",totalLabel:"Total",documentLabel:"Document",invoiceNumber:"Invoice no.",purchaseNumber:"Purchase order no.",newPurchase:"New purchase",newSale:"New sale",purchaseReceipt:"automatic stock receipt",automaticIssue:"automatic stock issue",printInvoice:"Print invoice",printOrder:"Print order",newRecord:"NEW RECORD",description:"Description",piece:"Piece",kg:"Kg",gram:"g",liter:"Litre",meter:"Meter",carton:"Carton",maxStock:"Maximum stock",reorderQty:"Reorder quantity",leadTime:"Lead time (days)",weight:"Weight",volume:"Volume",trackLots:"Track lots and expiry dates",trackSerials:"Track serial numbers",allCategories:"All categories",edit:"Edit",delete:"Delete",print:"Print",purchaseOrder:"New purchase order",margin:"Estimated margin", purchaseOrders:"Purchase orders", invoices:"Sales invoices",
   },
   ar: {
-    dashboard:"لوحة التحكم", projects:"إدارة المشاريع", requests:"طلبات قطع الغيار", organization:"الهيكل التنظيمي والتعيينات", locations:"مواقع التخزين", warehouseMap:"خريطة المخازن", controlCenter:"مركز التحكم", lots:"الدفعات والصلاحية", spareParts:"قطع الغيار", equipment:"المعدات", products:"المنتجات", categories:"الفئات", stock:"حركات المخزون", warehouses:"المخازن", transfers:"التحويلات", inventory:"الجرد", returns:"المرتجعات", expenses:"المصاريف", payments:"المدفوعات", reports:"التقارير", users:"المستخدمون", settings:"الإعدادات", suppliers:"الموردون",
+    dashboard:"لوحة التحكم", projects:"إدارة المشاريع", requests:"طلبات قطع الغيار", organization:"الهيكل التنظيمي والتعيينات", locations:"مواقع التخزين", warehouseMap:"خريطة المخازن", controlCenter:"مركز التحكم", ownerCenter:"مركز مالك المنصة", lots:"الدفعات والصلاحية", spareParts:"قطع الغيار", equipment:"المعدات", products:"المنتجات", categories:"الفئات", stock:"حركات المخزون", warehouses:"المخازن", transfers:"التحويلات", inventory:"الجرد", returns:"المرتجعات", expenses:"المصاريف", payments:"المدفوعات", reports:"التقارير", users:"المستخدمون", settings:"الإعدادات", suppliers:"الموردون",
     customers:"العملاء", purchases:"المشتريات", sales:"المبيعات", search:"ابحث عن منتج أو مرجع...",
     welcome:"نظرة عامة", subtitle:"تابع نشاطك ومخزونك في الوقت الفعلي.", items:"المنتجات النشطة",
     suppliersCount:"الموردون", warehousesCount:"المخازن", movements:"الحركات", movementSearch:"ابحث في الحركات...", exportMovements:"تصدير CSV", recent:"آخر المنتجات المضافة",
@@ -100,6 +100,7 @@ const UserManagement = lazy(() => import("./UserManagement"));
 const ProfessionalModuleReport = lazy(() => import("./ProfessionalModuleReport"));
 const WarehouseMap = lazy(() => import("./WarehouseMap"));
 const ControlCenter = lazy(() => import("./ControlCenter"));
+const OwnerControlCenter = lazy(() => import("./OwnerControlCenter"));
 const StockAIAssistant = lazy(() => import("./StockAIAssistant"));
 const ModuleLoading = () => <div className="panel module-loading" role="status">Chargement du module…</div>;
 
@@ -121,7 +122,8 @@ const nav: { id: Page; icon: typeof LayoutDashboard; group: string }[] = [
   { id:"reports", icon:BarChart3, group:"workspace" },
   { id:"users", icon:Users, group:"administration" },
   { id:"organization", icon:Building2, group:"administration" },
-  { id:"settings", icon:Settings, group:"administration" }
+  { id:"settings", icon:Settings, group:"administration" },
+  { id:"ownerCenter", icon:ShieldCheck, group:"administration" }
 ];
 
 
@@ -903,10 +905,10 @@ export default function App() {
   const defaultWarehouseId=assignedContext.values.warehouse_id||(warehouses.length===1?warehouses[0].id:"");
   const canManageUsers = ["owner","admin","director","manager","supervisor"].includes(currentRole);
   const isDemoSession = session?.user?.is_anonymous === true;
-  const visibleNav = nav.filter(item=>{if(isDemoSession&&["users","organization","settings"].includes(item.id))return false;if(isDemoSession&&item.id==="projects")return true;if(item.id==="dashboard")return true;if(item.id==="users")return isAdmin||canManageUsers;if(item.id==="organization")return isAdmin;if(item.id==="settings")return isAdmin||modulePermissions.settings?.can_view===true;if(isAdmin)return true;if(item.id==="projects")return accessFor("projects").canView;if(item.id==="warehouseMap")return accessFor("locations").canView;if(item.id==="controlCenter")return accessFor("reports").canView;return accessFor(item.id).canView;});
+  const visibleNav = nav.filter(item=>{if(item.id==="ownerCenter")return session?.user?.id==="710901a9-7967-45ab-8e5a-038da8081ce2"&&session?.user?.email?.toLowerCase()==="gnnamine@gmail.com";if(isDemoSession&&["users","organization","settings","ownerCenter"].includes(item.id))return false;if(isDemoSession&&item.id==="projects")return true;if(item.id==="dashboard")return true;if(item.id==="users")return isAdmin||canManageUsers;if(item.id==="organization")return isAdmin;if(item.id==="settings")return isAdmin||modulePermissions.settings?.can_view===true;if(isAdmin)return true;if(item.id==="projects")return accessFor("projects").canView;if(item.id==="warehouseMap")return accessFor("locations").canView;if(item.id==="controlCenter")return accessFor("reports").canView;return accessFor(item.id).canView;});
   const visiblePageIds=visibleNav.map(item=>item.id).join("|");
   useEffect(()=>{if(company&&!visibleNav.some(item=>item.id===page)){setPage((visibleNav[0]?.id||"dashboard") as Page);}},[company?.id,page,visiblePageIds,hasProjectAccess]);
-  const title = t[page];
+  const title = page==="ownerCenter" ? t.ownerCenter : t[page];
   const money = (value:number) => new Intl.NumberFormat(lang==="en"?"en-US":lang==="ar"?"ar-DZ":"fr-DZ",{style:"currency",currency:company?.currency_code||"DZD",maximumFractionDigits:0}).format(value||0);
   const documentGross=documentLines.reduce((sum,line)=>sum+Math.max(0,Number(line.quantity||0))*Math.max(0,Number(line.unit_price||0)),0);
   const documentLineDiscount=documentLines.reduce((sum,line)=>sum+Math.max(0,Number(line.discount||0)),0);
@@ -939,6 +941,7 @@ export default function App() {
         {!["settings","users","organization","dashboard","projects"].includes(page)&&<ProfessionalModuleReport companyId={company.id} company={company} page={page} title={title} lang={lang}/>}
         <Suspense fallback={<ModuleLoading/>}>
         <ModuleErrorBoundary resetKey={page} lang={lang}>
+        {page==="ownerCenter"&&isPlatformOwner&&<OwnerControlCenter userId={session.user.id} lang={lang}/>}
         {page==="dashboard"&&<SparePartsDashboard companyId={company.id} currency={company.currency_code||"DZD"} lang={lang} warehouses={warehouses} myScopes={myScopeAssignments} isAdmin={isAdmin} onNavigate={setPage}/> }
         {page==="warehouseMap"&&<WarehouseMap companyId={company.id} warehouses={warehouses} lang={lang} access={accessFor("locations")}/>}
          {page==="controlCenter"&&<ControlCenter companyId={company.id} lang={lang} onNavigate={setPage}/>}
