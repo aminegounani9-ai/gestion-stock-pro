@@ -302,7 +302,13 @@ export default function OwnerControlCenter({ userId, lang = "fr" }: { userId: st
     try {
       const cutoff = new Date();
       cutoff.setDate(cutoff.getDate() - 90);
-      const results = await Promise.all(["platform_audit_logs","platform_security_events","platform_app_errors","platform_deployments"].map(table => supabase.from(table).delete().lt("created_at", cutoff.toISOString())));
+      const client = supabase;
+      const results = await Promise.all([
+        client.from("platform_audit_logs").delete().lt("created_at", cutoff.toISOString()),
+        client.from("platform_security_events").delete().lt("created_at", cutoff.toISOString()),
+        client.from("platform_app_errors").delete().lt("created_at", cutoff.toISOString()),
+        client.from("platform_deployments").delete().lt("created_at", cutoff.toISOString())
+      ]);
       const failed = results.find(result => result.error);
       if (failed?.error) throw failed.error;
       setPage(0); setMessage(t.done); await load();
@@ -337,7 +343,13 @@ export default function OwnerControlCenter({ userId, lang = "fr" }: { userId: st
     if (!supabase) return;
     setBusy(true); setError(""); setMessage("");
     try {
-      const results = await Promise.all(["platform_audit_logs","platform_security_events","platform_app_errors","platform_deployments"].map(table => supabase.from(table).delete().gte("created_at", "1970-01-01T00:00:00.000Z")));
+      const client = supabase;
+      const results = await Promise.all([
+        client.from("platform_audit_logs").delete().gte("created_at", "1970-01-01T00:00:00.000Z"),
+        client.from("platform_security_events").delete().gte("created_at", "1970-01-01T00:00:00.000Z"),
+        client.from("platform_app_errors").delete().gte("created_at", "1970-01-01T00:00:00.000Z"),
+        client.from("platform_deployments").delete().gte("created_at", "1970-01-01T00:00:00.000Z")
+      ]);
       const failed = results.find(result => result.error);
       if (failed?.error) throw failed.error;
       setPage(0); setMessage(t.done); await load();
