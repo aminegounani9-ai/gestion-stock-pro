@@ -35,7 +35,7 @@ function TrendChart({days,lang,period}:{days:Row[];lang:"fr"|"en"|"ar";period:Pe
   <path d={smoothPath(outgoing)} fill="none" stroke="#e7a33e" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" className="sp-line-out" filter="url(#stock-line-glow)"/>
   {days.map((d,i)=><g key={d.key} className="sp-trend-point"><circle cx={x(i)} cy={y(d.incoming)} r="3.5" fill="#fff" stroke="#3b82f6" strokeWidth="2"><title>{d.label}: {fmt(d.incoming)} {lang==="ar"?"وارد":lang==="en"?"inbound":"entrées"}</title></circle><circle cx={x(i)} cy={y(d.outgoing)} r="3.5" fill="#fff" stroke="#e7a33e" strokeWidth="2"><title>{d.label}: {fmt(d.outgoing)} {lang==="ar"?"صادر":lang==="en"?"outbound":"sorties"}</title></circle></g>)}
   {days.filter((_,i)=>period===7||i===0||i===days.length-1||i%(period===30?5:15)===0).map(d=>{const i=days.findIndex(x=>x.key===d.key);return <text key={d.key} x={x(i)} y={H-9} textAnchor="middle" fill="#8f9bb0" fontSize="10">{d.label}</text>;})}
- </svg></div>;
+ </svg></div></div>;
 }
 export default function SparePartsDashboard({companyId,currency,lang,warehouses,myScopes,isAdmin,onNavigate}:Props){
  const t=words[lang];const [details,setDetails]=useState<Row[]>([]);const [balances,setBalances]=useState<Row[]>([]);const [requests,setRequests]=useState<Row[]>([]);const [repairs,setRepairs]=useState<Row[]>([]);const [movements,setMovements]=useState<Row[]>([]);const [warehouseCount,setWarehouseCount]=useState(0);const [supplierCount,setSupplierCount]=useState(0);const [loading,setLoading]=useState(true);const [error,setError]=useState("");const [period,setPeriod]=useState<Period>(30);
