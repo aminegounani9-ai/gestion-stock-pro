@@ -29,6 +29,13 @@ export interface Company {
   address?: string | null;
   city?: string | null;
   country?: string;
+  brand_display_name?: string | null;
+  brand_logo_url?: string | null;
+  brand_primary_color?: string;
+  brand_secondary_color?: string;
+  brand_accent_color?: string;
+  custom_domain?: string | null;
+  custom_domain_status?: "not_configured" | "pending" | "verified";
 }
 
 export interface Product {
