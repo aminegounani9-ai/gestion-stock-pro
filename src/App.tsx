@@ -9,6 +9,7 @@ import {
 import ModuleErrorBoundary from "./ModuleErrorBoundary";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 import { resolveAssignedContext, applyAssignedScopeFilter } from "./lib/assignmentScope";
+import { reportFailedLogin, reportPlatformError } from "./lib/platformTelemetry";
 import type { Company, Product } from "./lib/supabase";
 
 type Page = "dashboard" | "projects" | "requests" | "products" | "categories" | "stock" | "warehouses" | "suppliers" | "customers" | "purchases" | "sales" | "transfers" | "inventory" | "locations" | "lots" | "spareParts" | "returns" | "expenses" | "payments" | "reports" | "users" | "settings" | "organization" | "equipment" | "warehouseMap" | "controlCenter" | "ownerCenter";
@@ -649,9 +650,30 @@ export default function App() {
       } else if (result.data.user) {
         await loadCompanies(result.data.user.id);
       }
-    } catch (e:any) { flash("error",e.message); }
+    } catch (e:any) {
+      if (authMode === "login") void reportFailedLogin();
+      flash("error",e.message);
+    }
     finally { setBusy(false); }
   }
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    const report = (kind: string, message: string) => {
+      void reportPlatformError({ error_type: kind, module: page, message, company_id: company?.id || null });
+    };
+    const onError = (event: ErrorEvent) => report("window_error", event.message || "Uncaught browser error");
+    const onRejection = (event: PromiseRejectionEvent) => {
+      const reason = event.reason;
+      report("unhandled_rejection", reason instanceof Error ? reason.message : String(reason || "Unhandled promise rejection"));
+    };
+    window.addEventListener("error", onError);
+    window.addEventListener("unhandledrejection", onRejection);
+    return () => {
+      window.removeEventListener("error", onError);
+      window.removeEventListener("unhandledrejection", onRejection);
+    };
+  }, [session?.user?.id, company?.id, page]);
 
   async function startDemoAccess() {
     if (!supabase) return;
