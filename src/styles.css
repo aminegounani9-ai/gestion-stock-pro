@@ -5875,3 +5875,22 @@ body,.app-shell{color:var(--ui-text)}
  .field-mobile-shell .page-heading{display:none!important}
  .field-mobile-shell .app-footer{display:none!important}
 }
+
+
+/* Animated signed-in identity in the mobile application header */
+.mobile-user-identity{display:none}
+@media(max-width:760px){
+ .mobile-user-identity{display:flex;align-items:center;gap:9px;min-width:0;max-width:min(48vw,230px);margin-inline-start:auto;margin-inline-end:4px;padding:5px 10px 5px 6px;border:1px solid rgba(116,153,199,.24);border-radius:14px;background:linear-gradient(115deg,rgba(255,255,255,.98),rgba(239,246,255,.96));box-shadow:0 4px 14px rgba(34,75,128,.08);position:relative;overflow:hidden}
+ .mobile-user-identity:before{content:"";position:absolute;inset:0 auto 0 -55%;width:42%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.82),transparent);transform:skewX(-22deg);animation:mobileUserShimmer 4.8s ease-in-out infinite;pointer-events:none}
+ .mobile-user-avatar{position:relative;display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border-radius:11px;background:linear-gradient(145deg,#315fae,#568bd2 58%,#39a6a0);color:#fff;font-size:11px;font-weight:900;letter-spacing:.4px;box-shadow:0 3px 9px rgba(49,95,174,.24)}
+ .mobile-user-copy{position:relative;display:flex;flex-direction:column;gap:3px;min-width:0}
+ .mobile-user-copy>b{display:block;max-width:calc(min(48vw,230px) - 65px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#203b61;font-size:11px;font-weight:850;line-height:1.15}
+ .mobile-user-copy>small{display:flex;align-items:center;gap:5px;color:#64809e;font-size:9px;font-weight:750;line-height:1}
+ .mobile-user-online-dot{display:inline-block;width:7px;height:7px;flex:0 0 7px;border-radius:50%;background:#20b879;box-shadow:0 0 0 0 rgba(32,184,121,.42);animation:mobileUserOnline 1.8s ease-out infinite}
+ .field-mobile-shell .topbar{justify-content:space-between!important}
+ .field-mobile-shell .mobile-user-identity{margin-inline-start:0;margin-inline-end:auto;max-width:min(52vw,245px)}
+ .field-mobile-shell .mobile-user-copy>b{max-width:calc(min(52vw,245px) - 65px)}
+}
+@keyframes mobileUserOnline{0%{box-shadow:0 0 0 0 rgba(32,184,121,.42)}70%{box-shadow:0 0 0 6px rgba(32,184,121,0)}100%{box-shadow:0 0 0 0 rgba(32,184,121,0)}}
+@keyframes mobileUserShimmer{0%,68%,100%{left:-55%}84%{left:125%}}
+@media(prefers-reduced-motion:reduce){.mobile-user-identity:before,.mobile-user-online-dot{animation:none!important}}
