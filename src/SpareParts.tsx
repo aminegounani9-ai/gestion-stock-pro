@@ -362,7 +362,7 @@ export default function SpareParts({companyId,warehouses,suppliers,categories,my
 }
  const criticalCount=details.filter(d=>d.criticality==="critical"||d.criticality==="high").length;
  const lowCount=details.filter(d=>stockFor(d.product_id)-reservedFor(d.product_id)<=Number(d.safety_stock||0)).length;
- const abcRows=details.filter(d=>["A","B","C"].includes(String(d.abc_class||"").toUpperCase())).map(d=>({...d,abcClass:String(d.abc_class).toUpperCase() as "A"|"B"|"C"}));
+ const abcRows: any[]=details.filter((d:any)=>["A","B","C"].includes(String(d.abc_class||"").toUpperCase())).map((d:any)=>({...d,abcClass:String(d.abc_class).toUpperCase() as "A"|"B"|"C"}));
  const abcCounts={A:abcRows.filter(x=>x.abcClass==="A").length,B:abcRows.filter(x=>x.abcClass==="B").length,C:abcRows.filter(x=>x.abcClass==="C").length};
  const abcWords=lang==="ar"?{title:"تصنيف القطع حسب الأهمية",desc:"A منخفضة · B متوسطة · C حرجة",parts:"قطع",empty:"لا توجد قطع مصنفة."}:lang==="en"?{title:"Spare-part criticality classification",desc:"A — Low · B — Medium · C — Critical",parts:"parts",empty:"No classified spare parts."}:{title:"Classification des pièces par criticité",desc:"A — Faible · B — Moyenne · C — Critique",parts:"pièces",empty:"Aucune pièce classée."};
  return <section className="ops-section spare-parts-mobile" dir={lang==="ar"?"rtl":"ltr"}>
