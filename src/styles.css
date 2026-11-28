@@ -5894,3 +5894,116 @@ body,.app-shell{color:var(--ui-text)}
 @keyframes mobileUserOnline{0%{box-shadow:0 0 0 0 rgba(32,184,121,.42)}70%{box-shadow:0 0 0 6px rgba(32,184,121,0)}100%{box-shadow:0 0 0 0 rgba(32,184,121,0)}}
 @keyframes mobileUserShimmer{0%,68%,100%{left:-55%}84%{left:125%}}
 @media(prefers-reduced-motion:reduce){.mobile-user-identity:before,.mobile-user-online-dot{animation:none!important}}
+
+/* Mobile header refresh — clear identity row + balanced action dock */
+@media(max-width:760px){
+  .app-shell .topbar{
+    position:sticky!important;top:0!important;z-index:120!important;
+    display:flex!important;flex-wrap:wrap!important;align-items:center!important;
+    justify-content:space-between!important;gap:9px!important;
+    width:100%!important;height:auto!important;min-height:0!important;
+    padding:10px 12px 11px!important;margin:0!important;
+    border:0!important;border-bottom:1px solid #dce6f3!important;border-radius:0!important;
+    background:linear-gradient(135deg,rgba(255,255,255,.98),rgba(239,245,255,.97))!important;
+    box-shadow:0 7px 22px rgba(28,59,103,.10)!important;
+    backdrop-filter:blur(18px)!important;-webkit-backdrop-filter:blur(18px)!important;
+  }
+  .app-shell .topbar>.mobile-brand,
+  .app-shell .topbar>.demo-session-badge,
+  .app-shell .topbar>.top-company-select,
+  .app-shell .topbar>.breadcrumbs{display:none!important}
+  .app-shell .topbar>.mobile-user-identity{
+    order:1!important;display:flex!important;flex:1 1 auto!important;
+    min-width:0!important;width:auto!important;max-width:none!important;
+    margin:0!important;padding:6px 12px 6px 7px!important;gap:10px!important;
+    border:1px solid #d9e6f7!important;border-radius:15px!important;
+    background:linear-gradient(115deg,#ffffff 0%,#f0f6ff 62%,#e9f5f5 100%)!important;
+    box-shadow:0 4px 13px rgba(40,83,139,.09),inset 0 1px 0 #fff!important;
+  }
+  .app-shell .mobile-user-avatar{
+    flex:0 0 37px!important;width:37px!important;height:37px!important;
+    border-radius:12px!important;background:linear-gradient(145deg,#244f98,#3979c8 58%,#25a49a)!important;
+    box-shadow:0 4px 10px rgba(39,91,160,.23)!important;font-size:12px!important;
+  }
+  .app-shell .mobile-user-copy{gap:4px!important}
+  .app-shell .mobile-user-copy>b{
+    max-width:100%!important;color:#19365e!important;font-size:12px!important;
+    font-weight:900!important;letter-spacing:.05px!important;
+  }
+  .app-shell .mobile-user-copy>small{color:#66809f!important;font-size:9px!important;font-weight:800!important}
+  .app-shell .topbar>.top-actions{
+    order:2!important;display:flex!important;flex:0 0 100%!important;
+    width:100%!important;min-width:0!important;max-width:none!important;
+    align-items:center!important;justify-content:space-between!important;
+    gap:7px!important;margin:0!important;padding:8px 0 0!important;
+    border-top:1px solid rgba(190,207,230,.65)!important;
+  }
+  .app-shell .top-actions>.global-search,
+  .app-shell .top-actions>.top-avatar{display:none!important}
+  .app-shell .top-actions>.icon-btn,
+  .app-shell .top-actions>.notification-wrap,
+  .app-shell .top-actions>.mobile-logout{
+    display:inline-flex!important;position:relative!important;
+    flex:1 1 0!important;width:auto!important;min-width:0!important;
+    max-width:54px!important;height:41px!important;min-height:41px!important;
+    align-items:center!important;justify-content:center!important;gap:0!important;
+    padding:0!important;border:1px solid #dce6f3!important;border-radius:12px!important;
+    background:linear-gradient(160deg,#fff,#f2f6fc)!important;
+    color:#315b91!important;box-shadow:0 3px 8px rgba(36,68,112,.07),inset 0 1px 0 #fff!important;
+    transition:transform .18s ease,box-shadow .18s ease,background .18s ease!important;
+  }
+  .app-shell .top-actions>.icon-btn:active,
+  .app-shell .top-actions>.notification-wrap:active,
+  .app-shell .top-actions>.mobile-logout:active{transform:scale(.94)!important}
+  .app-shell .top-actions>.icon-btn span{display:none!important}
+  .app-shell .top-actions>.scanner-trigger{
+    display:inline-flex!important;flex:1.15 1 0!important;max-width:58px!important;
+    background:linear-gradient(145deg,#2863bd,#4388dc)!important;
+    border-color:#2d70c7!important;color:#fff!important;
+    box-shadow:0 4px 11px rgba(43,105,190,.24)!important;
+  }
+  .app-shell .top-actions>.language-trigger{color:#365f9c!important}
+  .app-shell .top-actions>.install-trigger{color:#247d76!important}
+  .app-shell .top-actions>.icon-btn[title="Import / Export Excel"]{color:#3c6c9c!important}
+  .app-shell .top-actions>.notification-wrap{
+    flex:1 1 0!important;max-width:54px!important;overflow:visible!important;
+  }
+  .app-shell .top-actions>.notification-wrap>.icon-btn{
+    display:inline-flex!important;width:100%!important;height:100%!important;
+    min-width:0!important;align-items:center!important;justify-content:center!important;
+    padding:0!important;border:0!important;border-radius:inherit!important;background:transparent!important;
+    color:#315b91!important;box-shadow:none!important;
+  }
+  .app-shell .top-actions>.notification-wrap .notification-badge{
+    top:3px!important;right:3px!important;min-width:15px!important;height:15px!important;
+    padding:0 3px!important;border:2px solid #f6f9ff!important;font-size:8px!important;
+  }
+  .app-shell .top-actions>.mobile-logout{
+    color:#c34d58!important;border-color:#f0dfe3!important;
+    background:linear-gradient(160deg,#fff,#fff4f5)!important;
+  }
+  .app-shell .top-actions>.notification-wrap .notification-popover{
+    position:fixed!important;top:112px!important;left:10px!important;right:10px!important;
+    width:auto!important;max-width:none!important;max-height:calc(100dvh - 135px)!important;
+    overflow:auto!important;border:1px solid #dce6f3!important;border-radius:16px!important;
+    box-shadow:0 18px 48px rgba(22,43,75,.22)!important;
+  }
+  .app-shell .top-actions>.notification-wrap .notification-dismiss{position:fixed!important;inset:0!important}
+  .app-shell .top-actions>.notification-wrap .notification-popover-head{position:sticky!important;top:0!important}
+  .app-shell .page-content{padding-top:12px!important}
+  .app-shell .topbar .mobile-user-identity:before{opacity:.7}
+}
+@media(max-width:390px){
+  .app-shell .topbar{padding:8px 9px 9px!important;gap:7px!important}
+  .app-shell .mobile-user-avatar{flex-basis:34px!important;width:34px!important;height:34px!important}
+  .app-shell .mobile-user-copy>b{font-size:11px!important}
+  .app-shell .top-actions>.icon-btn,
+  .app-shell .top-actions>.notification-wrap,
+  .app-shell .top-actions>.mobile-logout{height:39px!important;min-height:39px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .app-shell .top-actions>.icon-btn,
+  .app-shell .top-actions>.notification-wrap,
+  .app-shell .top-actions>.mobile-logout{transition:none!important}
+}
+
