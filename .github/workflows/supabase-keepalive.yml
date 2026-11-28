@@ -1,0 +1,61 @@
+name: Supabase Keep Alive
+
+on:
+  schedule:
+    # Four read-only database checks per day (UTC).
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-keepalive
+  cancel-in-progress: false
+
+jobs:
+  database-activity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Read Supabase public connection settings
+        id: config
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const source = fs.readFileSync('src/lib/supabase.ts', 'utf8');
+          const url = process.env.SUPABASE_URL || source.match(/\|\|\s*"(https:\/\/[^"]+\.supabase\.co)"/)?.[1];
+          const key = process.env.SUPABASE_PUBLISHABLE_KEY || source.match(/\|\|\s*"(sb_publishable_[^"]+)"/)?.[1];
+          if (!url || !key) {
+            console.error('Supabase URL or publishable key not found. Set SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY repository secrets.');
+            process.exit(1);
+          }
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `url=${url}\nkey=${key}\n`);
+          NODE
+
+      - name: Run a real read-only database query
+        env:
+          SUPABASE_URL: ${{ steps.config.outputs.url }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ steps.config.outputs.key }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          response_file="$(mktemp)"
+          status="$(curl --silent --show-error --output "$response_file" --write-out "%{http_code}" \
+            --get "$SUPABASE_URL/rest/v1/companies" \
+            --data-urlencode "select=id" \
+            --data-urlencode "limit=1" \
+            --header "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            --header "Authorization: Bearer $SUPABASE_PUBLISHABLE_KEY" \
+            --header "Accept: application/json")"
+          cat "$response_file"
+          echo
+          if [[ ! "$status" =~ ^2[0-9][0-9]$ ]]; then
+            echo "Supabase database request failed with HTTP $status"
+            exit 1
+          fi
+          echo "Supabase responded successfully to a read-only query on public.companies (HTTP $status)."
