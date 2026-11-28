@@ -6007,3 +6007,31 @@ body,.app-shell{color:var(--ui-text)}
   .app-shell .top-actions>.mobile-logout{transition:none!important}
 }
 
+/* Mobile company switcher in the top header */
+.mobile-company-switch{display:none}
+@media(max-width:760px){
+ .app-shell .topbar>.mobile-company-switch{
+   order:1!important;display:flex!important;align-items:center!important;gap:7px!important;
+   flex:0 1 auto!important;min-width:0!important;max-width:100%!important;
+   height:36px!important;padding:0 10px!important;margin:0!important;
+   border:1px solid #cbdcf2!important;border-radius:11px!important;
+   background:linear-gradient(135deg,#edf4ff,#e4efff)!important;
+   color:#2f65aa!important;box-shadow:0 3px 10px rgba(43,91,151,.10),inset 0 1px 0 #fff!important;
+ }
+ .app-shell .mobile-company-switch>svg:first-child{flex:0 0 auto!important}
+ .app-shell .mobile-company-switch>svg:last-child{flex:0 0 auto!important;opacity:.75!important}
+ .app-shell .mobile-company-switch>select{
+   appearance:none!important;-webkit-appearance:none!important;
+   width:auto!important;min-width:0!important;max-width:min(48vw,210px)!important;
+   height:34px!important;padding:0!important;margin:0!important;
+   border:0!important;outline:0!important;background:transparent!important;
+   color:#244a7c!important;font-size:10px!important;font-weight:850!important;
+   text-overflow:ellipsis!important;white-space:nowrap!important;
+ }
+ .app-shell .topbar>.mobile-user-identity{order:2!important;flex:1 1 100%!important;max-width:none!important}
+ .app-shell .topbar>.top-actions{order:3!important}
+}
+@media(max-width:390px){
+ .app-shell .mobile-company-switch{height:34px!important;padding:0 8px!important;gap:5px!important}
+ .app-shell .mobile-company-switch>select{font-size:9px!important;max-width:55vw!important}
+}
